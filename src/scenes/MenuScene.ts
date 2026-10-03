@@ -74,7 +74,8 @@ export class MenuScene extends BaseScene {
     if (!saves) return;
     const { slot, overwrites } = saves.slotForNewGame();
     const start = () => this.goTo('Game', { slot, seed: Rng.seedFromTime() });
-    if (overwrites) confirm(this, t('menuNewGame'), t('newGameConfirm'), start, true);
+    const old = saves.list()[slot];
+    if (overwrites) confirm(this, t('menuNewGame'), t('newGameConfirm', { name: old?.name ?? '', day: old?.day ?? 1 }), start, true);
     else start();
   }
 

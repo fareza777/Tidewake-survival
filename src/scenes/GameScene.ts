@@ -11,7 +11,7 @@ import { TerrainLayer, TILE } from '@/gfx/TerrainLayer';
 import { WorldObjects } from '@/gfx/WorldObjects';
 import { controls, resetControls, takeAction } from '@/game/input';
 import { advance, newClock, type Clock } from '@/sim/daynight';
-import { hitNode, isAlive, startNewDay, type GatherState } from '@/sim/gather';
+import { hitNode, isAlive, sanitizeGather, startNewDay, type GatherState } from '@/sim/gather';
 import { nearestNode } from '@/sim/interact';
 import { moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import { nodesByTile, propSolidTiles } from '@/sim/solids';
@@ -74,7 +74,7 @@ export class GameScene extends BaseScene {
     if (!loaded) saves?.write(this.slotData);
 
     this.clock = this.slotData.clock;
-    this.gather = this.slotData.gather;
+    this.gather = sanitizeGather(this.slotData.gather, this.world.resources.length);
     this.bag = this.slotData.bag;
     this.playTime = this.slotData.playTimeSec;
     this.pos = { ...this.slotData.player };

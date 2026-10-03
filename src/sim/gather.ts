@@ -42,6 +42,22 @@ export function hitNode(state: GatherState, node: ResourceNode, damage: number, 
 }
 
 /**
+ * Keep only entries whose id is a node of the current island. A hand-edited save, or a later change to the generator
+ * (node ids are positions in the scatter order), can leave ids that point at no node.
+ */
+export function sanitizeGather(state: GatherState, nodeCount: number): GatherState {
+  const keep = (rec: Readonly<Record<number, number>>): Record<number, number> => {
+    const out: Record<number, number> = {};
+    for (const [key, value] of Object.entries(rec)) {
+      const id = Number(key);
+      if (Number.isInteger(id) && id >= 0 && id < nodeCount) out[id] = value;
+    }
+    return out;
+  };
+  return { hp: keep(state.hp), gone: keep(state.gone) };
+}
+
+/**
  * Call when a new in-game day starts: damaged nodes heal and nodes destroyed RESPAWN_DAYS ago grow back.
  * `keepGone(id)` lets the caller postpone a regrowth (for example while the player stands on that tile).
  */

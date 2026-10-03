@@ -11,8 +11,8 @@ export const UI_STRINGS: Record<string, L10n> = {
   menuRate: { en: 'Rate', id: 'Beri Nilai' },
   version: { en: 'v{v}', id: 'v{v}' },
   newGameConfirm: {
-    en: 'Starting a new game replaces the latest save. Continue?',
-    id: 'Game baru akan menimpa simpanan terakhir. Lanjutkan?',
+    en: 'All save slots are full. A new game replaces the oldest save ({name}, Day {day}). Continue?',
+    id: 'Semua slot penuh. Game baru akan menimpa simpanan terlama ({name}, Hari {day}). Lanjutkan?',
   },
   cancel: { en: 'Cancel', id: 'Batal' },
   confirm: { en: 'Confirm', id: 'Konfirmasi' },

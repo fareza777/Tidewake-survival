@@ -28,6 +28,19 @@ describe('item names', () => {
   });
 });
 
+describe('new game confirmation', () => {
+  it('names the save that will be replaced, in both languages', () => {
+    for (const lang of ['en', 'id'] as const) {
+      setLang(lang);
+      const text = t('newGameConfirm', { name: 'Ari', day: 4 });
+      expect(text, lang).toContain('Ari');
+      expect(text, lang).toContain('4');
+      expect(text, lang).not.toContain('{');
+    }
+    setLang('en');
+  });
+});
+
 describe('t / tr', () => {
   it('translates by key in the current language and fills variables', () => {
     setLang('en');

@@ -135,6 +135,13 @@ describe('parseSlot', () => {
     expect(parseSlot({ ...valid(), clock: { day: 0, t: 1 } }, 0)).toBeNull();
   });
 
+  it('rejects a clock that cannot belong to a real save (a huge time of day would hang the game)', () => {
+    expect(parseSlot({ ...valid(), clock: { day: 1, t: 1e300 } }, 0)).toBeNull();
+    expect(parseSlot({ ...valid(), clock: { day: 1, t: 600 } }, 0)).toBeNull();
+    expect(parseSlot({ ...valid(), clock: { day: 1e7, t: 10 } }, 0)).toBeNull();
+    expect(parseSlot({ ...valid(), clock: { day: 3, t: 599.9 } }, 0)?.clock).toEqual({ day: 3, t: 599.9 });
+  });
+
   it('rejects a save from a newer game version', () => {
     expect(parseSlot({ ...valid(), version: 99 }, 0)).toBeNull();
   });

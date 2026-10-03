@@ -1,8 +1,10 @@
-import type { Clock } from '@/sim/daynight';
+import { DAY_SECONDS, type Clock } from '@/sim/daynight';
 import { emptyGather, type GatherState } from '@/sim/gather';
 
 export const SAVE_VERSION = 1;
 export const SLOT_COUNT = 3;
+/** A save claiming more days than this is corrupt (real games last far fewer). */
+const MAX_DAY = 1_000_000;
 
 export type Difficulty = 'relaxed' | 'normal' | 'hardcore';
 const DIFFICULTIES: readonly Difficulty[] = ['relaxed', 'normal', 'hardcore'];
@@ -62,7 +64,9 @@ export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
   const player = d.player as Record<string, unknown> | undefined;
   const clock = d.clock as Record<string, unknown> | undefined;
   if (!player || !isNum(player.x) || !isNum(player.y)) return null;
-  if (!clock || !isNum(clock.day) || clock.day < 1 || !isNum(clock.t) || clock.t < 0) return null;
+  if (!clock || !isNum(clock.day) || clock.day < 1 || clock.day > MAX_DAY) return null;
+  // The time of day is always inside one day; a huge value would make the clock loop for ages.
+  if (!isNum(clock.t) || clock.t < 0 || clock.t >= DAY_SECONDS) return null;
   const gather = d.gather as Record<string, unknown> | undefined;
   const bag = d.bag === undefined ? {} : d.bag;
   if (!isRecordOfNumbers(bag)) return null;

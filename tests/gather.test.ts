@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '@/core/rng';
 import { RESOURCES } from '@/data/resources';
-import { RESPAWN_DAYS, emptyGather, hitNode, isAlive, startNewDay } from '@/sim/gather';
+import { RESPAWN_DAYS, emptyGather, hitNode, isAlive, sanitizeGather, startNewDay } from '@/sim/gather';
 import type { ResourceNode } from '@/sim/world/types';
 
 const tree: ResourceNode = { id: 7, kind: 'tree', x: 10, y: 10, variant: 3 };
@@ -74,5 +74,21 @@ describe('startNewDay', () => {
     const next = startNewDay(s, 1 + RESPAWN_DAYS);
     expect(isAlive(next, rock.id)).toBe(true);
     expect(isAlive(next, tree.id)).toBe(false);
+  });
+});
+
+describe('sanitizeGather', () => {
+  it('drops ids that are not nodes of this island (a hand-edited save, or a changed generator)', () => {
+    const dirty = { hp: { 3: 2, '-3': 1, 99999: 4 }, gone: { 5: 1, 10: 2, 1.5: 3 } } as unknown as Parameters<typeof sanitizeGather>[0];
+    const clean = sanitizeGather(dirty, 10);
+    expect(clean.hp).toEqual({ 3: 2 });
+    expect(clean.gone).toEqual({ 5: 1 });
+  });
+
+  it('returns a new object and leaves valid state alone', () => {
+    const state = { hp: { 1: 2 }, gone: { 2: 3 } };
+    const out = sanitizeGather(state, 5);
+    expect(out).toEqual(state);
+    expect(out).not.toBe(state);
   });
 });
