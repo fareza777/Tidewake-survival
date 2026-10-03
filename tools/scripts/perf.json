@@ -1,0 +1,13 @@
+[
+  {"goto": "http://localhost:5188/"},
+  {"eval": "localStorage.clear()"},
+  {"goto": "http://localhost:5188/"},
+  {"until": "window.__game && __game.scene.isActive('Menu')", "timeout": 20000},
+  {"eval": "window.__t0 = performance.now(); __game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 777})"},
+  {"until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')", "timeout": 20000},
+  {"eval": "'ms from tap to Game: ' + Math.round(performance.now() - window.__t0)"},
+  {"wait": 3000},
+  {"press": "ArrowUp", "ms": 3000},
+  {"eval": "'fps: ' + Math.round(__game.loop.actualFps)"},
+  {"profile": 3000, "top": 12}
+]
