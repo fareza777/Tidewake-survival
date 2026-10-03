@@ -1,11 +1,12 @@
 import type { ResourceKind } from '@/sim/world/types';
-
-export type DropId = 'wood' | 'stone' | 'coconut' | 'berries' | 'fiber' | 'iron_ore' | 'crystal';
+import type { ItemId } from './items';
 
 export interface Drop {
-  item: DropId;
+  item: ItemId;
   min: number;
   max: number;
+  /** Probability that this drop happens at all (default 1). */
+  chance?: number;
 }
 
 export interface ResourceDef {
@@ -20,17 +21,27 @@ export const RESOURCES: Record<ResourceKind, ResourceDef> = {
   tree: {
     frames: ['p/tree_02', 'p/tree_04', 'p/tree_13', 'p/tree_03', 'p/tree_01'],
     hp: 5,
-    drops: [{ item: 'wood', min: 2, max: 4 }],
+    drops: [{ item: 'wood', min: 2, max: 4 }, { item: 'fiber', min: 1, max: 1, chance: 0.35 }],
   },
   palm: {
     frames: ['p/tree_06', 'p/tree_07'],
     hp: 4,
-    drops: [{ item: 'wood', min: 1, max: 2 }, { item: 'coconut', min: 0, max: 1 }],
+    drops: [
+      { item: 'wood', min: 1, max: 2 },
+      { item: 'coconut', min: 1, max: 1, chance: 0.7 },
+      { item: 'fiber', min: 1, max: 2, chance: 0.5 },
+      { item: 'corn_seed', min: 1, max: 1, chance: 0.2 },
+    ],
   },
   bush: {
     frames: ['p/tree_30', 'p/tree_31'],
     hp: 2,
-    drops: [{ item: 'berries', min: 1, max: 3 }, { item: 'fiber', min: 0, max: 1 }],
+    drops: [
+      { item: 'berries', min: 1, max: 3 },
+      { item: 'fiber', min: 1, max: 2 },
+      { item: 'carrot_seed', min: 1, max: 1, chance: 0.3 },
+      { item: 'turnip_seed', min: 1, max: 1, chance: 0.3 },
+    ],
   },
   rock: {
     frames: ['p/rock_18', 'p/rock_19', 'p/rock_20', 'p/rock_36'],
@@ -50,7 +61,11 @@ export const RESOURCES: Record<ResourceKind, ResourceDef> = {
   swamptree: {
     frames: ['p/tree_15', 'p/tree_16', 'p/tree_17', 'p/tree_18'],
     hp: 5,
-    drops: [{ item: 'wood', min: 2, max: 3 }, { item: 'fiber', min: 0, max: 1 }],
+    drops: [
+      { item: 'wood', min: 2, max: 3 },
+      { item: 'fiber', min: 1, max: 2, chance: 0.5 },
+      { item: 'pumpkin_seed', min: 1, max: 1, chance: 0.15 },
+    ],
   },
   redrock: {
     frames: ['p/rock_02', 'p/rock_03', 'p/rock_07', 'p/rock_08'],

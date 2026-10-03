@@ -77,6 +77,29 @@ describe('startNewDay', () => {
   });
 });
 
+describe('drop chances', () => {
+  const palm: ResourceNode = { id: 20, kind: 'palm', x: 5, y: 5, variant: 0 };
+  const bushNode: ResourceNode = { id: 21, kind: 'bush', x: 6, y: 5, variant: 0 };
+
+  it('makes chance drops come and go, but always gives the certain ones', () => {
+    const coconuts = new Set<boolean>();
+    for (let seed = 0; seed < 60; seed++) {
+      const r = hitNode(emptyGather(), palm, 99, 1, new Rng(seed));
+      coconuts.add(r.drops.some((d) => d.item === 'coconut'));
+      expect(r.drops.some((d) => d.item === 'wood')).toBe(true);
+    }
+    expect(coconuts.size).toBe(2);
+  });
+
+  it('only ever drops seeds from nodes that list them', () => {
+    const seeds = new Set<string>();
+    for (let seed = 0; seed < 200; seed++) {
+      for (const d of hitNode(emptyGather(), bushNode, 99, 1, new Rng(seed)).drops) if (d.item.endsWith('_seed')) seeds.add(d.item);
+    }
+    expect([...seeds].sort()).toEqual(['carrot_seed', 'turnip_seed']);
+  });
+});
+
 describe('sanitizeGather', () => {
   it('drops ids that are not nodes of this island (a hand-edited save, or a changed generator)', () => {
     const dirty = { hp: { 3: 2, '-3': 1, 99999: 4 }, gone: { 5: 1, 10: 2, 1.5: 3 } } as unknown as Parameters<typeof sanitizeGather>[0];

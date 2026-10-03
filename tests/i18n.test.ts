@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getLang, setLang, t, tr } from '@/core/i18n';
+import { ITEM_IDS } from '@/data/items';
 import { RESOURCES } from '@/data/resources';
 import { UI_STRINGS } from '@/data/strings';
 
@@ -25,6 +26,15 @@ describe('item names', () => {
     for (const def of Object.values(RESOURCES)) {
       for (const d of def.drops) expect(UI_STRINGS[`item_${d.item}`], `name for ${d.item}`).toBeDefined();
     }
+  });
+});
+
+describe('item and tool names', () => {
+  it('names every item in the catalog in both languages', () => {
+    for (const id of ITEM_IDS) expect(UI_STRINGS[`item_${id}`], id).toBeDefined();
+    for (const tool of ['axe', 'pickaxe', 'hoe', 'can']) expect(UI_STRINGS[`tool_${tool}`], tool).toBeDefined();
+    for (const station of ['hand', 'campfire', 'workbench', 'furnace']) expect(UI_STRINGS[`station_${station}`], station).toBeDefined();
+    for (const why of ['bounds', 'water', 'occupied', 'far', 'hero']) expect(UI_STRINGS[`msgPlace_${why}`], why).toBeDefined();
   });
 });
 

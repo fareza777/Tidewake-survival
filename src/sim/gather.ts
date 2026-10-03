@@ -1,5 +1,6 @@
 import type { Rng } from '@/core/rng';
-import { RESOURCES, type DropId } from '@/data/resources';
+import type { ItemId } from '@/data/items';
+import { RESOURCES } from '@/data/resources';
 import type { ResourceNode } from '@/sim/world/types';
 
 /** Days a destroyed node takes to grow back. */
@@ -15,7 +16,7 @@ export interface GatherState {
 }
 
 export interface DropResult {
-  item: DropId;
+  item: ItemId;
   amount: number;
 }
 
@@ -36,6 +37,7 @@ export function hitNode(state: GatherState, node: ResourceNode, damage: number, 
   if (left > 0) return { state: { hp: { ...state.hp, [node.id]: left }, gone: state.gone }, drops: [], destroyed: false };
   const { [node.id]: _removed, ...hp } = state.hp;
   const drops = def.drops
+    .filter((d) => d.chance === undefined || rng.chance(d.chance))
     .map((d) => ({ item: d.item, amount: rng.int(d.min, d.max) }))
     .filter((d) => d.amount > 0);
   return { state: { hp, gone: { ...state.gone, [node.id]: day } }, drops, destroyed: true };
