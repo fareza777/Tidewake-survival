@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Rng } from '@/core/rng';
 import { CREATURES, isHostileKind } from '@/data/creatures';
 import { newCreature, type Creature } from '@/sim/creatures';
+import { bodyBlocked } from '@/sim/movement';
 import {
   DESPAWN_RADIUS, SPAWN_MAX, SPAWN_MIN, START_SAFE_RADIUS, capsFor, cull, hostileSpotOk, trySpawn, type SpawnContext,
 } from '@/sim/spawner';
@@ -114,6 +115,24 @@ describe('trySpawn', () => {
       if (c) seen.add(isHostileKind(c.kind) ? 'hostile' : 'animal');
     }
     expect(seen.has('hostile')).toBe(true);
+  });
+
+  it('only spawns where the whole body fits, never overlapping a tree or rock next to the spot', () => {
+    const solids = new Set<number>();
+    for (let y = 40; y < 120; y++) for (let x = 40; x < 120; x++) if ((x + y) % 2 === 0) solids.add(idx(x, y));
+    let spawned = 0;
+    for (let seed = 1; seed <= 300; seed++) {
+      const c = trySpawn(ctx({ solids, rng: new Rng(seed) }));
+      if (!c) continue;
+      spawned++;
+      expect(bodyBlocked(makeWorld(), solids, c.x, c.y, CREATURES[c.kind].radius), `seed ${seed}`).toBe(false);
+    }
+    expect(spawned).toBeGreaterThan(0);
+    const clear = new Set<number>([idx(100, 80), idx(100, 79)]);
+    for (let seed = 1; seed <= 100; seed++) {
+      const c = trySpawn(ctx({ solids: clear, rng: new Rng(seed) }));
+      if (c) expect(bodyBlocked(makeWorld(), clear, c.x, c.y, CREATURES[c.kind].radius)).toBe(false);
+    }
   });
 
   it('does not stack a new creature on one that is already there', () => {

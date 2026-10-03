@@ -176,6 +176,18 @@ describe('hurtCreature', () => {
     expect(idle.state).toBe('chase');
   });
 
+  it('turns on the hero at once, with no leftover idling or detour, when hit from beyond its sight', () => {
+    const idle = at('slime', 20.5, 20.5, { state: 'idle', timer: 3 });
+    const hero = { x: 27, y: 20.5 };
+    const hit = hurtCreature(idle, 1, { x: 0, y: 0 }).creature;
+    expect(hit).toMatchObject({ state: 'chase', timer: 0, headX: 0, headY: 0 });
+    const r = run({ ...hit, stun: 0 }, hero, 0.5);
+    expect(r.c.x).toBeGreaterThan(20.8);
+    const walking = at('boar', 20.5, 20.5, { state: 'wander', timer: 2, headX: -1, headY: 0 });
+    const away = run({ ...hurtCreature(walking, 1, { x: 0, y: 0 }).creature, stun: 0 }, { x: 26, y: 20.5 }, 0.5);
+    expect(away.c.x).toBeGreaterThan(20.5);
+  });
+
   it('pushes it back, stopped by walls, and does nothing else while staggered', () => {
     const hit = hurtCreature(at('slime', 28.5, 20.5), 1, { x: 1.5, y: 0 }).creature;
     const r = run(hit, { x: 100, y: 100 }, 0.2);

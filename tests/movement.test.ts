@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PLAYER_HALF, WADE_SPEED, moveWithCollision, speedFactor, tileBlocked } from '@/sim/movement';
+import { PLAYER_HALF, WADE_SPEED, bodyBlocked, moveWithCollision, speedFactor, tileBlocked } from '@/sim/movement';
 import { T, WORLD_SIZE, idx, type World } from '@/sim/world/types';
 
 /** A tiny all-grass world with a deep-water column at x = 8 and a river tile at (3, 3). */
@@ -57,6 +57,16 @@ describe('moveWithCollision', () => {
   it('allows wading into shallow water and rivers', () => {
     const p = moveWithCollision(makeWorld(), none, { x: 2.7, y: 3.5 }, 0.5, 0);
     expect(p.x).toBeCloseTo(3.2);
+  });
+});
+
+describe('bodyBlocked', () => {
+  it('is true when any part of a body of that size touches a blocked tile', () => {
+    const solids = new Set([idx(6, 5)]);
+    expect(bodyBlocked(makeWorld(), solids, 5.5, 5.5, 0.3)).toBe(false);
+    expect(bodyBlocked(makeWorld(), solids, 5.8, 5.5, 0.3)).toBe(true);
+    expect(bodyBlocked(makeWorld(), solids, 5.8, 5.5, 0.1)).toBe(false);
+    expect(bodyBlocked(makeWorld(), none, 7.9, 5.5, 0.3)).toBe(true);
   });
 });
 

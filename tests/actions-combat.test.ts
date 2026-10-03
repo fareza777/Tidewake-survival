@@ -49,6 +49,16 @@ describe('the bow', () => {
   });
 });
 
+describe('a hero at zero hit points', () => {
+  it('can do nothing at all, so no action can heal him before the death check', () => {
+    const down = { ...fullVitals(), hp: 0 };
+    expect(resolveAction(ctx({ hold: 'cooked_meat', vitals: { ...down, hunger: 10 } }))).toEqual({ kind: 'none' });
+    const bed = placeStructure(emptyStructures(), 'bed', 11, 10);
+    expect(resolveAction(ctx({ structures: bed, vitals: down }))).toEqual({ kind: 'none' });
+    expect(resolveAction(ctx({ hold: 'sword_wood', creature: true, vitals: down }))).toEqual({ kind: 'none' });
+  });
+});
+
 describe('melee', () => {
   it('swings a sword or spear when something is within reach', () => {
     expect(resolveAction(ctx({ hold: 'sword_iron', creature: true }))).toEqual({ kind: 'attack', melee: meleeFor('sword_iron') });
@@ -64,6 +74,21 @@ describe('melee', () => {
   it('lets bare hands and tools fight back, ahead of chopping', () => {
     expect(resolveAction(ctx({ creature: true }))).toEqual({ kind: 'attack', melee: meleeFor(null) });
     expect(resolveAction(ctx({ hold: 'axe_stone', creature: true, node: tree }))).toEqual({ kind: 'attack', melee: meleeFor('axe_stone') });
+  });
+
+  it('lets a hoe, a watering can, seeds and food that would be wasted fight back when there is nothing for them to do', () => {
+    const attack = { kind: 'attack', melee: expect.objectContaining({ damage: expect.any(Number) }) };
+    const sand = { x: 11, y: 10 };
+    const world = makeWorld();
+    world.terrain[idx(sand.x, sand.y)] = T.SAND;
+    expect(resolveAction(ctx({ hold: 'hoe', creature: true, world }))).toMatchObject(attack);
+    expect(resolveAction(ctx({ hold: 'watering_can', creature: true }))).toMatchObject(attack);
+    expect(resolveAction(ctx({ hold: 'carrot_seed', creature: true }))).toMatchObject(attack);
+    expect(resolveAction(ctx({ hold: 'cooked_meat', creature: true }))).toMatchObject(attack);
+  });
+
+  it('still tills with a hoe on tillable ground even if a creature is near', () => {
+    expect(kind(resolveAction(ctx({ hold: 'hoe', creature: true })))).toBe('till');
   });
 
   it('is blocked when the hero is too tired to swing', () => {

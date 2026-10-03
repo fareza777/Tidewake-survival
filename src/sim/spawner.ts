@@ -2,7 +2,7 @@ import type { Rng } from '@/core/rng';
 import { CREATURES, isHostileKind, spawnWeights } from '@/data/creatures';
 import { STRUCTURES } from '@/data/structures';
 import { newCreature, type Creature } from '@/sim/creatures';
-import type { Vec } from '@/sim/movement';
+import { bodyBlocked, type Vec } from '@/sim/movement';
 import type { Structures } from '@/sim/structures';
 import { T, idx, inBounds, type Biome, type World } from '@/sim/world/types';
 
@@ -71,6 +71,8 @@ export function trySpawn(c: SpawnContext): Creature | null {
     if (roster.length === 0) continue;
     const kind = c.rng.weighted(roster);
     if (isHostileKind(kind) && !hostileSpotOk(c.world, c.structures, Math.floor(x), Math.floor(y))) continue;
+    // The whole body must fit: a monster that starts overlapping a tree or rock would walk straight through it.
+    if (bodyBlocked(c.world, c.solids, x, y, CREATURES[kind].radius)) continue;
     return newCreature(c.nextId, kind, x, y, c.rng);
   }
   return null;

@@ -77,8 +77,11 @@ export function hurtCreature(c: Creature, amount: number, push: Vec): HurtResult
   const hp = Math.max(0, c.hp - amount);
   if (hp === 0) return { creature: { ...c, hp }, dead: true };
   const state: CreatureState = c.state === 'windup' ? 'recover' : c.state === 'idle' || c.state === 'wander' ? 'chase' : c.state;
-  const timer = c.state === 'windup' ? CREATURES[c.kind].cooldown * 0.5 : c.timer;
-  return { creature: { ...c, hp, angry: true, state, timer, stun: HURT_STUN, pushX: push.x, pushY: push.y }, dead: false };
+  // Going from idling or strolling to hunting must drop the old countdown and heading, or they would pass for a detour.
+  const unsettled = c.state === 'idle' || c.state === 'wander';
+  const timer = c.state === 'windup' ? CREATURES[c.kind].cooldown * 0.5 : unsettled ? 0 : c.timer;
+  const heading = unsettled ? { headX: 0, headY: 0 } : {};
+  return { creature: { ...c, ...heading, hp, angry: true, state, timer, stun: HURT_STUN, pushX: push.x, pushY: push.y }, dead: false };
 }
 
 const heroDistance = (c: Creature, hero: Vec): number => Math.hypot(hero.x - c.x, hero.y - c.y);

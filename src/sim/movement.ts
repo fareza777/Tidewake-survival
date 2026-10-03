@@ -17,7 +17,8 @@ export function tileBlocked(world: World, solids: ReadonlySet<number>, tx: numbe
   return world.terrain[i] === T.DEEP || solids.has(i);
 }
 
-function boxBlocked(world: World, solids: ReadonlySet<number>, x: number, y: number, half: number): boolean {
+/** Does a body of half-width `half` centred on (x, y) touch deep water, the map edge or a solid tile? */
+export function bodyBlocked(world: World, solids: ReadonlySet<number>, x: number, y: number, half: number): boolean {
   const x0 = Math.floor(x - half);
   const x1 = Math.floor(x + half);
   const y0 = Math.floor(y - half);
@@ -39,12 +40,12 @@ export function moveWithCollision(
 ): Vec {
   let { x, y } = pos;
   // Already inside something solid (it should not happen, but a stuck player must always be able to walk out).
-  if (boxBlocked(world, solids, x, y, half)) {
+  if (bodyBlocked(world, solids, x, y, half)) {
     const max = world.size - 0.01;
     return { x: Math.min(max, Math.max(0.01, x + dx)), y: Math.min(max, Math.max(0.01, y + dy)) };
   }
-  if (dx !== 0 && !boxBlocked(world, solids, x + dx, y, half)) x += dx;
-  if (dy !== 0 && !boxBlocked(world, solids, x, y + dy, half)) y += dy;
+  if (dx !== 0 && !bodyBlocked(world, solids, x + dx, y, half)) x += dx;
+  if (dy !== 0 && !bodyBlocked(world, solids, x, y + dy, half)) y += dy;
   return { x, y };
 }
 

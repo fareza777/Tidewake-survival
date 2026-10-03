@@ -77,8 +77,14 @@ export function resolveAction(c: ActionContext): Action {
   const { x, y } = frontTile(c.pos, c.facing);
   const inside = inBounds(x, y, c.world.size);
   const tile = inside ? idx(x, y, c.world.size) : -1;
+  // A hero with no hit points left does nothing: no action may heal him before the death check runs.
+  if (c.vitals.hp <= 0) return NONE;
   const slot = c.inv[c.selected] ?? null;
   const def = slot ? ITEMS[slot.item] : null;
+  // What a blow with the held item would be, offered whenever the item has nothing else to do and a creature is in reach.
+  const melee = meleeFor(slot?.item ?? null);
+  const fight: Action = c.vitals.stamina < melee.stamina ? blocked({ reason: 'tired' }) : { kind: 'attack', melee };
+  const orFight = c.creature ? fight : NONE;
 
   const structure = inside ? structureAt(c.structures, x, y) : undefined;
   if (structure) {
@@ -93,20 +99,20 @@ export function resolveAction(c: ActionContext): Action {
   if (plot && isRipe(plot)) return { kind: 'harvest', x, y };
 
   const terrain = inside ? c.world.terrain[tile] : T.DEEP;
-  if (def?.food) return wouldWaste(c.vitals, def.food) ? NONE : { kind: 'eat', food: def.food };
+  if (def?.food) return wouldWaste(c.vitals, def.food) ? orFight : { kind: 'eat', food: def.food };
   if (def?.place) {
     const ok = canPlace(c.world, c.structures, c.occupied, x, y, c.pos, STRUCTURES[def.place].solid);
     return ok.ok ? { kind: 'place', type: def.place, x, y } : blocked({ reason: 'cannotPlace', why: ok.reason });
   }
-  if (def?.seed) return plot && !plot.crop ? { kind: 'plant', x, y, crop: def.seed } : NONE;
+  if (def?.seed) return plot && !plot.crop ? { kind: 'plant', x, y, crop: def.seed } : orFight;
   if (def?.tool?.type === 'hoe') {
-    if (!canTill(c.world, c.farm, c.occupied, x, y)) return NONE;
+    if (!canTill(c.world, c.farm, c.occupied, x, y)) return orFight;
     return c.vitals.stamina < STAMINA_TOOL ? blocked({ reason: 'tired' }) : { kind: 'till', x, y, stamina: STAMINA_TOOL };
   }
   if (def?.tool?.type === 'can') {
     if (terrain === T.RIVER) return { kind: 'refill', x, y };
     if (terrain === T.SHALLOW) return blocked({ reason: 'saltWater' });
-    if (!plot || !plot.crop || plot.watered) return NONE;
+    if (!plot || !plot.crop || plot.watered) return orFight;
     return (slot?.dur ?? 0) > 0 ? { kind: 'water', x, y } : blocked({ reason: 'canEmpty' });
   }
 
@@ -115,10 +121,7 @@ export function resolveAction(c: ActionContext): Action {
     if (c.vitals.stamina < def.weapon.stamina) return blocked({ reason: 'tired' });
     return { kind: 'shoot', stats: def.weapon };
   }
-  if (c.creature) {
-    const melee = meleeFor(slot?.item ?? null);
-    return c.vitals.stamina < melee.stamina ? blocked({ reason: 'tired' }) : { kind: 'attack', melee };
-  }
+  if (c.creature) return fight;
 
   // Facing fresh water means drinking, even if a bush or tree happens to stand within reach behind the hero.
   if (terrain === T.RIVER) return { kind: 'drink', x, y };
