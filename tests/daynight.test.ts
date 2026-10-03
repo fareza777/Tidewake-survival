@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DAY_SECONDS, NIGHT_DARKNESS, advance, canSleep, clockLabel, darkness, lighting, newClock, phaseOf, wakeUp, type Clock } from '@/sim/daynight';
+import { DAY_SECONDS, NIGHT_DARKNESS, advance, canSleep, clockLabel, darkness, isNight, lighting, newClock, phaseOf, wakeUp, type Clock } from '@/sim/daynight';
 
 const at = (f: number, day = 1): Clock => ({ day, t: f * DAY_SECONDS });
 
@@ -58,6 +58,13 @@ describe('daynight', () => {
     expect(clockLabel(at(0.25))).toBe('12:00');
     expect(clockLabel(at(0.5))).toBe('18:00');
     expect(clockLabel(at(0.9999))).toBe('05:59');
+  });
+
+  it('counts dusk and the night, not dawn or the day, as night time for the creatures that come out in the dark', () => {
+    expect(isNight(at(0.3))).toBe(false);
+    expect(isNight(at(0.05))).toBe(false);
+    expect(isNight(at(0.65))).toBe(true);
+    expect(isNight(at(0.95))).toBe(true);
   });
 
   it('lets the hero sleep only in the evening and at night, and wakes at the next dawn', () => {

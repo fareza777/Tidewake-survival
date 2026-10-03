@@ -64,8 +64,11 @@ export function lighting(c: Clock): { color: number; alpha: number } {
   return { color: lerpColor(0x0a1030, 0x7a3a50, warmth), alpha: d * 0.78 };
 }
 
+/** Dusk and the night itself: the hours when the creatures of the dark are about. */
+export const isNight = (c: Clock): boolean => phaseOf(c) === 'dusk' || phaseOf(c) === 'night';
+
 /** The hero can only sleep once evening has come. */
-export const canSleep = (c: Clock): boolean => phaseOf(c) === 'dusk' || phaseOf(c) === 'night';
+export const canSleep = isNight;
 
 /** Wake up at dawn of the next day. */
 export const wakeUp = (c: Clock): Clock => ({ day: c.day + 1, t: 0 });
