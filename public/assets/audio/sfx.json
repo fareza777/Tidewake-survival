@@ -1,0 +1,87 @@
+{
+ "resources": [
+  "sfx.ogg"
+ ],
+ "spritemap": {
+  "swing": {
+   "start": 0.0,
+   "end": 0.16,
+   "loop": false
+  },
+  "hit": {
+   "start": 0.31,
+   "end": 0.45,
+   "loop": false
+  },
+  "kill": {
+   "start": 0.6,
+   "end": 0.93,
+   "loop": false
+  },
+  "hurt": {
+   "start": 1.08,
+   "end": 1.34,
+   "loop": false
+  },
+  "shoot": {
+   "start": 1.49,
+   "end": 1.69,
+   "loop": false
+  },
+  "pickup": {
+   "start": 1.84,
+   "end": 2.02,
+   "loop": false
+  },
+  "chop": {
+   "start": 2.17,
+   "end": 2.29,
+   "loop": false
+  },
+  "mine": {
+   "start": 2.44,
+   "end": 2.64,
+   "loop": false
+  },
+  "eat": {
+   "start": 2.79,
+   "end": 3.03,
+   "loop": false
+  },
+  "drink": {
+   "start": 3.18,
+   "end": 3.4,
+   "loop": false
+  },
+  "craft": {
+   "start": 3.55,
+   "end": 3.86,
+   "loop": false
+  },
+  "place": {
+   "start": 4.01,
+   "end": 4.14,
+   "loop": false
+  },
+  "break": {
+   "start": 4.29,
+   "end": 4.51,
+   "loop": false
+  },
+  "sleep": {
+   "start": 4.66,
+   "end": 5.56,
+   "loop": false
+  },
+  "ui_click": {
+   "start": 5.71,
+   "end": 5.745,
+   "loop": false
+  },
+  "death": {
+   "start": 5.895,
+   "end": 6.835,
+   "loop": false
+  }
+ }
+}

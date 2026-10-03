@@ -11,6 +11,7 @@
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "assets": "python tools/pack_assets.py && python tools/pack_tiles.py",
+    "audio": "python tools/gen_audio.py",
     "play": "node tools/play.mjs"
   },
   "dependencies": {
