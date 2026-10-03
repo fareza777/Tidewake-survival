@@ -1,0 +1,65 @@
+import type { ResourceKind } from '@/sim/world/types';
+
+export type DropId = 'wood' | 'stone' | 'coconut' | 'berries' | 'fiber' | 'iron_ore' | 'crystal';
+
+export interface Drop {
+  item: DropId;
+  min: number;
+  max: number;
+}
+
+export interface ResourceDef {
+  /** Frame names in the `props` atlas; a node shows frames[variant % frames.length]. */
+  frames: readonly string[];
+  /** Hits (at damage 1) needed to destroy the node. */
+  hp: number;
+  drops: readonly Drop[];
+}
+
+export const RESOURCES: Record<ResourceKind, ResourceDef> = {
+  tree: {
+    frames: ['p/tree_02', 'p/tree_04', 'p/tree_13', 'p/tree_03', 'p/tree_01'],
+    hp: 5,
+    drops: [{ item: 'wood', min: 2, max: 4 }],
+  },
+  palm: {
+    frames: ['p/tree_06', 'p/tree_07'],
+    hp: 4,
+    drops: [{ item: 'wood', min: 1, max: 2 }, { item: 'coconut', min: 0, max: 1 }],
+  },
+  bush: {
+    frames: ['p/tree_30', 'p/tree_31'],
+    hp: 2,
+    drops: [{ item: 'berries', min: 1, max: 3 }, { item: 'fiber', min: 0, max: 1 }],
+  },
+  rock: {
+    frames: ['p/rock_18', 'p/rock_19', 'p/rock_20', 'p/rock_36'],
+    hp: 6,
+    drops: [{ item: 'stone', min: 2, max: 4 }],
+  },
+  ore: {
+    frames: ['p/rock_44', 'p/rock_45'],
+    hp: 9,
+    drops: [{ item: 'iron_ore', min: 1, max: 2 }, { item: 'stone', min: 1, max: 1 }],
+  },
+  crystal: {
+    frames: ['p/rock_15', 'p/rock_16', 'p/rock_17'],
+    hp: 10,
+    drops: [{ item: 'crystal', min: 1, max: 1 }],
+  },
+  swamptree: {
+    frames: ['p/tree_15', 'p/tree_16', 'p/tree_17', 'p/tree_18'],
+    hp: 5,
+    drops: [{ item: 'wood', min: 2, max: 3 }, { item: 'fiber', min: 0, max: 1 }],
+  },
+  redrock: {
+    frames: ['p/rock_02', 'p/rock_03', 'p/rock_07', 'p/rock_08'],
+    hp: 5,
+    drops: [{ item: 'stone', min: 1, max: 3 }],
+  },
+};
+
+export function resourceFrame(kind: ResourceKind, variant: number): string {
+  const frames = RESOURCES[kind].frames;
+  return frames[variant % frames.length];
+}
