@@ -6,6 +6,8 @@ import { view, vx, vy } from '@/core/viewport';
 const MAX = 34;
 const DEAD = 4;
 const FULL = 22;
+/** The bottom strip belongs to the hotbar; touches there never start the stick. */
+const HOTBAR_BAND = 50;
 
 /**
  * Touch joystick for the HUD scene. In floating mode it re-centres on the first touch in the lower-left area and
@@ -59,7 +61,7 @@ export class Joystick {
     if (this.pointerId !== null) return;
     const x = vx(p);
     const y = vy(p);
-    if (x > view.w * 0.6 || y < view.h * 0.35) return;
+    if (x > view.w * 0.6 || y < view.h * 0.35 || y > view.h - HOTBAR_BAND) return;
     // A button (or an open dialog) is under the thumb: leave the touch to it.
     if (this.scene.input.hitTestPointer(p).length > 0) return;
     this.pointerId = p.id;

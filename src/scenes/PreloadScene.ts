@@ -8,7 +8,7 @@ import { nine } from '@/ui/skin';
 import { COLORS, FONT } from '@/ui/theme';
 
 /** Sprite atlases built by tools/pack_assets.py. */
-const ATLASES = ['heroes', 'actors', 'props'];
+const ATLASES = ['heroes', 'actors', 'props', 'icons'];
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
