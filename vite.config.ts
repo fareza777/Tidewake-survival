@@ -10,7 +10,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 3000,
     rollupOptions: { output: { manualChunks: { phaser: ['phaser'] } } },
   },
-  server: { port: 5188, strictPort: true },
+  server: { port: 5199, strictPort: true },
   test: {
     environment: 'node',
     include: ['tests/**/*.test.ts'],

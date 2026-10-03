@@ -38,7 +38,7 @@ Deferred on purpose:
 - Coverage of `src/sim/**`, `src/data/**` and the testable `src/core/` files stays at least 80% lines (`npm run test:cov`).
 - The Unity pack at `E:\Pixel Games Asset Master` is read-only. API keys from `E:\Game Dev Tools.txt` are never copied into the repo.
 - Commits use `<type>: <description>` with no attribution trailer; commit locally, never push.
-- The dev server runs on port **5188** (`strictPort`); port 5173 belongs to another project of the owner. Never stop processes you did not start.
+- The dev server runs on port **5199** (`strictPort`); port 5173 belongs to another project of the owner. Never stop processes you did not start.
 
 ## Review Focus
 
@@ -69,14 +69,14 @@ tests/       one file per module group (see tasks)
 
 ## Pre-flight
 
-Run once. Expected: after committing this plan file the working tree is clean, the tag exists, 112 tests pass and port 5188 is free.
+Run once. Expected: after committing this plan file the working tree is clean, the tag exists, 112 tests pass and port 5199 is free.
 
 ```bash
 cd "E:/RPG Survival Sprite Sonnet 55"
 git add docs && git commit -m "docs: add plan 2 for survival systems"
 git status --short && git tag --list phase-1
 npm test 2>&1 | tail -4
-curl -s -o /dev/null -w "port 5188 answers: %{http_code}\n" http://localhost:5188/ || echo "port 5188 is free"
+curl -s -o /dev/null -w "port 5199 answers: %{http_code}\n" http://localhost:5199/ || echo "port 5199 is free"
 ```
 
 ---
@@ -3135,7 +3135,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 3000,
     rollupOptions: { output: { manualChunks: { phaser: ['phaser'] } } },
   },
-  server: { port: 5188, strictPort: true },
+  server: { port: 5199, strictPort: true },
   test: {
     environment: 'node',
     include: ['tests/**/*.test.ts'],
@@ -5916,7 +5916,7 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
   {
-    "goto": "http://localhost:5188/"
+    "goto": "http://localhost:5199/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
@@ -5941,13 +5941,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
   {
-    "goto": "http://localhost:5188/"
+    "goto": "http://localhost:5199/"
   },
   {
     "eval": "localStorage.clear()"
   },
   {
-    "goto": "http://localhost:5188/"
+    "goto": "http://localhost:5199/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6002,13 +6002,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "eval": "localStorage.clear()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6097,13 +6097,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "eval": "localStorage.clear()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6243,7 +6243,7 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
   "eval": "__game.scene.getScene('Game').saveNow()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6284,13 +6284,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "eval": "localStorage.clear()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6349,13 +6349,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "eval": "localStorage.clear()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6405,13 +6405,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
   {
-    "goto": "http://localhost:5188/"
+    "goto": "http://localhost:5199/"
   },
   {
     "eval": "localStorage.clear(); localStorage.setItem('tidewake.slot.0', '{broken'); localStorage.setItem('tidewake.slot.0.bak', 'nope')"
   },
   {
-    "goto": "http://localhost:5188/"
+    "goto": "http://localhost:5199/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6445,13 +6445,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "eval": "localStorage.clear()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6478,7 +6478,7 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
   "eval": "(() => { const k = 'tidewake.slot.0'; const s = JSON.parse(localStorage.getItem(k)); s.gather = { hp: { '-3': 1 }, gone: { '99999': 1, 'abc': 1 } }; s.clock = { day: 5, t: 599 }; localStorage.setItem(k, JSON.stringify(s)); localStorage.removeItem(k + '.bak'); return 'edited'; })()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6512,9 +6512,9 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 
 ```json
 [
-  {"goto": "http://localhost:5188/"},
+  {"goto": "http://localhost:5199/"},
   {"eval": "localStorage.clear()"},
-  {"goto": "http://localhost:5188/"},
+  {"goto": "http://localhost:5199/"},
   {"until": "window.__game && __game.scene.isActive('Menu')", "timeout": 20000},
   {"eval": "window.__t0 = performance.now(); __game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 777})"},
   {"until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')", "timeout": 20000},
@@ -6533,13 +6533,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "eval": "localStorage.clear()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6741,13 +6741,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "eval": "localStorage.clear()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6865,13 +6865,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "eval": "localStorage.clear()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -6953,13 +6953,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "eval": "localStorage.clear()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -7012,13 +7012,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "eval": "localStorage.clear()"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -7079,13 +7079,13 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 ```json
 [
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "eval": "localStorage.clear(); localStorage.setItem('tidewake.slot.0', \"{\\\"version\\\": 1, \\\"slot\\\": 0, \\\"name\\\": \\\"Old Ari\\\", \\\"seed\\\": 1234, \\\"difficulty\\\": \\\"normal\\\", \\\"createdAt\\\": 1, \\\"updatedAt\\\": 2, \\\"playTimeSec\\\": 300, \\\"player\\\": {\\\"x\\\": 80.5, \\\"y\\\": 143.5}, \\\"bag\\\": {\\\"wood\\\": 7, \\\"stone\\\": 3}, \\\"clock\\\": {\\\"day\\\": 2, \\\"t\\\": 50}, \\\"gather\\\": {\\\"hp\\\": {}, \\\"gone\\\": {}}}\"); 'v1 save written'"
  },
  {
-  "goto": "http://localhost:5188/"
+  "goto": "http://localhost:5199/"
  },
  {
   "until": "window.__game && __game.scene.isActive('Menu')",
@@ -7115,7 +7115,7 @@ The phase 1 scenarios that read the old `bag` or `clock` fields are updated, and
 
 - [ ] **Step 2: Start the dev server and run every scenario**
 
-In one terminal: `npm run dev` (port 5188). In another:
+In one terminal: `npm run dev` (port 5199). In another:
 
 ```bash
 for s in boot island harvest persist night pause corrupt badsave survive build tools death sleep migrate; do echo "=== $s"; node tools/play.mjs tools/scripts/$s.json tools/.cache/shots 2>&1 | grep -v "^shot "; done

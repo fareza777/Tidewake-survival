@@ -6,7 +6,7 @@ Design: `docs/superpowers/specs/2026-10-03-tidewake-design.md`. Plans: `docs/sup
 ## Run
 
     npm install
-    npm run dev          # http://localhost:5188
+    npm run dev          # http://localhost:5199
     npm test             # unit tests
     npm run test:cov     # tests + coverage gate (80%)
     npm run build        # typecheck + production build into dist/

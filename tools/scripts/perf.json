@@ -1,7 +1,7 @@
 [
-  {"goto": "http://localhost:5188/"},
+  {"goto": "http://localhost:5199/"},
   {"eval": "localStorage.clear()"},
-  {"goto": "http://localhost:5188/"},
+  {"goto": "http://localhost:5199/"},
   {"until": "window.__game && __game.scene.isActive('Menu')", "timeout": 20000},
   {"eval": "window.__t0 = performance.now(); __game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 777})"},
   {"until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')", "timeout": 20000},

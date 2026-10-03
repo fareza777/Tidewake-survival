@@ -1,6 +1,6 @@
 [
   {
-    "goto": "http://localhost:5188/"
+    "goto": "http://localhost:5199/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
