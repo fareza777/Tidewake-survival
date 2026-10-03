@@ -17,11 +17,11 @@ export function tileBlocked(world: World, solids: ReadonlySet<number>, tx: numbe
   return world.terrain[i] === T.DEEP || solids.has(i);
 }
 
-function boxBlocked(world: World, solids: ReadonlySet<number>, x: number, y: number): boolean {
-  const x0 = Math.floor(x - PLAYER_HALF);
-  const x1 = Math.floor(x + PLAYER_HALF);
-  const y0 = Math.floor(y - PLAYER_HALF);
-  const y1 = Math.floor(y + PLAYER_HALF);
+function boxBlocked(world: World, solids: ReadonlySet<number>, x: number, y: number, half: number): boolean {
+  const x0 = Math.floor(x - half);
+  const x1 = Math.floor(x + half);
+  const y0 = Math.floor(y - half);
+  const y1 = Math.floor(y + half);
   for (let ty = y0; ty <= y1; ty++) {
     for (let tx = x0; tx <= x1; tx++) {
       if (tileBlocked(world, solids, tx, ty)) return true;
@@ -30,16 +30,21 @@ function boxBlocked(world: World, solids: ReadonlySet<number>, x: number, y: num
   return false;
 }
 
-/** Move by (dx, dy), one axis at a time, so the player slides along walls instead of sticking to them. */
-export function moveWithCollision(world: World, solids: ReadonlySet<number>, pos: Vec, dx: number, dy: number): Vec {
+/**
+ * Move by (dx, dy), one axis at a time, so the body slides along walls instead of sticking to them.
+ * `half` is half the width of the body in tiles (the hero by default; creatures pass their own).
+ */
+export function moveWithCollision(
+  world: World, solids: ReadonlySet<number>, pos: Vec, dx: number, dy: number, half = PLAYER_HALF,
+): Vec {
   let { x, y } = pos;
   // Already inside something solid (it should not happen, but a stuck player must always be able to walk out).
-  if (boxBlocked(world, solids, x, y)) {
+  if (boxBlocked(world, solids, x, y, half)) {
     const max = world.size - 0.01;
     return { x: Math.min(max, Math.max(0.01, x + dx)), y: Math.min(max, Math.max(0.01, y + dy)) };
   }
-  if (dx !== 0 && !boxBlocked(world, solids, x + dx, y)) x += dx;
-  if (dy !== 0 && !boxBlocked(world, solids, x, y + dy)) y += dy;
+  if (dx !== 0 && !boxBlocked(world, solids, x + dx, y, half)) x += dx;
+  if (dy !== 0 && !boxBlocked(world, solids, x, y + dy, half)) y += dy;
   return { x, y };
 }
 

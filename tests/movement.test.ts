@@ -47,6 +47,13 @@ describe('moveWithCollision', () => {
     expect(moveWithCollision(makeWorld(), new Set([idx(0, 0)]), { x: 0.2, y: 0.2 }, -5, -5)).toEqual({ x: 0.01, y: 0.01 });
   });
 
+  it('lets a smaller body get closer to a wall than the hero can', () => {
+    const w = makeWorld();
+    expect(moveWithCollision(w, none, { x: 7.7, y: 5.5 }, 0.05, 0).x).toBe(7.7);
+    expect(moveWithCollision(w, none, { x: 7.7, y: 5.5 }, 0.05, 0, 0.1).x).toBeCloseTo(7.75);
+    expect(moveWithCollision(w, none, { x: 7.7, y: 5.5 }, 0.3, 0, 0.1).x).toBe(7.7);
+  });
+
   it('allows wading into shallow water and rivers', () => {
     const p = moveWithCollision(makeWorld(), none, { x: 2.7, y: 3.5 }, 0.5, 0);
     expect(p.x).toBeCloseTo(3.2);
