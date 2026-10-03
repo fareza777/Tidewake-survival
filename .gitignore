@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-qa
+coverage
+tools/.cache
+android/build
+android/app/build
+android/.gradle
+*.log
+.env
+.env.*
