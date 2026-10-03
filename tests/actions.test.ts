@@ -27,7 +27,7 @@ function ctx(over: Partial<ActionContext> & { hold?: ItemId; facing?: Facing } =
   if (hold) inv = addItem(inv, hold, 1).inv;
   return {
     world: makeWorld(), inv, selected: 0, vitals: fullVitals(), pos: { x: 10.5, y: 10.5 }, facing: 'right',
-    structures: emptyStructures(), farm: emptyFarm(), occupied: new Set(), node: null, ...rest,
+    structures: emptyStructures(), farm: emptyFarm(), occupied: new Set(), node: null, creature: false, ...rest,
   };
 }
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DESERT_THIRST, HUNGER_RATE, STARVE_DAMAGE, THIRST_RATE, VITAL_MAX, eat, fullVitals, isDead, sleepRecovery, spendStamina,
-  tickVitals, wouldWaste, type VitalsContext, type Vitals,
+  takeDamage, tickVitals, wouldWaste, type VitalsContext, type Vitals,
 } from '@/sim/vitals';
 import { B } from '@/sim/world/types';
 
@@ -44,6 +44,13 @@ describe('tickVitals', () => {
     expect(tickVitals(v({ hp: 99.9 }), 100, ctx()).hp).toBe(VITAL_MAX);
   });
 
+  it('does not heal a hero who is already at zero hit points, so a fatal blow cannot be undone by the next tick', () => {
+    const down = tickVitals(v({ hp: 0 }), 1, ctx());
+    expect(down.hp).toBe(0);
+    expect(isDead(down)).toBe(true);
+    expect(isDead(tickVitals(v({ hp: 0.001 }), 1, ctx()))).toBe(false);
+  });
+
   it('recovers stamina quickly at rest and slowly when busy', () => {
     const rest = tickVitals(v({ stamina: 0 }), 1, ctx());
     const busy = tickVitals(v({ stamina: 0 }), 1, ctx({ busy: true }));
@@ -64,6 +71,16 @@ describe('tickVitals', () => {
       expect(out[k]).toBeLessThanOrEqual(VITAL_MAX);
     }
     expect(isDead(out)).toBe(true);
+  });
+});
+
+describe('takeDamage', () => {
+  it('lowers hit points without going below zero and leaves the other meters alone', () => {
+    const hurt = takeDamage(fullVitals(), 30);
+    expect(hurt).toEqual({ ...fullVitals(), hp: 70 });
+    expect(takeDamage(hurt, 500).hp).toBe(0);
+    expect(takeDamage(hurt, 0)).toBe(hurt);
+    expect(takeDamage(hurt, -5)).toBe(hurt);
   });
 });
 

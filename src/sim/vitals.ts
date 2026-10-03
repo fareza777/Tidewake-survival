@@ -46,7 +46,7 @@ export function tickVitals(v: Vitals, dt: number, ctx: VitalsContext): Vitals {
   let hp = v.hp;
   const empty = (hunger <= 0 ? 1 : 0) + (thirst <= 0 ? 1 : 0);
   if (empty > 0) hp -= STARVE_DAMAGE * drain * empty * dt;
-  else if (hunger >= REGEN_THRESHOLD && thirst >= REGEN_THRESHOLD) hp += REGEN_RATE * dt;
+  else if (hp > 0 && hunger >= REGEN_THRESHOLD && thirst >= REGEN_THRESHOLD) hp += REGEN_RATE * dt;
   const stamina = v.stamina + (ctx.busy ? STAMINA_REGEN_BUSY : STAMINA_REGEN) * dt;
   return { hp: clamp(hp), hunger, thirst, stamina: clamp(stamina) };
 }
@@ -64,6 +64,11 @@ export function eat(v: Vitals, food: FoodValue): Vitals {
 /** True when eating this would change nothing (all three affected meters are already full). */
 export function wouldWaste(v: Vitals, food: FoodValue): boolean {
   return (food.hunger <= 0 || v.hunger >= VITAL_MAX) && (food.thirst <= 0 || v.thirst >= VITAL_MAX) && (food.hp <= 0 || v.hp >= VITAL_MAX);
+}
+
+/** Lose hit points to a blow; the other meters are untouched. */
+export function takeDamage(v: Vitals, amount: number): Vitals {
+  return amount > 0 ? { ...v, hp: clamp(v.hp - amount) } : v;
 }
 
 /** Pay a stamina cost, or null when the hero is too tired. */

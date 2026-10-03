@@ -1,6 +1,6 @@
 import { Rng, hashString } from '@/core/rng';
 import type { SaveSlot } from '@/core/saveData';
-import { ITEMS, type ItemId } from '@/data/items';
+import { ITEMS, type ItemId, type WeaponStats } from '@/data/items';
 import type { Recipe } from '@/data/recipes';
 import type { Station } from '@/data/structures';
 import type { Action } from '@/sim/actions';
@@ -9,12 +9,13 @@ import { applyDeath } from '@/sim/death';
 import * as farmSim from '@/sim/farm';
 import { hitNode, startNewDay, type GatherState } from '@/sim/gather';
 import {
-  addItem, moveSlot, setDurability, takeOne, wearTool, type Inventory, type Slot,
+  addItem, moveSlot, removeItem, setDurability, takeOne, wearTool, type Inventory, type Slot,
 } from '@/sim/inventory';
+import type { Melee } from '@/sim/melee';
 import { craft } from '@/sim/crafting';
 import type { Vec } from '@/sim/movement';
 import { placeStructure, removeStructure, setStructureInventory, structureAt, type Structure, type Structures } from '@/sim/structures';
-import { eat, sleepRecovery, spendStamina, tickVitals, type Difficulty, type Vitals } from '@/sim/vitals';
+import { eat, sleepRecovery, spendStamina, takeDamage, tickVitals, type Difficulty, type Vitals } from '@/sim/vitals';
 import { idx, type Biome, type ResourceNode } from '@/sim/world/types';
 
 /** The live game state that changes while playing. Pure data: every function here returns a new Session. */
@@ -37,13 +38,16 @@ export type Fx =
   | { t: 'say'; key: string; vars?: Record<string, string | number>; /** Variables that are i18n keys to translate. */ translate?: string[] }
   | { t: 'gain'; item: ItemId; qty: number }
   | { t: 'swing' }
+  | { t: 'strike'; melee: Melee }
+  | { t: 'shot'; stats: WeaponStats }
   | { t: 'hit'; id: number }
   | { t: 'gone'; id: number }
   | { t: 'built'; structure: Structure }
   | { t: 'unbuilt'; id: number }
   | { t: 'plot'; tile: number }
   | { t: 'open'; structure: Structure }
-  | { t: 'slept' };
+  | { t: 'slept' }
+  | { t: 'ate' };
 
 export interface Step {
   session: Session;
@@ -86,6 +90,11 @@ export function blocksRegrowth(s: Session, node: ResourceNode, size: number): bo
   return structureAt(s.structures, node.x, node.y) !== undefined || idx(node.x, node.y, size) in s.farm.plots;
 }
 
+/** A blow from a creature: hit points are lost, nothing else. */
+export function hurtHero(s: Session, amount: number): Session {
+  return amount > 0 ? { ...s, vitals: takeDamage(s.vitals, amount) } : s;
+}
+
 export function selectSlot(s: Session, index: number): Session {
   return index >= 0 && index < 8 ? { ...s, selected: index } : s;
 }
@@ -106,12 +115,18 @@ function giveItems(inv: Inventory, items: { item: ItemId; qty: number }[]): { in
   return { inv: cur, fx, overflow };
 }
 
+/** The "your tool broke" message when the held slot emptied by wear. */
+function brokeFx(before: Slot | null | undefined, after: Inventory, index: number): Fx[] {
+  return before && !after[index] ? [say('msgToolBroke', { item: `item_${before.item}` }, ['item'])] : [];
+}
+
 function blockedFx(a: Extract<Action, { kind: 'blocked' }>): Fx[] {
   switch (a.reason) {
     case 'needsTool': return [say('msgNeedsTool', { tool: `tool_${a.tool}`, tier: a.tier }, ['tool'])];
     case 'tired': return [say('msgTired')];
     case 'saltWater': return [say('msgSaltWater')];
     case 'canEmpty': return [say('msgCanEmpty')];
+    case 'noArrows': return [say('msgNoArrows')];
     case 'chestNotEmpty': return [say('msgChestNotEmpty')];
     case 'cannotPlace': return [say(`msgPlace_${a.why}`)];
   }
@@ -132,10 +147,25 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       if (result.destroyed && given.overflow) return { session: s, fx: [say('msgFull')] };
       const fx: Fx[] = [{ t: 'swing' }, { t: 'hit', id: a.node.id }];
       if (result.destroyed) fx.push({ t: 'gone', id: a.node.id });
-      if (slotBefore && !worn[s.selected]) fx.push(say('msgToolBroke', { item: `item_${slotBefore.item}` }, ['item']));
       return {
         session: { ...s, gather: result.state, inventory: given.inv, vitals: spendStamina(s.vitals, a.stamina) ?? s.vitals },
-        fx: [...fx, ...given.fx],
+        fx: [...fx, ...brokeFx(slotBefore, worn, s.selected), ...given.fx],
+      };
+    }
+    case 'attack': {
+      const worn = a.melee.wear ? wearTool(s.inventory, s.selected) : s.inventory;
+      return {
+        session: { ...s, inventory: worn, vitals: spendStamina(s.vitals, a.melee.stamina) ?? s.vitals },
+        fx: [{ t: 'swing' }, { t: 'strike', melee: a.melee }, ...brokeFx(slotBefore, worn, s.selected)],
+      };
+    }
+    case 'shoot': {
+      const spent = removeItem(s.inventory, 'arrow', 1);
+      if (!spent) return { session: s, fx: [say('msgNoArrows')] };
+      const worn = wearTool(spent, s.selected);
+      return {
+        session: { ...s, inventory: worn, vitals: spendStamina(s.vitals, a.stats.stamina) ?? s.vitals },
+        fx: [{ t: 'swing' }, { t: 'shot', stats: a.stats }, ...brokeFx(slotBefore, worn, s.selected)],
       };
     }
     case 'place': {
@@ -175,7 +205,7 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       return { session: { ...s, inventory: setDurability(s.inventory, s.selected, cap) }, fx: [say('msgFilled')] };
     }
     case 'eat':
-      return { session: { ...s, inventory: takeOne(s.inventory, s.selected), vitals: eat(s.vitals, a.food) }, fx: [] };
+      return { session: { ...s, inventory: takeOne(s.inventory, s.selected), vitals: eat(s.vitals, a.food) }, fx: [{ t: 'ate' }] };
     case 'harvest': {
       const tile = idx(a.x, a.y);
       const rng = new Rng(hashString(`${s.seed}:farm:${tile}:${s.clock.day}`));

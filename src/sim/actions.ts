@@ -1,9 +1,10 @@
-import { ITEMS, type ToolType } from '@/data/items';
+import { ITEMS, type ToolType, type WeaponStats } from '@/data/items';
 import type { CropId } from '@/data/crops';
 import { STRUCTURES, type StructureId } from '@/data/structures';
 import { STAMINA_TOOL } from '@/data/tools';
 import { canTill, isRipe, plotAt, type Farm } from '@/sim/farm';
-import type { Inventory } from '@/sim/inventory';
+import { countItem, type Inventory } from '@/sim/inventory';
+import { meleeFor, type Melee } from '@/sim/melee';
 import type { Vec } from '@/sim/movement';
 import { canPlace, structureAt, type PlaceResult, type Structure, type Structures } from '@/sim/structures';
 import { checkHit } from '@/sim/tools';
@@ -34,6 +35,8 @@ export interface ActionContext {
   occupied: ReadonlySet<number>;
   /** The nearest living resource node in reach, if any. */
   node: ResourceNode | null;
+  /** A creature stands where a blow with the held item (or bare hands) would land. */
+  creature: boolean;
 }
 
 export type Blocked =
@@ -42,12 +45,15 @@ export type Blocked =
   | { reason: 'saltWater' }
   | { reason: 'canEmpty' }
   | { reason: 'chestNotEmpty' }
+  | { reason: 'noArrows' }
   | { reason: 'cannotPlace'; why: Extract<PlaceResult, { ok: false }>['reason'] };
 
 export type Action =
   | { kind: 'none' }
   | ({ kind: 'blocked' } & Blocked)
   | { kind: 'hit'; node: ResourceNode; damage: number; stamina: number; wear: boolean }
+  | { kind: 'attack'; melee: Melee }
+  | { kind: 'shoot'; stats: WeaponStats }
   | { kind: 'place'; type: StructureId; x: number; y: number }
   | { kind: 'till'; x: number; y: number; stamina: number }
   | { kind: 'plant'; x: number; y: number; crop: CropId }
@@ -102,6 +108,16 @@ export function resolveAction(c: ActionContext): Action {
     if (terrain === T.SHALLOW) return blocked({ reason: 'saltWater' });
     if (!plot || !plot.crop || plot.watered) return NONE;
     return (slot?.dur ?? 0) > 0 ? { kind: 'water', x, y } : blocked({ reason: 'canEmpty' });
+  }
+
+  if (def?.weapon?.kind === 'bow') {
+    if (countItem(c.inv, 'arrow') === 0) return blocked({ reason: 'noArrows' });
+    if (c.vitals.stamina < def.weapon.stamina) return blocked({ reason: 'tired' });
+    return { kind: 'shoot', stats: def.weapon };
+  }
+  if (c.creature) {
+    const melee = meleeFor(slot?.item ?? null);
+    return c.vitals.stamina < melee.stamina ? blocked({ reason: 'tired' }) : { kind: 'attack', melee };
   }
 
   // Facing fresh water means drinking, even if a bush or tree happens to stand within reach behind the hero.
