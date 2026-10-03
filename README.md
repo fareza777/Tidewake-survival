@@ -23,12 +23,15 @@ Generated files in `public/assets/pack/` and `src/data/tileIndex.ts` are committ
 ## Browser smoke tests
 
 With `npm run dev` running: `node tools/play.mjs tools/scripts/<name>.json tools/.cache/shots`.
-Scenarios: boot, island, harvest, persist, night, pause, corrupt, badsave, perf.
+Scenarios: boot, island, harvest, persist, night, pause, corrupt, badsave, survive, build, tools, death, sleep, migrate, perf.
 
-## Status (phase 1)
+## Status (phase 2)
 
-Walkable seed-generated island, harvesting, day/night, save and continue.
-Measured on the dev PC (headless Edge): tap-to-game 425 ms, 59 fps.
+A survival game on a seed-generated island: hunger, thirst, stamina and health; a 32-slot backpack with a hotbar;
+tools with tiers and durability; 21 recipes at the hand, campfire, workbench and furnace; building (campfire,
+workbench, furnace, bed, chest, torch, fence) and taking buildings down; four farmed crops; a real night with
+light from fires and torches; sleeping; death rules per difficulty; save format 2 (phase 1 saves still load).
+Measured on the dev PC (headless Edge): tap-to-game 415 ms, 60 fps.
 
 ## Credits
 
