@@ -1,0 +1,40 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const S = w.size; const s = w.start; let best = null; for (let i = 0; i < S * S && !best; i += 7) { if (w.biome[i] === 2 && w.terrain[i] === 6 && !g.solids.has(i)) { const x = i % S, y = Math.floor(i / S); if (Math.hypot(x - s.x, y - s.y) > 40) best = { x, y }; } } if (!best) return 'no mountain'; g.pos = { x: best.x + 0.5, y: best.y + 0.5 }; g.session = {...g.session, clock: {day: 1, t: 450}}; return 'mountain at ' + best.x + ',' + best.y; })()"
+ },
+ {
+  "wait": 16000
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.combat.wildlife; const cs = w.state.creatures; const kinds = {}; cs.forEach(c => kinds[c.kind] = (kinds[c.kind] || 0) + 1); const dists = cs.map(c => Math.hypot(c.x - g.pos.x, c.y - g.pos.y)); return 'creatures=' + cs.length + ' kinds=' + JSON.stringify(kinds) + ' nearest=' + Math.min(...dists).toFixed(1) + ' farthest=' + Math.max(...dists).toFixed(1) + ' hero hp=' + g.session.vitals.hp.toFixed(0); })()"
+ },
+ {
+  "shot": "spawn-mountain-night"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

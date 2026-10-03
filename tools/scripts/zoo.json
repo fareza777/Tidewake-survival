@@ -1,0 +1,14 @@
+[
+ { "goto": "http://localhost:5199/" },
+ { "eval": "localStorage.clear()" },
+ { "goto": "http://localhost:5199/" },
+ { "until": "window.__game && __game.scene.isActive('Menu')", "timeout": 20000 },
+ { "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})" },
+ { "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')", "timeout": 20000 },
+ { "wait": 800 },
+ { "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const S = w.size; const c = w.landmarks.find(l => l.id === 'camp'); let best = null; for (let r = 4; r < 40 && !best; r++) for (let dy = -r; dy <= r && !best; dy++) for (let dx = -r; dx <= r && !best; dx++) { let ok = true; for (let yy = -4; yy <= 4 && ok; yy++) for (let xx = -4; xx <= 4 && ok; xx++) { const x = c.x + dx + xx, y = c.y + dy + yy; if (x < 1 || y < 1 || x >= S - 1 || y >= S - 1) { ok = false; break; } const i = y * S + x; if (w.terrain[i] !== 3 || g.solids.has(i)) ok = false; } if (ok) best = { x: c.x + dx, y: c.y + dy }; } if (!best) return 'no clearing'; g.pos = { x: best.x + 0.5, y: best.y + 0.5 }; g.player.face(0, 1); return 'clearing ' + best.x + ',' + best.y; })()" },
+ { "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.combat.wildlife; const kinds = ['slime','mushroom','wasp','skeleton','zombie','worm','ghost','scorpion','skeleton_warrior','rabbit','fox','bird','boar']; const cs = kinds.map((k, i) => ({id: 800 + i, kind: k, x: g.pos.x + ((i % 5) - 2) * 1.5, y: g.pos.y - 3 + Math.floor(i / 5) * 2, hp: 99, facing: 'down', state: 'idle', timer: 999, headX: 0, headY: 0, angry: false, pushX: 0, pushY: 0, stun: 0})); const items = ['raw_meat','cooked_meat','bone','gel','honey','bandage','arrow'].map((it, i) => ({id: 700 + i, item: it, qty: 1, x: g.pos.x - 3 + i, y: g.pos.y + 3.2, age: 0})); w.state = {...w.state, creatures: cs, pickups: items, spawnTimer: 9999}; w.apply(w.state, []); return 'zoo ' + cs.length; })()" },
+ { "wait": 300 },
+ { "shot": "zoo" },
+ { "eval": "JSON.stringify(window.__errs)" }
+]

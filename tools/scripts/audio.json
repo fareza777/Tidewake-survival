@@ -1,0 +1,111 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "window.__warns = []; const w = console.warn; console.warn = (...a) => { window.__warns.push(a.join(' ')); w(...a); }"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "'menu music: ' + __services.audio.musicKey + ' playing=' + (__services.audio.music && !__services.audio.music.paused)"
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "eval": "'clips missing: ' + JSON.stringify(['swing','hit','kill','hurt','shoot','pickup','chop','mine','eat','drink','craft','place','break','sleep','ui_click','death'].filter(c => !__services.audio.hasClip(c)))"
+ },
+ {
+  "eval": "'day music: ' + __services.audio.musicKey + ' currentTime=' + (__services.audio.music && __services.audio.music.currentTime.toFixed(2)) + ' volume=' + (__services.audio.music && __services.audio.music.volume.toFixed(2))"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const S = w.size; const c = w.landmarks.find(l => l.id === 'camp'); let best = null; for (let r = 4; r < 40 && !best; r++) for (let dy = -r; dy <= r && !best; dy++) for (let dx = -r; dx <= r && !best; dx++) { let ok = true; for (let yy = -4; yy <= 4 && ok; yy++) for (let xx = -4; xx <= 4 && ok; xx++) { const x = c.x + dx + xx, y = c.y + dy + yy; if (x < 1 || y < 1 || x >= S - 1 || y >= S - 1) { ok = false; break; } const i = y * S + x; if (w.terrain[i] !== 3 || g.solids.has(i)) ok = false; } if (ok) best = { x: c.x + dx, y: c.y + dy }; } if (!best) return 'no clearing'; g.pos = { x: best.x + 0.5, y: best.y + 0.5 }; g.player.face(1, 0); return 'clearing ' + best.x + ',' + best.y; })()"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice(); inv[0] = {item:'sword_stone', qty:1, dur:80}; inv[1] = {item:'bow', qty:1, dur:80}; inv[2] = {item:'arrow', qty:12}; g.session = {...g.session, inventory: inv, selected: 0}; const w = g.combat.wildlife; w.state = {...w.state, spawnTimer: 9999}; return 'armed'; })()"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.combat.wildlife; const mk = (id, kind, dx, dy, hp) => ({id, kind, x: g.pos.x + dx, y: g.pos.y + dy, hp, facing: 'left', state: 'idle', timer: 1, headX: 0, headY: 0, angry: false, pushX: 0, pushY: 0, stun: 0}); w.state = {...w.state, creatures: [mk(900,'slime',2.2,0,8)], nextId: 1000}; w.apply(w.state, []); return 'placed'; })()"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "eval": "'fight music: ' + __services.audio.musicKey"
+ },
+ {
+  "press": "Space",
+  "ms": 60
+ },
+ {
+  "wait": 420
+ },
+ {
+  "press": "Space",
+  "ms": 60
+ },
+ {
+  "wait": 420
+ },
+ {
+  "press": "Space",
+  "ms": 60
+ },
+ {
+  "wait": 420
+ },
+ {
+  "press": "Space",
+  "ms": 60
+ },
+ {
+  "wait": 420
+ },
+ {
+  "press": "Space",
+  "ms": 60
+ },
+ {
+  "wait": 420
+ },
+ {
+  "wait": 5200
+ },
+ {
+  "eval": "'calm music: ' + __services.audio.musicKey"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.session = {...g.session, clock: {day: 1, t: 450}}; return 'set night'; })()"
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "eval": "'night music: ' + __services.audio.musicKey"
+ },
+ {
+  "eval": "'warnings: ' + JSON.stringify(window.__warns)"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

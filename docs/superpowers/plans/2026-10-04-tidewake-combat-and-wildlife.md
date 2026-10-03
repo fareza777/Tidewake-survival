@@ -6252,7 +6252,7 @@ A rabbit and a fox in front of the bow; the arrow kills the rabbit, the hero wal
  },
  {
   "press": "ArrowRight",
-  "ms": 1100
+  "ms": 2400
  },
  {
   "wait": 700
