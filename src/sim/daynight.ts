@@ -64,6 +64,12 @@ export function lighting(c: Clock): { color: number; alpha: number } {
   return { color: lerpColor(0x0a1030, 0x7a3a50, warmth), alpha: d * 0.78 };
 }
 
+/** The hero can only sleep once evening has come. */
+export const canSleep = (c: Clock): boolean => phaseOf(c) === 'dusk' || phaseOf(c) === 'night';
+
+/** Wake up at dawn of the next day. */
+export const wakeUp = (c: Clock): Clock => ({ day: c.day + 1, t: 0 });
+
 /** "HH:MM" time of day; the day starts at 06:00 with dawn. */
 export function clockLabel(c: Clock): string {
   const minutes = Math.floor((6 * 60 + fraction(c) * 24 * 60) % (24 * 60));
