@@ -1,0 +1,153 @@
+[
+  {
+    "goto": "http://localhost:5188/"
+  },
+  {
+    "eval": "localStorage.clear()"
+  },
+  {
+    "goto": "http://localhost:5188/"
+  },
+  {
+    "until": "window.__game && __game.scene.isActive('Menu')",
+    "timeout": 20000
+  },
+  {
+    "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+  },
+  {
+    "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+    "timeout": 20000
+  },
+  {
+    "wait": 800
+  },
+  {
+    "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const S = w.size; const occ = new Set(w.resources.map(r => r.y * S + r.x)); const n = w.resources.find(r => r.kind === 'tree' && w.terrain[(r.y + 1) * S + r.x] === 3 && !occ.has((r.y + 1) * S + r.x)); g.pos = { x: n.x + 0.5, y: n.y + 1.5 }; return JSON.stringify(n); })()"
+  },
+  {
+    "wait": 400
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "press": "Space",
+    "ms": 80
+  },
+  {
+    "wait": 450
+  },
+  {
+    "eval": "(() => { const g = __game.scene.getScene('Game'); return JSON.stringify({ pos: g.pos, bag: g.bag, gone: Object.keys(g.gather.gone).length, day: g.clock.day }); })()"
+  },
+  {
+    "eval": "__game.scene.getScene('Game').saveNow()"
+  },
+  {
+    "goto": "http://localhost:5188/"
+  },
+  {
+    "until": "window.__game && __game.scene.isActive('Menu')",
+    "timeout": 20000
+  },
+  {
+    "wait": 800
+  },
+  {
+    "shot": "menu-with-continue"
+  },
+  {
+    "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0})"
+  },
+  {
+    "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+    "timeout": 20000
+  },
+  {
+    "wait": 800
+  },
+  {
+    "eval": "(() => { const g = __game.scene.getScene('Game'); return JSON.stringify({ pos: g.pos, bag: g.bag, gone: Object.keys(g.gather.gone).length, day: g.clock.day }); })()"
+  },
+  {
+    "shot": "continued"
+  },
+  {
+    "eval": "JSON.stringify(window.__errs)"
+  }
+]

@@ -1,0 +1,54 @@
+[
+  {
+    "goto": "http://localhost:5188/"
+  },
+  {
+    "eval": "localStorage.clear()"
+  },
+  {
+    "goto": "http://localhost:5188/"
+  },
+  {
+    "until": "window.__game && __game.scene.isActive('Menu')",
+    "timeout": 20000
+  },
+  {
+    "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+  },
+  {
+    "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+    "timeout": 20000
+  },
+  {
+    "wait": 1200
+  },
+  {
+    "shot": "island-start"
+  },
+  {
+    "eval": "JSON.stringify(__game.scene.getScene('Game').pos)"
+  },
+  {
+    "press": "ArrowUp",
+    "ms": 1500
+  },
+  {
+    "eval": "JSON.stringify(__game.scene.getScene('Game').pos)"
+  },
+  {
+    "shot": "island-walked"
+  },
+  {
+    "press": "ArrowDown",
+    "ms": 4000
+  },
+  {
+    "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; return 'tile under hero = ' + w.terrain[Math.floor(g.pos.y) * w.size + Math.floor(g.pos.x)] + ' (0 would mean deep water: a bug)'; })()"
+  },
+  {
+    "shot": "island-shore"
+  },
+  {
+    "eval": "JSON.stringify(window.__errs)"
+  }
+]

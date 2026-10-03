@@ -1,0 +1,58 @@
+[
+  {
+    "goto": "http://localhost:5188/"
+  },
+  {
+    "eval": "localStorage.clear()"
+  },
+  {
+    "goto": "http://localhost:5188/"
+  },
+  {
+    "until": "window.__game && __game.scene.isActive('Menu')",
+    "timeout": 20000
+  },
+  {
+    "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+  },
+  {
+    "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+    "timeout": 20000
+  },
+  {
+    "wait": 800
+  },
+  {
+    "eval": "__game.scene.getScene('Game').clock = { day: 1, t: 540 }"
+  },
+  {
+    "wait": 400
+  },
+  {
+    "shot": "dusk"
+  },
+  {
+    "eval": "__game.scene.getScene('Game').clock = { day: 1, t: 600 * 0.9 }"
+  },
+  {
+    "wait": 400
+  },
+  {
+    "shot": "night"
+  },
+  {
+    "eval": "__game.scene.getScene('Game').clock = { day: 1, t: 599.9 }"
+  },
+  {
+    "wait": 700
+  },
+  {
+    "shot": "new-day"
+  },
+  {
+    "eval": "JSON.stringify(__game.scene.getScene('Game').clock)"
+  },
+  {
+    "eval": "JSON.stringify(window.__errs)"
+  }
+]

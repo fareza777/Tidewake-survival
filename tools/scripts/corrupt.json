@@ -1,0 +1,33 @@
+[
+  {
+    "goto": "http://localhost:5188/"
+  },
+  {
+    "eval": "localStorage.clear(); localStorage.setItem('tidewake.slot.0', '{broken'); localStorage.setItem('tidewake.slot.0.bak', 'nope')"
+  },
+  {
+    "goto": "http://localhost:5188/"
+  },
+  {
+    "until": "window.__game && __game.scene.isActive('Menu')",
+    "timeout": 20000
+  },
+  {
+    "wait": 800
+  },
+  {
+    "shot": "menu-corrupt"
+  },
+  {
+    "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0})"
+  },
+  {
+    "wait": 1500
+  },
+  {
+    "eval": "'Back at menu: ' + __game.scene.isActive('Menu') + ', game running: ' + __game.scene.isActive('Game')"
+  },
+  {
+    "eval": "JSON.stringify(window.__errs)"
+  }
+]
