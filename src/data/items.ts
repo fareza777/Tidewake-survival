@@ -6,9 +6,25 @@ export type ItemId =
   | 'coconut' | 'berries' | 'carrot' | 'turnip' | 'pumpkin' | 'corn' | 'roasted_carrot' | 'roasted_corn' | 'baked_pumpkin'
   | 'carrot_seed' | 'turnip_seed' | 'pumpkin_seed' | 'corn_seed'
   | 'axe_wood' | 'axe_stone' | 'axe_iron' | 'pickaxe_wood' | 'pickaxe_stone' | 'pickaxe_iron' | 'hoe' | 'watering_can'
-  | 'campfire' | 'workbench' | 'furnace' | 'bed' | 'chest' | 'torch' | 'fence';
+  | 'campfire' | 'workbench' | 'furnace' | 'bed' | 'chest' | 'torch' | 'fence'
+  | 'sword_wood' | 'sword_stone' | 'sword_iron' | 'spear_bone' | 'bow' | 'arrow'
+  | 'raw_meat' | 'cooked_meat' | 'honey' | 'bandage' | 'gel' | 'bone';
 
-export type ToolType = 'axe' | 'pickaxe' | 'hoe' | 'can';
+export type ToolType = 'axe' | 'pickaxe' | 'hoe' | 'can' | 'sword' | 'spear' | 'bow';
+
+/** How a weapon behaves. Melee weapons sweep an arc in front of the hero; the bow shoots an arrow that flies `reach` tiles. */
+export interface WeaponStats {
+  kind: 'melee' | 'bow';
+  damage: number;
+  reach: number;
+  /** Full width of the swing in degrees (0 for the bow). */
+  arc: number;
+  /** Seconds before the weapon can be used again. */
+  cooldown: number;
+  stamina: number;
+  /** Tiles a hit pushes the target away. */
+  knockback: number;
+}
 
 /** A sprite: a frame in the `props` atlas (pack art) or in the generated `icons` atlas. */
 export interface IconRef {
@@ -23,6 +39,7 @@ export interface ItemDef {
   icon: IconRef;
   /** Tools wear out: `durability` uses. A watering can instead holds `durability` charges of water. */
   tool?: { type: ToolType; tier: 1 | 2 | 3; durability: number };
+  weapon?: WeaponStats;
   food?: { hunger: number; thirst: number; hp: number };
   place?: StructureId;
   seed?: CropId;
@@ -39,6 +56,10 @@ const seed = (id: ItemId, crop: CropId): ItemDef => ({ id, stack: 50, icon: icon
 const tool = (id: ItemId, type: ToolType, tier: 1 | 2 | 3, durability: number): ItemDef => ({
   id, stack: 1, icon: icons(id), tool: { type, tier, durability },
 });
+const weapon = (id: ItemId, type: 'sword' | 'spear' | 'bow', tier: 1 | 2 | 3, durability: number, stats: WeaponStats): ItemDef => ({
+  ...tool(id, type, tier, durability), weapon: stats,
+});
+const sword = (damage: number): WeaponStats => ({ kind: 'melee', damage, reach: 1.3, arc: 110, cooldown: 0.42, stamina: 3, knockback: 0.35 });
 const placeable = (id: ItemId, place: StructureId, stack = 10): ItemDef => ({ id, stack, icon: icons(`struct_${id}`), place });
 
 export const ITEMS: Record<ItemId, ItemDef> = {
@@ -74,6 +95,20 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   pickaxe_iron: tool('pickaxe_iron', 'pickaxe', 3, 160),
   hoe: tool('hoe', 'hoe', 1, 60),
   watering_can: tool('watering_can', 'can', 1, 40),
+
+  sword_wood: weapon('sword_wood', 'sword', 1, 40, sword(3)),
+  sword_stone: weapon('sword_stone', 'sword', 2, 80, sword(5)),
+  sword_iron: weapon('sword_iron', 'sword', 3, 160, sword(8)),
+  spear_bone: weapon('spear_bone', 'spear', 2, 70, { kind: 'melee', damage: 5, reach: 1.9, arc: 30, cooldown: 0.6, stamina: 4, knockback: 0.5 }),
+  bow: weapon('bow', 'bow', 1, 80, { kind: 'bow', damage: 4, reach: 7, arc: 0, cooldown: 0.7, stamina: 3, knockback: 0.25 }),
+  arrow: { id: 'arrow', stack: 50, icon: icons('arrow') },
+
+  raw_meat: food('raw_meat', icons('raw_meat'), 8, 0, 0),
+  cooked_meat: food('cooked_meat', icons('cooked_meat'), 35, 0, 4),
+  honey: food('honey', icons('honey'), 12, 0, 6),
+  bandage: food('bandage', icons('bandage'), 0, 0, 30),
+  gel: material('gel', 'gel'),
+  bone: material('bone', 'bone'),
 
   campfire: placeable('campfire', 'campfire'),
   workbench: placeable('workbench', 'workbench'),

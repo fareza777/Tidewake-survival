@@ -175,6 +175,9 @@ export class InventoryScene extends BaseScene {
     if (def.tool && slot.dur !== undefined) {
       this.ui.add(label(this, this.gridX(), infoY + 18, t(def.tool.type === 'can' ? 'waterLeft' : 'durability', { n: slot.dur }), FONT.small, COLORS.textDim));
     }
+    if (def.weapon) {
+      this.ui.add(label(this, this.gridX(), infoY + 30, t('weaponDamage', { n: def.weapon.damage }), FONT.small, COLORS.textDim));
+    }
   }
 
   private costText(recipe: Recipe): string {
