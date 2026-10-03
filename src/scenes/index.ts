@@ -4,6 +4,7 @@ import { SplashScene } from './SplashScene';
 import { MenuScene } from './MenuScene';
 import { GameScene } from './GameScene';
 import { HudScene } from './HudScene';
+import { InventoryScene } from './InventoryScene';
 import { NotifyScene } from './NotifyScene';
 
-export const SCENES = [BootScene, PreloadScene, SplashScene, MenuScene, GameScene, HudScene, NotifyScene];
+export const SCENES = [BootScene, PreloadScene, SplashScene, MenuScene, GameScene, HudScene, InventoryScene, NotifyScene];
