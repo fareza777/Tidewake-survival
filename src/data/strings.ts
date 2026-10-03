@@ -1,0 +1,48 @@
+import type { L10n } from '@/core/i18n';
+
+/** UI strings by key. Every entry needs both languages; tests/i18n.test.ts enforces parity and matching {placeholders}. */
+export const UI_STRINGS: Record<string, L10n> = {
+  gameTitle: { en: 'Tidewake', id: 'Tidewake' },
+  subtitle: { en: 'Island Survival', id: 'Bertahan di Pulau' },
+  loading: { en: 'Loading...', id: 'Memuat...' },
+  menuContinue: { en: 'Continue', id: 'Lanjutkan' },
+  menuNewGame: { en: 'New Game', id: 'Game Baru' },
+  menuShare: { en: 'Share', id: 'Bagikan' },
+  menuRate: { en: 'Rate', id: 'Beri Nilai' },
+  version: { en: 'v{v}', id: 'v{v}' },
+  newGameConfirm: {
+    en: 'Starting a new game replaces the latest save. Continue?',
+    id: 'Game baru akan menimpa simpanan terakhir. Lanjutkan?',
+  },
+  cancel: { en: 'Cancel', id: 'Batal' },
+  confirm: { en: 'Confirm', id: 'Konfirmasi' },
+  yes: { en: 'Yes', id: 'Ya' },
+  no: { en: 'No', id: 'Tidak' },
+  ok: { en: 'OK', id: 'OK' },
+  close: { en: 'Close', id: 'Tutup' },
+  later: { en: 'Later', id: 'Nanti' },
+  shareText: {
+    en: 'I am surviving a mysterious island in Tidewake. Come join me!',
+    id: 'Aku sedang bertahan hidup di pulau misterius dalam Tidewake. Ayo ikut main!',
+  },
+  rateTitle: { en: 'Enjoying Tidewake?', id: 'Suka dengan Tidewake?' },
+  rateBody: {
+    en: 'A rating on Google Play helps a lot. It only takes a moment.',
+    id: 'Penilaian di Google Play sangat membantu. Hanya sebentar.',
+  },
+  rateNow: { en: 'Rate now', id: 'Nilai sekarang' },
+  quitConfirm: { en: 'Quit the game?', id: 'Keluar dari game?' },
+  hudDay: { en: 'Day {n}', id: 'Hari {n}' },
+  hitAction: { en: 'HIT', id: 'PUKUL' },
+  saved: { en: 'Game saved', id: 'Game tersimpan' },
+  paused: { en: 'Paused', id: 'Jeda' },
+  resume: { en: 'Resume', id: 'Lanjut' },
+  saveQuit: { en: 'Save & Quit', id: 'Simpan & Keluar' },
+  item_wood: { en: 'Wood', id: 'Kayu' },
+  item_stone: { en: 'Stone', id: 'Batu' },
+  item_coconut: { en: 'Coconut', id: 'Kelapa' },
+  item_berries: { en: 'Berries', id: 'Beri' },
+  item_fiber: { en: 'Fiber', id: 'Serat' },
+  item_iron_ore: { en: 'Iron ore', id: 'Bijih besi' },
+  item_crystal: { en: 'Crystal', id: 'Kristal' },
+};
