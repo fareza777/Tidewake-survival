@@ -1,0 +1,117 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice(); inv[0] = {item:'axe_wood',qty:1,dur:40}; inv[1] = {item:'fence',qty:3}; inv[2] = {item:'workbench',qty:1}; g.session = {...g.session, inventory: inv}; return 'given'; })()"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const S = w.size; const c = w.landmarks.find(l => l.id === 'camp');\nfor (let r = 0; r < 14; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const x = c.x + dx, y = c.y + dy; const i = y * S + x, a = (y - 1) * S + x;\nif (w.terrain[i] === 3 && w.terrain[a] === 3 && !g.occupied.has(i) && !g.occupied.has(a)) { g.pos = { x: x + 0.5, y: y - 0.5 }; return 'front tile ' + x + ',' + y; } } return 'no grass'; })()"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "eval": "__game.scene.getScene('Game').select(1)"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'after placing a fence: structures=' + __game.scene.getScene('Game').session.structures.list.map(s => s.type).join(',') + ' fence=' + __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'fence').reduce((a, s) => a + s.qty, 0) + ' workbench=' + __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'workbench').reduce((a, s) => a + s.qty, 0)"
+ },
+ {
+  "shot": "fence-placed"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'after pressing again (fence taken back): structures=' + __game.scene.getScene('Game').session.structures.list.map(s => s.type).join(',') + ' fence=' + __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'fence').reduce((a, s) => a + s.qty, 0) + ' workbench=' + __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'workbench').reduce((a, s) => a + s.qty, 0)"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').select(2)"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'after placing a workbench: structures=' + __game.scene.getScene('Game').session.structures.list.map(s => s.type).join(',') + ' fence=' + __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'fence').reduce((a, s) => a + s.qty, 0) + ' workbench=' + __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'workbench').reduce((a, s) => a + s.qty, 0)"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').select(1)"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'fence in hand next to a workbench (pressing ACTION opens the workbench instead): structures=' + __game.scene.getScene('Game').session.structures.list.map(s => s.type).join(',') + ' fence=' + __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'fence').reduce((a, s) => a + s.qty, 0) + ' workbench=' + __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'workbench').reduce((a, s) => a + s.qty, 0)"
+ },
+ {
+  "eval": "'crafting screen open, game paused: ' + __game.scene.isPaused('Game')"
+ },
+ {
+  "tap": [
+   360,
+   24
+  ]
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "'after closing, game paused: ' + __game.scene.isPaused('Game')"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').select(0)"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'axe in hand (workbench dismantled): structures=' + __game.scene.getScene('Game').session.structures.list.map(s => s.type).join(',') + ' fence=' + __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'fence').reduce((a, s) => a + s.qty, 0) + ' workbench=' + __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'workbench').reduce((a, s) => a + s.qty, 0)"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

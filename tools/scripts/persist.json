@@ -1,153 +1,180 @@
 [
-  {
-    "goto": "http://localhost:5199/"
-  },
-  {
-    "eval": "localStorage.clear()"
-  },
-  {
-    "goto": "http://localhost:5199/"
-  },
-  {
-    "until": "window.__game && __game.scene.isActive('Menu')",
-    "timeout": 20000
-  },
-  {
-    "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
-  },
-  {
-    "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
-    "timeout": 20000
-  },
-  {
-    "wait": 800
-  },
-  {
-    "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const S = w.size; const occ = new Set(w.resources.map(r => r.y * S + r.x)); const n = w.resources.find(r => r.kind === 'tree' && w.terrain[(r.y + 1) * S + r.x] === 3 && !occ.has((r.y + 1) * S + r.x)); g.pos = { x: n.x + 0.5, y: n.y + 1.5 }; return JSON.stringify(n); })()"
-  },
-  {
-    "wait": 400
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "press": "Space",
-    "ms": 80
-  },
-  {
-    "wait": 450
-  },
-  {
-    "eval": "(() => { const g = __game.scene.getScene('Game'); return JSON.stringify({ pos: g.pos, bag: g.bag, gone: Object.keys(g.gather.gone).length, day: g.clock.day }); })()"
-  },
-  {
-    "eval": "__game.scene.getScene('Game').saveNow()"
-  },
-  {
-    "goto": "http://localhost:5199/"
-  },
-  {
-    "until": "window.__game && __game.scene.isActive('Menu')",
-    "timeout": 20000
-  },
-  {
-    "wait": 800
-  },
-  {
-    "shot": "menu-with-continue"
-  },
-  {
-    "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0})"
-  },
-  {
-    "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
-    "timeout": 20000
-  },
-  {
-    "wait": 800
-  },
-  {
-    "eval": "(() => { const g = __game.scene.getScene('Game'); return JSON.stringify({ pos: g.pos, bag: g.bag, gone: Object.keys(g.gather.gone).length, day: g.clock.day }); })()"
-  },
-  {
-    "shot": "continued"
-  },
-  {
-    "eval": "JSON.stringify(window.__errs)"
-  }
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice(); inv[0] = {'item': 'axe_wood', 'qty': 1, 'dur': 40}; inv[1] = {'item': 'campfire', 'qty': 1}; inv[2] = {'item': 'hoe', 'qty': 1, 'dur': 60}; g.session = {...g.session, inventory: inv}; return 'given'; })()"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const S = w.size; const occ = new Set(w.resources.map(r => r.y * S + r.x)); const n = w.resources.find(r => r.kind === 'tree' && w.terrain[(r.y + 1) * S + r.x] === 3 && !occ.has((r.y + 1) * S + r.x)); g.pos = { x: n.x + 0.5, y: n.y + 1.5 }; return JSON.stringify(n); })()"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "eval": "__game.scene.getScene('Game').select(1)"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "__game.scene.getScene('Game').select(2)"
+ },
+ {
+  "press": "ArrowRight",
+  "ms": 300
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const s = g.session; return JSON.stringify({ pos: g.pos, wood: __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'wood').reduce((a, s) => a + s.qty, 0), gone: Object.keys(s.gather.gone).length, day: s.clock.day, inv: s.inventory.filter(Boolean).length, structures: s.structures.list.length, plots: Object.keys(s.farm.plots).length, selected: s.selected }); })()"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').saveNow()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "shot": "menu-with-continue"
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const s = g.session; return JSON.stringify({ pos: g.pos, wood: __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'wood').reduce((a, s) => a + s.qty, 0), gone: Object.keys(s.gather.gone).length, day: s.clock.day, inv: s.inventory.filter(Boolean).length, structures: s.structures.list.length, plots: Object.keys(s.farm.plots).length, selected: s.selected }); })()"
+ },
+ {
+  "shot": "continued"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
 ]

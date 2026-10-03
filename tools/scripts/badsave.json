@@ -1,61 +1,61 @@
 [
-  {
-    "goto": "http://localhost:5199/"
-  },
-  {
-    "eval": "localStorage.clear()"
-  },
-  {
-    "goto": "http://localhost:5199/"
-  },
-  {
-    "until": "window.__game && __game.scene.isActive('Menu')",
-    "timeout": 20000
-  },
-  {
-    "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
-  },
-  {
-    "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
-    "timeout": 20000
-  },
-  {
-    "wait": 800
-  },
-  {
-    "eval": "__game.scene.getScene('Game').quitToMenu()"
-  },
-  {
-    "until": "__game.scene.isActive('Menu')",
-    "timeout": 20000
-  },
-  {
-    "eval": "(() => { const k = 'tidewake.slot.0'; const s = JSON.parse(localStorage.getItem(k)); s.gather = { hp: { '-3': 1 }, gone: { '99999': 1, 'abc': 1 } }; s.clock = { day: 5, t: 599 }; localStorage.setItem(k, JSON.stringify(s)); localStorage.removeItem(k + '.bak'); return 'edited'; })()"
-  },
-  {
-    "goto": "http://localhost:5199/"
-  },
-  {
-    "until": "window.__game && __game.scene.isActive('Menu')",
-    "timeout": 20000
-  },
-  {
-    "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0})"
-  },
-  {
-    "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
-    "timeout": 20000
-  },
-  {
-    "wait": 2500
-  },
-  {
-    "eval": "'day now: ' + __game.scene.getScene('Game').clock.day + ' (expected 6)'"
-  },
-  {
-    "shot": "badsave-after-rollover"
-  },
-  {
-    "eval": "JSON.stringify(window.__errs)"
-  }
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "__game.scene.getScene('Game').quitToMenu()"
+ },
+ {
+  "until": "__game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "(() => { const k = 'tidewake.slot.0'; const s = JSON.parse(localStorage.getItem(k)); s.gather = { hp: { '-3': 1 }, gone: { '99999': 1, 'abc': 1 } }; s.clock = { day: 5, t: 599 }; localStorage.setItem(k, JSON.stringify(s)); localStorage.removeItem(k + '.bak'); return 'edited'; })()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 2500
+ },
+ {
+  "eval": "'day now: ' + __game.scene.getScene('Game').session.clock.day + ' (expected 6)'"
+ },
+ {
+  "shot": "badsave-after-rollover"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
 ]

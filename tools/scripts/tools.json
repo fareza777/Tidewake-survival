@@ -23,64 +23,57 @@
   "wait": 800
  },
  {
-  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice(); inv[0] = {'item': 'axe_wood', 'qty': 1, 'dur': 40}; g.session = {...g.session, inventory: inv}; return 'given'; })()"
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const S = w.size; const occ = new Set(w.resources.map(r => r.y * S + r.x)); const n = w.resources.find(r => r.kind === 'tree' && w.terrain[(r.y + 1) * S + r.x] === 3 && !occ.has((r.y + 1) * S + r.x)); g.pos = { x: n.x + 0.5, y: n.y + 1.5 }; return JSON.stringify(n); })()"
  },
  {
-  "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const S = w.size; const occ = new Set(w.resources.map(r => r.y * S + r.x)); const n = w.resources.find(r => r.kind === 'tree' && w.terrain[(r.y + 1) * S + r.x] === 3 && !occ.has((r.y + 1) * S + r.x)); g.pos = { x: n.x + 0.5, y: n.y + 1.5 }; return JSON.stringify(n); })()"
+  "wait": 500
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 420
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 420
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 420
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 420
+ },
+ {
+  "eval": "'bare hands, 4 swings: wood=' + __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'wood').reduce((a, s) => a + s.qty, 0) + ' (tree needs ~15 hand hits)'"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const o = w.resources.find(r => r.kind === 'ore'); g.pos = { x: o.x + 0.5, y: o.y + 1.5 }; g.session = {...g.session, selected: 0}; return JSON.stringify(o); })()"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "press": "Space",
+  "ms": 80
  },
  {
   "wait": 600
  },
  {
-  "shot": "before-hit"
- },
- {
-  "press": "Space",
-  "ms": 80
- },
- {
-  "wait": 450
- },
- {
-  "press": "Space",
-  "ms": 80
- },
- {
-  "wait": 450
- },
- {
-  "press": "Space",
-  "ms": 80
- },
- {
-  "wait": 450
- },
- {
-  "press": "Space",
-  "ms": 80
- },
- {
-  "wait": 450
- },
- {
-  "press": "Space",
-  "ms": 80
- },
- {
-  "wait": 450
- },
- {
-  "press": "Space",
-  "ms": 80
- },
- {
-  "wait": 450
- },
- {
-  "eval": "JSON.stringify({wood: __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'wood').reduce((a, s) => a + s.qty, 0), axeDur: __game.scene.getScene('Game').session.inventory[0].dur})"
- },
- {
-  "shot": "after-hits"
+  "shot": "needs-pickaxe"
  },
  {
   "eval": "JSON.stringify(window.__errs)"

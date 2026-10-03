@@ -1,0 +1,52 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice(); inv[0] = {'item': 'stone', 'qty': 10}; inv[1] = {'item': 'wood', 'qty': 10}; g.session = {...g.session, inventory: inv}; return 'given'; })()"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').session = {...__game.scene.getScene('Game').session, vitals: {hp: 0.3, hunger: 0, thirst: 0, stamina: 100}}; 'dying'"
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "collapsed"
+ },
+ {
+  "eval": "'dead flag: ' + __game.scene.getScene('Game').dead"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').wakeUp(); JSON.stringify({vitals: __game.scene.getScene('Game').session.vitals, stone: __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'stone').reduce((a, s) => a + s.qty, 0), wood: __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'wood').reduce((a, s) => a + s.qty, 0), pos: __game.scene.getScene('Game').pos})"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "woke-up"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

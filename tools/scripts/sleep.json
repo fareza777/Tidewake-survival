@@ -1,0 +1,60 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice(); inv[0] = {'item': 'bed', 'qty': 1}; g.session = {...g.session, inventory: inv}; return 'given'; })()"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').session = {...__game.scene.getScene('Game').session, clock: {day: 1, t: 600 * 0.9}, vitals: {hp: 40, hunger: 80, thirst: 80, stamina: 20}}; 'night set'"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "JSON.stringify({structures: __game.scene.getScene('Game').session.structures.list.length})"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "eval": "JSON.stringify({clock: __game.scene.getScene('Game').session.clock, vitals: __game.scene.getScene('Game').session.vitals})"
+ },
+ {
+  "shot": "after-sleep"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

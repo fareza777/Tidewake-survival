@@ -1,0 +1,201 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice();\ninv[0]={item:'axe_wood',qty:1,dur:40}; inv[1]={item:'hoe',qty:1,dur:60}; inv[2]={item:'carrot_seed',qty:5}; inv[3]={item:'watering_can',qty:1,dur:40};\ninv[4]={item:'campfire',qty:2}; inv[5]={item:'chest',qty:1}; inv[6]={item:'bed',qty:1}; inv[7]={item:'torch',qty:5};\ninv[8]={item:'wood',qty:20}; inv[9]={item:'fiber',qty:10}; inv[10]={item:'stone',qty:10}; inv[11]={item:'carrot',qty:3};\ng.session = {...g.session, inventory: inv}; return 'items ok'; })()"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "hud-items"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const S = w.size; const c = w.landmarks.find(l => l.id === 'camp');\nfor (let r = 0; r < 14; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const x = c.x + dx, y = c.y + dy; const i = y * S + x, a = (y - 1) * S + x;\nif (w.terrain[i] === 3 && w.terrain[a] === 3 && !g.occupied.has(i) && !g.occupied.has(a)) { g.pos = { x: x + 0.5, y: y - 0.5 }; return 'front tile ' + x + ',' + y; } } return 'no grass'; })()"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "eval": "__game.scene.getScene('Game').select(1)"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "__game.scene.getScene('Game').select(2)"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "__game.scene.getScene('Game').select(3)"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); return JSON.stringify({ plots: Object.keys(g.session.farm.plots).length, planted: Object.values(g.session.farm.plots).filter(p => p.crop).length, wet: Object.values(g.session.farm.plots).filter(p => p.watered).length, structures: g.session.structures.list.map(s => s.type), seeds: (g.session.inventory[2] || {}).qty }); })()"
+ },
+ {
+  "shot": "farm"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.pos = { x: g.pos.x + (3), y: g.pos.y }; return JSON.stringify(g.pos); })()"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').select(4)"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.pos = { x: g.pos.x + (2), y: g.pos.y }; return JSON.stringify(g.pos); })()"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').select(5)"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); return JSON.stringify({ plots: Object.keys(g.session.farm.plots).length, planted: Object.values(g.session.farm.plots).filter(p => p.crop).length, wet: Object.values(g.session.farm.plots).filter(p => p.watered).length, structures: g.session.structures.list.map(s => s.type), seeds: (g.session.inventory[2] || {}).qty }); })()"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "camp-built"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').session = {...__game.scene.getScene('Game').session, clock: {day: 1, t: 540}}; 'dusk set'"
+ },
+ {
+  "wait": 600
+ },
+ {
+  "shot": "dusk-camp"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').session = {...__game.scene.getScene('Game').session, clock: {day: 1, t: 570}}; 'night set'"
+ },
+ {
+  "wait": 600
+ },
+ {
+  "shot": "night-camp"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').openInventory({mode: 'bag'})"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "bag"
+ },
+ {
+  "tap": [
+   286,
+   24
+  ]
+ },
+ {
+  "wait": 400
+ },
+ {
+  "shot": "craft-hand"
+ },
+ {
+  "tap": [
+   338,
+   94
+  ]
+ },
+ {
+  "wait": 300
+ },
+ {
+  "eval": "JSON.stringify({wood: __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'wood').reduce((a, s) => a + s.qty, 0), plank: __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'plank').reduce((a, s) => a + s.qty, 0)})"
+ },
+ {
+  "shot": "crafted"
+ },
+ {
+  "tap": [
+   343,
+   24
+  ]
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "'game paused after closing: ' + __game.scene.isPaused('Game')"
+ },
+ {
+  "eval": "(() => { const c = __game.scene.getScene('Game').session.structures.list.find(s => s.type === 'chest'); __game.scene.getScene('Game').openInventory({mode: 'chest', chestId: c.id}); return 'chest ' + c.id; })()"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "tap": [
+   62,
+   268
+  ]
+ },
+ {
+  "wait": 300
+ },
+ {
+  "eval": "JSON.stringify({chestHolds: __game.scene.getScene('Game').session.structures.list.find(s => s.type === 'chest').inv.filter(Boolean).map(s => s.item + ' x' + s.qty)})"
+ },
+ {
+  "shot": "chest"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

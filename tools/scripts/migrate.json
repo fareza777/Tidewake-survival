@@ -1,0 +1,34 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.slot.0', \"{\\\"version\\\": 1, \\\"slot\\\": 0, \\\"name\\\": \\\"Old Ari\\\", \\\"seed\\\": 1234, \\\"difficulty\\\": \\\"normal\\\", \\\"createdAt\\\": 1, \\\"updatedAt\\\": 2, \\\"playTimeSec\\\": 300, \\\"player\\\": {\\\"x\\\": 80.5, \\\"y\\\": 143.5}, \\\"bag\\\": {\\\"wood\\\": 7, \\\"stone\\\": 3}, \\\"clock\\\": {\\\"day\\\": 2, \\\"t\\\": 50}, \\\"gather\\\": {\\\"hp\\\": {}, \\\"gone\\\": {}}}\"); 'v1 save written'"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "JSON.stringify({wood: __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'wood').reduce((a, s) => a + s.qty, 0), stone: __game.scene.getScene('Game').session.inventory.filter(s => s && s.item === 'stone').reduce((a, s) => a + s.qty, 0), day: __game.scene.getScene('Game').session.clock.day, hp: __game.scene.getScene('Game').session.vitals.hp})"
+ },
+ {
+  "shot": "migrated"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]
