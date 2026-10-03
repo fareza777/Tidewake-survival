@@ -1,0 +1,180 @@
+import Phaser from 'phaser';
+import { snapWorld } from '@/core/viewport';
+import { CREATURES, isHostileKind } from '@/data/creatures';
+import { ITEMS } from '@/data/items';
+import { animKey } from '@/gfx/animations';
+import { TILE } from '@/gfx/TerrainLayer';
+import type { Facing } from '@/sim/actions';
+import type { SwingStats } from '@/sim/combat';
+import type { Creature } from '@/sim/creatures';
+import type { Arrow } from '@/sim/encounters';
+import type { Vec } from '@/sim/movement';
+import type { Pickup } from '@/sim/pickups';
+
+const FLASH_MS = 90;
+const WINDUP_TINT = 0xff8a8a;
+const FACING_DEG: Record<Facing, number> = { right: 0, down: 90, left: 180, up: 270 };
+/** Where the feet are inside a sprite cell: monsters are drawn in 48x48 cells, animals in 16x20. */
+const FEET: Record<'monsters' | 'actors', number> = { monsters: 0.8, actors: 0.9 };
+const BAR_W = 14;
+
+interface CreatureView {
+  sprite: Phaser.GameObjects.Sprite;
+  shadow: Phaser.GameObjects.Image;
+  bar: [Phaser.GameObjects.Rectangle, Phaser.GameObjects.Rectangle];
+  flashUntil: number;
+}
+
+interface ItemView {
+  icon: Phaser.GameObjects.Image;
+  shadow: Phaser.GameObjects.Image;
+}
+
+/** Sprites for the island's creatures, loose items and arrows, kept in step with the simulation by `sync`. */
+export class CreatureLayer {
+  private creatures = new Map<number, CreatureView>();
+  private items = new Map<number, ItemView>();
+  private arrows = new Map<number, Phaser.GameObjects.Image>();
+
+  constructor(private scene: Phaser.Scene) {}
+
+  /** Create, move, animate and remove sprites so they match the given state. */
+  sync(creatures: readonly Creature[], pickups: readonly Pickup[], arrows: readonly Arrow[]): void {
+    this.syncCreatures(creatures);
+    this.syncItems(pickups);
+    this.syncArrows(arrows);
+  }
+
+  private syncCreatures(list: readonly Creature[]): void {
+    const now = this.scene.time.now;
+    const seen = new Set<number>();
+    for (const c of list) {
+      seen.add(c.id);
+      const def = CREATURES[c.kind];
+      const view = this.creatures.get(c.id) ?? this.addCreature(c);
+      const px = snapWorld(c.x * TILE);
+      const py = snapWorld(c.y * TILE);
+      view.sprite.setPosition(px, py).setDepth(py);
+      view.shadow.setPosition(px, py - 1).setDepth(py - 1);
+      const dir = def.sprite.fixedDir ?? c.facing;
+      const moving = c.state === 'wander' || c.state === 'chase' || c.state === 'flee';
+      if (moving) {
+        view.sprite.play(animKey(`${def.sprite.group}/${dir}`), true);
+      } else {
+        view.sprite.anims.stop();
+        view.sprite.setFrame(`${def.sprite.group}/${dir}/${Math.min(1, def.sprite.frames - 1)}`);
+      }
+      if (now < view.flashUntil) view.sprite.setTintFill(0xffffff);
+      else if (c.state === 'windup') view.sprite.setTint(WINDUP_TINT);
+      else view.sprite.clearTint();
+      view.sprite.setScale(c.state === 'windup' ? 1.12 : 1);
+      this.updateBar(view, c, px, py);
+    }
+    for (const [id, view] of this.creatures) {
+      if (seen.has(id)) continue;
+      view.sprite.destroy();
+      view.shadow.destroy();
+      view.bar.forEach((b) => b.destroy());
+      this.creatures.delete(id);
+    }
+  }
+
+  private addCreature(c: Creature): CreatureView {
+    const def = CREATURES[c.kind];
+    const dir = def.sprite.fixedDir ?? c.facing;
+    const sprite = this.scene.add.sprite(0, 0, def.sprite.atlas, `${def.sprite.group}/${dir}/1`).setOrigin(0.5, FEET[def.sprite.atlas]);
+    const shadow = this.scene.add.image(0, 0, 'fx_shadow').setScale(def.radius * 3.2);
+    const color = isHostileKind(c.kind) ? 0xe0524f : 0xff9a3c;
+    const back = this.scene.add.rectangle(0, 0, BAR_W, 2, 0x000000, 0.65).setOrigin(0, 0.5).setVisible(false);
+    const fill = this.scene.add.rectangle(0, 0, BAR_W, 2, color).setOrigin(0, 0.5).setVisible(false);
+    const view: CreatureView = { sprite, shadow, bar: [back, fill], flashUntil: 0 };
+    this.creatures.set(c.id, view);
+    return view;
+  }
+
+  /** A health bar above a creature that has been hurt. */
+  private updateBar(view: CreatureView, c: Creature, px: number, py: number): void {
+    const def = CREATURES[c.kind];
+    const hurt = c.hp < def.hp;
+    const top = py - (def.sprite.atlas === 'monsters' ? 26 : 22);
+    view.bar[0].setVisible(hurt).setPosition(px - BAR_W / 2, top).setDepth(py + 1);
+    view.bar[1].setVisible(hurt).setPosition(px - BAR_W / 2, top).setDepth(py + 2).setSize(Math.max(1, BAR_W * (c.hp / def.hp)), 2);
+  }
+
+  private syncItems(list: readonly Pickup[]): void {
+    const now = this.scene.time.now;
+    const seen = new Set<number>();
+    for (const p of list) {
+      seen.add(p.id);
+      const view = this.items.get(p.id) ?? this.addItem(p);
+      const px = snapWorld(p.x * TILE);
+      const py = snapWorld(p.y * TILE);
+      const bob = Math.sin((now + p.id * 137) / 220) * 1.5;
+      view.icon.setPosition(px, py - 6 + bob).setDepth(py).setAlpha(p.age > 100 && Math.floor(now / 200) % 2 === 0 ? 0.35 : 1);
+      view.shadow.setPosition(px, py - 1).setDepth(py - 1);
+    }
+    for (const [id, view] of this.items) {
+      if (seen.has(id)) continue;
+      view.icon.destroy();
+      view.shadow.destroy();
+      this.items.delete(id);
+    }
+  }
+
+  private addItem(p: Pickup): ItemView {
+    const icon = ITEMS[p.item].icon;
+    const view = {
+      icon: this.scene.add.image(0, 0, icon.atlas, icon.frame).setDisplaySize(12, 12),
+      shadow: this.scene.add.image(0, 0, 'fx_shadow').setScale(0.5),
+    };
+    this.items.set(p.id, view);
+    return view;
+  }
+
+  private syncArrows(list: readonly Arrow[]): void {
+    const seen = new Set<number>();
+    for (const a of list) {
+      seen.add(a.id);
+      const dir = a.dx > 0 ? 'right' : a.dx < 0 ? 'left' : a.dy < 0 ? 'up' : 'down';
+      const img = this.arrows.get(a.id) ?? this.scene.add.image(0, 0, 'actors', `arrow/idle/${dir}/0`);
+      this.arrows.set(a.id, img);
+      const py = snapWorld(a.y * TILE);
+      img.setPosition(snapWorld(a.x * TILE), py - 8).setDepth(py);
+    }
+    for (const [id, img] of this.arrows) {
+      if (seen.has(id)) continue;
+      img.destroy();
+      this.arrows.delete(id);
+    }
+  }
+
+  /** White flash on a creature that was just hit. */
+  flash(id: number): void {
+    const view = this.creatures.get(id);
+    if (view) view.flashUntil = this.scene.time.now + FLASH_MS;
+  }
+
+  /** Small cloud where a creature died. Positions are in tiles. */
+  puff(at: Vec): void {
+    const x = at.x * TILE;
+    const y = at.y * TILE - 6;
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const dot = this.scene.add.image(x, y, 'ui_white').setDisplaySize(3, 3).setDepth(900_000);
+      this.scene.tweens.add({
+        targets: dot, x: x + Math.cos(angle) * 12, y: y + Math.sin(angle) * 9 - 4, alpha: 0, duration: 320, ease: 'Sine.easeOut',
+        onComplete: () => dot.destroy(),
+      });
+    }
+  }
+
+  /** The sweep of a blow: a wedge in front of the hero that fades at once. */
+  swing(hero: Vec, facing: Facing, stats: Pick<SwingStats, 'reach' | 'arc'>): void {
+    const mid = FACING_DEG[facing];
+    const wedge = this.scene.add
+      .arc(hero.x * TILE, hero.y * TILE - 8, stats.reach * TILE, mid - stats.arc / 2, mid + stats.arc / 2, false, 0xffffff, 0.2)
+      .setStrokeStyle(1, 0xffffff, 0.7)
+      .setDepth(900_000);
+    this.scene.tweens.add({ targets: wedge, alpha: 0, duration: 150, onComplete: () => wedge.destroy() });
+  }
+}

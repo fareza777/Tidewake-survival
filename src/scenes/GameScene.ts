@@ -9,27 +9,33 @@ import { worldZoom } from '@/core/viewport';
 import type { Recipe } from '@/data/recipes';
 import type { Station, StructureId } from '@/data/structures';
 import { FarmLayer } from '@/gfx/FarmLayer';
+import { FloatText } from '@/gfx/FloatText';
 import { NightLight } from '@/gfx/NightLight';
 import { StructureLayer, type LightSource } from '@/gfx/StructureLayer';
 import { TerrainLayer, TILE } from '@/gfx/TerrainLayer';
 import { WorldObjects } from '@/gfx/WorldObjects';
-import { controls, resetControls, takeAction } from '@/game/input';
+import { InputReader } from '@/game/InputReader';
+import { HeroCombat } from '@/game/HeroCombat';
+import { MusicDirector } from '@/game/MusicDirector';
+import { resetControls } from '@/game/input';
 import { frontTile, resolveAction, type Action } from '@/sim/actions';
-import { lighting, newClock } from '@/sim/daynight';
+import { cueForFx } from '@/sim/cues';
+import { isNight, lighting, newClock } from '@/sim/daynight';
 import { plotAt } from '@/sim/farm';
 import { emptyGather, isAlive, sanitizeGather } from '@/sim/gather';
 import { nearestNode } from '@/sim/interact';
+import { meleeFor } from '@/sim/melee';
 import { moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import {
-  applyAction, blocksRegrowth, collapse, craftRecipe, moveInventorySlot, rollDay, selectSlot, sessionFromSlot, sessionToSlot, tickSession,
-  transferStack, type Fx, type Session, type Step,
+  applyAction, blocksRegrowth, collapse, craftRecipe, moveInventorySlot, rollDay, selectSlot, sessionFromSlot, sessionToSlot,
+  tickSession, transferStack, type Fx, type Session, type Step,
 } from '@/sim/session';
-import { nodesByTile, propSolidTiles } from '@/sim/solids';
-import { nearbyStations, structureSolids } from '@/sim/structures';
+import { blockingTiles, nodesByTile, propSolidTiles } from '@/sim/solids';
+import { nearbyStations } from '@/sim/structures';
 import { isDead } from '@/sim/vitals';
 import { GENERATOR_VERSION, generateWorld } from '@/sim/world/generate';
 import { idx, type Biome, type ResourceNode, type World } from '@/sim/world/types';
-import { COLORS, FONT } from '@/ui/theme';
+import { COLORS } from '@/ui/theme';
 
 /** Walking speed in tiles per second, how far the hero reaches, and the pause between uses (seconds). */
 const PLAYER_SPEED = 3.4;
@@ -61,29 +67,32 @@ export class GameScene extends BaseScene {
   world!: World;
   session!: Session;
   pos: Vec = { x: 0, y: 0 };
+  player!: Player;
+  float!: FloatText;
+  /** Tiles the hero cannot walk through: living nodes, scenery and solid buildings. */
+  solids = new Set<number>();
+  /** Seconds the island stands still after a good hit, to give blows some weight. */
+  hitStop = 0;
 
   private slotData!: SaveSlot;
   private lastDay = 1;
   private cooldown = 0;
   private idle = 99;
   private saveTimer = 0;
-  private dead = false;
+  /** True while the collapse dialog is up. */
+  dead = false;
   private wiped = false;
   private nodes!: Map<number, ResourceNode>;
   private propTiles: number[] = [];
-  private solids = new Set<number>();
   private occupied = new Set<number>();
   private objects!: WorldObjects;
   private structureLayer!: StructureLayer;
   private farmLayer!: FarmLayer;
   private night!: NightLight;
-  private player!: Player;
   private cursor!: Phaser.GameObjects.Rectangle;
-  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-  private wasd!: Record<'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
-  private actionKeys: Phaser.Input.Keyboard.Key[] = [];
-  private digitKeys: Phaser.Input.Keyboard.Key[] = [];
-  private floatRow = 0;
+  private keys!: InputReader;
+  private combat!: HeroCombat;
+  private music = new MusicDirector();
 
   constructor() {
     super('Game');
@@ -124,11 +133,14 @@ export class GameScene extends BaseScene {
     this.farmLayer = new FarmLayer(this, this.session.farm);
     this.rebuildBlocking();
     this.player = new Player(this, this.pos);
+    this.combat = new HeroCombat(this);
+    this.music = new MusicDirector();
+    this.float = new FloatText(this);
     this.cursor = this.add.rectangle(0, 0, TILE, TILE).setOrigin(0, 0).setStrokeStyle(1, 0xffffff, 0.9).setFillStyle(0xffffff, 0.12).setDepth(80000).setVisible(false);
 
     this.setupCamera();
     this.night = new NightLight(this, this.cameras.main);
-    this.setupInput();
+    this.keys = new InputReader(this);
     this.handleBack(() => {
       (this.scene.get('Hud') as HudScene).openMenu();
       return true;
@@ -152,17 +164,9 @@ export class GameScene extends BaseScene {
     cam.setBounds(0, 0, this.world.size * TILE, this.world.size * TILE);
   }
 
-  private setupInput(): void {
-    const kb = this.input.keyboard;
-    if (!kb) return;
-    this.cursors = kb.createCursorKeys();
-    this.wasd = kb.addKeys({ w: 'W', a: 'A', s: 'S', d: 'D' }) as Record<'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
-    this.actionKeys = [kb.addKey('SPACE'), kb.addKey('E')];
-    this.digitKeys = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT'].map((k) => kb.addKey(k));
-  }
-
   update(_time: number, delta: number): void {
-    if (this.dead) {
+    if (this.dead || this.hitStop > 0) {
+      this.hitStop = Math.max(0, this.hitStop - delta / 1000);
       this.followCamera();
       return;
     }
@@ -174,19 +178,20 @@ export class GameScene extends BaseScene {
       this.onCollapse();
       return;
     }
-    this.digitKeys.forEach((k, i) => {
-      if (Phaser.Input.Keyboard.JustDown(k)) this.select(i);
-    });
+    const slot = this.keys.slotPressed();
+    if (slot >= 0) this.select(slot);
 
-    const move = this.readMove();
+    const move = this.keys.move();
     if (move.x !== 0 || move.y !== 0) {
       const speed = PLAYER_SPEED * speedFactor(this.world, this.pos.x, this.pos.y);
       this.pos = moveWithCollision(this.world, this.solids, this.pos, move.x * speed * dt, move.y * speed * dt);
     }
     this.player.update(this.pos, move);
+    this.combat.tick(dt);
+    this.music.update(isNight(this.session.clock), this.combat.fighting);
 
     this.cooldown = Math.max(0, this.cooldown - dt);
-    const pressed = this.consumeAction();
+    const pressed = this.keys.actionPressed();
     const action = this.computeAction();
     this.showCursor(action);
     if (pressed && this.cooldown === 0) this.perform(action);
@@ -203,33 +208,14 @@ export class GameScene extends BaseScene {
     return this.world.biome[i] as Biome;
   }
 
-  /** Keyboard (for desktop testing) plus the touch joystick, capped at length 1. */
-  private readMove(): Vec {
-    let x = controls.moveX;
-    let y = controls.moveY;
-    if (this.cursors) {
-      if (this.cursors.left.isDown || this.wasd.a.isDown) x -= 1;
-      if (this.cursors.right.isDown || this.wasd.d.isDown) x += 1;
-      if (this.cursors.up.isDown || this.wasd.w.isDown) y -= 1;
-      if (this.cursors.down.isDown || this.wasd.s.isDown) y += 1;
-    }
-    const len = Math.hypot(x, y);
-    return len > 1 ? { x: x / len, y: y / len } : { x, y };
-  }
-
-  private consumeAction(): boolean {
-    const fromKeys = this.actionKeys.some((k) => Phaser.Input.Keyboard.JustDown(k));
-    const fromHud = takeAction();
-    return fromKeys || fromHud;
-  }
-
   /** What ACTION would do right now. */
   private computeAction(): Action {
     const node = nearestNode(this.nodes, this.world.size, this.pos, HIT_REACH, (id) => isAlive(this.session.gather, id));
     const s = this.session;
+    const melee = meleeFor(s.inventory[s.selected]?.item ?? null);
     return resolveAction({
       world: this.world, inv: s.inventory, selected: s.selected, vitals: s.vitals, pos: this.pos, facing: this.player.facing,
-      structures: s.structures, farm: s.farm, occupied: this.occupied, node,
+      structures: s.structures, farm: s.farm, occupied: this.occupied, node, creature: this.combat.reaches(melee),
     });
   }
 
@@ -243,7 +229,7 @@ export class GameScene extends BaseScene {
   }
 
   private perform(action: Action): void {
-    this.cooldown = ACTION_COOLDOWN;
+    this.cooldown = action.kind === 'attack' ? action.melee.cooldown : action.kind === 'shoot' ? action.stats.cooldown : ACTION_COOLDOWN;
     if (action.kind === 'none') return;
     if (action.kind === 'hit') this.player.face(action.node.x + 0.5 - this.pos.x, action.node.y + 0.5 - this.pos.y);
     if (action.kind !== 'blocked') this.idle = 0;
@@ -252,18 +238,22 @@ export class GameScene extends BaseScene {
   }
 
   /** Take a rule result: the new state, and the effects to show. */
-  private commit(step: Step): void {
+  private commit(step: Step, quiet = false): void {
     this.session = step.session;
-    this.floatRow = 0;
-    for (const fx of step.fx) this.playFx(fx);
+    this.float.newGroup();
+    for (const fx of step.fx) this.playFx(fx, quiet);
     this.rebuildBlocking();
   }
 
-  private playFx(fx: Fx): void {
+  private playFx(fx: Fx, quiet: boolean): void {
+    const cue = quiet ? null : cueForFx(fx, fx.t === 'hit' ? this.world.resources[fx.id]?.kind : undefined);
+    if (cue) services.audio?.sfx(cue);
     switch (fx.t) {
       case 'say': services.notify?.(this.sayText(fx)); break;
       case 'gain': this.showGain(`+${fx.qty} ${t(`item_${fx.item}`)}`); break;
       case 'swing': this.player.punch(); break;
+      case 'strike':
+      case 'shot': this.combat.onFx(fx); break;
       case 'hit': this.objects.shake(fx.id); break;
       case 'gone': this.objects.setAlive(fx.id, false); break;
       case 'built': this.structureLayer.add(fx.structure); break;
@@ -280,26 +270,18 @@ export class GameScene extends BaseScene {
     return t(fx.key, vars);
   }
 
-  private showGain(text: string): void {
+  /** Floating "+2 Wood" text above the hero (or a toast while a screen covers the island). */
+  showGain(text: string): void {
     if (this.scene.isPaused()) {
       services.notify?.(text);
       return;
     }
-    const x = this.pos.x * TILE;
-    const y = this.pos.y * TILE - 26 - this.floatRow++ * 8;
-    const label = this.add.bitmapText(x, y, FONT.small, text).setOrigin(0.5).setTint(COLORS.gold).setScale(0.5).setDepth(1_000_000);
-    this.tweens.add({ targets: label, y: y - 14, alpha: 0, duration: 900, ease: 'Sine.easeOut', onComplete: () => label.destroy() });
+    this.float.show(this.pos.x * TILE, this.pos.y * TILE - 26, text, COLORS.gold, true);
   }
 
   /** Walk-blocking tiles (living nodes, scenery, solid structures) and tiles that cannot be built or tilled on. */
   private rebuildBlocking(): void {
-    const s = this.session;
-    const solids = new Set<number>(this.propTiles);
-    for (const n of this.world.resources) if (isAlive(s.gather, n.id)) solids.add(idx(n.x, n.y, this.world.size));
-    for (const tile of structureSolids(s.structures, this.world.size)) solids.add(tile);
-    const occupied = new Set<number>(solids);
-    for (const p of s.structures.list) occupied.add(idx(p.x, p.y, this.world.size));
-    for (const key of Object.keys(s.farm.plots)) occupied.add(Number(key));
+    const { solids, occupied } = blockingTiles(this.world, this.propTiles, this.session);
     this.solids = solids;
     this.occupied = occupied;
   }
@@ -327,6 +309,7 @@ export class GameScene extends BaseScene {
 
   private onCollapse(): void {
     this.dead = true;
+    services.audio?.sfx('death');
     (this.scene.get('Hud') as HudScene).showDeath(this.session.difficulty, () => this.wakeUp());
   }
 
@@ -344,6 +327,7 @@ export class GameScene extends BaseScene {
     this.player.update(this.pos, { x: 0, y: 0 });
     this.dead = false;
     this.idle = 99;
+    this.combat.reset();
     this.saveNow();
   }
 
@@ -375,7 +359,9 @@ export class GameScene extends BaseScene {
   }
 
   craft(recipe: Recipe): void {
-    this.commit(craftRecipe(this.session, recipe, this.stations()));
+    const step = craftRecipe(this.session, recipe, this.stations());
+    if (step.fx.length > 0) services.audio?.sfx('craft');
+    this.commit(step, true);
   }
 
   moveSlot(from: number, to: number): void {

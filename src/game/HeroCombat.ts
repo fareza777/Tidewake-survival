@@ -1,0 +1,103 @@
+import { shakeCamera } from '@/core/viewport';
+import { services } from '@/core/services';
+import { t } from '@/core/i18n';
+import { Wildlife } from '@/game/Wildlife';
+import { FloatText } from '@/gfx/FloatText';
+import { TILE } from '@/gfx/TerrainLayer';
+import type { GameScene } from '@/scenes/GameScene';
+import { HERO_DEFENSE } from '@/sim/combat';
+import { cueForEncounter } from '@/sim/cues';
+import { isNight } from '@/sim/daynight';
+import { hostilesNear, type EncounterEvent } from '@/sim/encounters';
+import type { Melee } from '@/sim/melee';
+import { hurtHero, type Fx } from '@/sim/session';
+import { COLORS } from '@/ui/theme';
+
+/** The "backpack full" notice for loot on the ground is shown at most this often (seconds). */
+const FULL_NOTICE = 3;
+/** Monsters this close that are after the hero make it a fight; the battle music lingers this long after the last one (seconds). */
+const FIGHT_RADIUS = 10;
+const FIGHT_LINGER = 4;
+/** How long the island freezes when a blow lands, and when it kills (seconds). */
+const HIT_STOP = 0.045;
+const KILL_STOP = 0.09;
+
+/** The island scene's fighting side: runs the creatures, resolves the hero's blows and shots, and shows what happens. */
+export class HeroCombat {
+  private wildlife: Wildlife;
+  private numbers: FloatText;
+  private fullTimer = 0;
+  private calm = FIGHT_LINGER;
+
+  constructor(private host: GameScene) {
+    this.wildlife = new Wildlife(host);
+    this.numbers = new FloatText(host);
+  }
+
+  /** Would a blow with this melee stat block land on a creature right now? */
+  reaches(melee: Pick<Melee, 'reach' | 'arc'>): boolean {
+    return this.wildlife.inReach(this.host.pos, this.host.player.facing, melee);
+  }
+
+  /** True while monsters are on the hero, and for a few seconds after. */
+  get fighting(): boolean {
+    return this.calm < FIGHT_LINGER;
+  }
+
+  /** The hero's blow or shot, as chosen by the rules. */
+  onFx(fx: Extract<Fx, { t: 'strike' | 'shot' }>): void {
+    const { pos, player } = this.host;
+    if (fx.t === 'strike') this.react(this.wildlife.strike(pos, player.facing, fx.melee));
+    else this.wildlife.shoot(pos, player.facing, fx.stats);
+  }
+
+  /** Run creatures, loot and arrows for `dt` seconds, then let the hero pick up what he stands next to. */
+  tick(dt: number): void {
+    const host = this.host;
+    host.player.tick(dt);
+    this.fullTimer = Math.max(0, this.fullTimer - dt);
+    this.calm = hostilesNear(this.wildlife.snapshot(), host.pos, FIGHT_RADIUS) > 0 ? 0 : this.calm + dt;
+    const s = host.session;
+    this.react(this.wildlife.tick(dt, {
+      world: host.world, solids: host.solids, structures: s.structures, hero: host.pos, heroAlive: !host.dead,
+      night: isNight(s.clock), difficulty: s.difficulty, defense: HERO_DEFENSE,
+    }));
+    const loot = this.wildlife.take(host.session.inventory, host.pos);
+    if (loot.taken.length > 0) {
+      host.session = { ...host.session, inventory: loot.inv };
+      host.float.newGroup();
+      for (const got of loot.taken) host.showGain(`+${got.qty} ${t(`item_${got.item}`)}`);
+    }
+    if (loot.full && this.fullTimer === 0) {
+      this.fullTimer = FULL_NOTICE;
+      services.notify?.(t('msgFull'));
+    }
+  }
+
+  /** The hero's side of an encounter: a blow lands (red flash, shake, buzz), a creature is hurt (damage number). */
+  private react(events: EncounterEvent[]): void {
+    const { host } = this;
+    for (const ev of events) {
+      if (ev.t !== 'hurtHero' || host.player.vulnerable) services.audio?.sfx(cueForEncounter(ev));
+      if (ev.t === 'killed') host.hitStop = KILL_STOP;
+      if (ev.t === 'hit') {
+        host.hitStop = HIT_STOP;
+        if (services.settings?.damageNumbers !== false) this.numbers.show(ev.x * TILE, ev.y * TILE - 18, `-${ev.amount}`, COLORS.white);
+      } else if (ev.t === 'hurtHero' && host.player.vulnerable) {
+        host.session = hurtHero(host.session, ev.amount);
+        host.player.hurt();
+        if (services.settings?.screenShake !== false) shakeCamera(host.cameras.main, 140, 0.006);
+        services.platform?.haptic('medium');
+        this.numbers.show(host.pos.x * TILE, host.pos.y * TILE - 20, `-${ev.amount}`, 0xff5555);
+      }
+    }
+  }
+
+  /** The hero woke up somewhere else: everything that was chasing him is gone. */
+  reset(): void {
+    this.fullTimer = 0;
+    this.calm = FIGHT_LINGER;
+    this.host.player.recover();
+    this.wildlife.clear();
+  }
+}

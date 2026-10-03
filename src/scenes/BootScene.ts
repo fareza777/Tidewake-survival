@@ -55,6 +55,8 @@ export class BootScene extends Phaser.Scene {
     audio.setMusicVolume(settings.musicVol);
     audio.setSfxVolume(settings.sfxVol);
     services.audio = audio;
+    this.game.events.on(Phaser.Core.Events.HIDDEN, () => audio.setPaused(true));
+    this.game.events.on(Phaser.Core.Events.VISIBLE, () => audio.setPaused(false));
     await platform.init();
     await saves.restoreFromNative(async (key) => (await Preferences.get({ key })).value);
     this.scene.start('Preload');

@@ -1,0 +1,78 @@
+import type Phaser from 'phaser';
+import { Rng } from '@/core/rng';
+import { CreatureLayer } from '@/gfx/CreatureLayer';
+import type { Facing } from '@/sim/actions';
+import type { SwingStats } from '@/sim/combat';
+import {
+  creatureInReach, emptyEncounters, shoot, swing, takePickups, tickEncounters, type Encounters, type EncounterEvent, type Taken, type TickContext,
+} from '@/sim/encounters';
+import type { WeaponStats } from '@/data/items';
+import type { Inventory } from '@/sim/inventory';
+import type { Melee } from '@/sim/melee';
+import type { Vec } from '@/sim/movement';
+
+/**
+ * The island's creatures, loose items and arrows: runs the simulation, keeps the sprites in step with it, and hands the
+ * scene the events it has to react to (the hero was hit, a creature was hurt or killed). Nothing here is saved.
+ */
+export class Wildlife {
+  private state = emptyEncounters();
+  private rng = new Rng(Rng.seedFromTime());
+  private layer: CreatureLayer;
+
+  constructor(scene: Phaser.Scene) {
+    this.layer = new CreatureLayer(scene);
+  }
+
+  /** The current state of creatures, items and arrows (read-only). */
+  snapshot(): Encounters {
+    return this.state;
+  }
+
+  /** Advance everything by `dt` seconds. */
+  tick(dt: number, c: Omit<TickContext, 'rng'>): EncounterEvent[] {
+    const r = tickEncounters(this.state, { ...c, rng: this.rng }, dt);
+    return this.apply(r.e, r.events);
+  }
+
+  /** The hero swings: creatures in the arc are hurt. */
+  strike(hero: Vec, facing: Facing, stats: SwingStats): EncounterEvent[] {
+    this.layer.swing(hero, facing, stats);
+    const r = swing(this.state, hero, facing, stats, this.rng);
+    return this.apply(r.e, r.events);
+  }
+
+  /** The hero looses an arrow. */
+  shoot(hero: Vec, facing: Facing, stats: WeaponStats): void {
+    this.state = shoot(this.state, hero, facing, stats);
+    this.layer.sync(this.state.creatures, this.state.pickups, this.state.arrows);
+  }
+
+  /** Would a blow with this weapon land on a creature right now? */
+  inReach(hero: Vec, facing: Facing, melee: Pick<Melee, 'reach' | 'arc'>): boolean {
+    return creatureInReach(this.state, hero, facing, melee.reach, melee.arc);
+  }
+
+  /** Pick up loot within reach of the hero. */
+  take(inv: Inventory, hero: Vec): Taken {
+    const r = takePickups(this.state, inv, hero);
+    if (r.e !== this.state) this.apply(r.e, []);
+    return r;
+  }
+
+  /** Remove every creature, item and arrow (after the hero wakes up somewhere else). */
+  clear(): void {
+    this.state = emptyEncounters();
+    this.layer.sync([], [], []);
+  }
+
+  private apply(next: Encounters, events: EncounterEvent[]): EncounterEvent[] {
+    this.state = next;
+    for (const ev of events) {
+      if (ev.t === 'hit') this.layer.flash(ev.id);
+      if (ev.t === 'killed') this.layer.puff(ev);
+    }
+    this.layer.sync(next.creatures, next.pickups, next.arrows);
+    return events;
+  }
+}

@@ -25,7 +25,7 @@ export function animKey(group: string): string {
 
 export function registerAnimations(scene: Phaser.Scene): void {
   const created: string[] = [];
-  for (const atlas of ['heroes', 'actors', 'props']) {
+  for (const atlas of ['heroes', 'actors', 'monsters', 'props']) {
     const tex = scene.textures.get(atlas);
     const groups = new Map<string, string[]>();
     for (const name of tex.getFrameNames()) {

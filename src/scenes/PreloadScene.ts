@@ -8,7 +8,7 @@ import { nine } from '@/ui/skin';
 import { COLORS, FONT } from '@/ui/theme';
 
 /** Sprite atlases built by tools/pack_assets.py. */
-const ATLASES = ['heroes', 'actors', 'props', 'icons'];
+const ATLASES = ['heroes', 'actors', 'monsters', 'props', 'icons'];
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -27,11 +27,16 @@ export class PreloadScene extends Phaser.Scene {
     this.load.on('loaderror', (f: Phaser.Loader.File) => console.warn('[preload] failed', f.key));
 
     for (const a of ATLASES) this.load.atlas(a, `assets/pack/${a}.png`, `assets/pack/${a}.json`);
+    this.load.audioSprite('sfx', 'assets/audio/sfx.json', ['assets/audio/sfx.ogg']);
     this.load.spritesheet(TILES_KEY, 'assets/pack/tiles.png', { frameWidth: 16, frameHeight: 16 });
   }
 
   create(): void {
     registerAnimations(this);
+    services.audio?.setMusicUrls({
+      day: 'assets/audio/music_day.ogg', night: 'assets/audio/music_night.ogg', battle: 'assets/audio/music_battle.ogg',
+    });
+    services.audio?.markReady();
     this.scene.launch('Notify');
     void services.platform?.hideSplash();
     this.scene.start('Splash');
