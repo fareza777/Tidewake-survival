@@ -68,6 +68,9 @@ def build_tiles(main: Image.Image, legacy: Image.Image):
         tiles.append((f"{name}.0", recolor(flat_grass, base, speck)))
         for i, src in enumerate(speck_sources, start=1):
             tiles.append((f"{name}.{i}", recolor(src, base, speck)))
+    # Tilled farm soil: darker brown, darker still when watered.
+    tiles.append(("soil.dry", recolor(speck_sources[0], (112, 78, 54), (92, 62, 42))))
+    tiles.append(("soil.wet", recolor(speck_sources[0], (78, 54, 40), (62, 42, 32))))
     return tiles
 
 

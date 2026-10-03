@@ -24,5 +24,7 @@ export const TILE_FRAMES = {
   'swamp.1': 21,
   'swamp.2': 22,
   'swamp.3': 23,
+  'soil.dry': 24,
+  'soil.wet': 25,
 } as const;
 export type TileName = keyof typeof TILE_FRAMES;
