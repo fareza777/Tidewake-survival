@@ -4,6 +4,12 @@ import { placeLandmarks } from './landmarks';
 import { scatterResources } from './resources';
 import { B, WORLD_SIZE, idx, inBounds, isWalkable, isWater, T, type World } from './types';
 
+/**
+ * Bump when a change to the generator would alter existing islands. Saves record it so that a changed island does not
+ * silently scramble the resource nodes the player already harvested (node ids are positions in the scatter order).
+ */
+export const GENERATOR_VERSION = 1;
+
 const MAX_ATTEMPTS = 24;
 const MIN_BIOME_LAND = 400;
 const LANDMARK_COUNT = 13;

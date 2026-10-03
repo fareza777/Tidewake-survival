@@ -16,7 +16,7 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     coverage: {
       provider: 'v8',
-      include: ['src/sim/**', 'src/data/**', 'src/core/rng.ts', 'src/core/save.ts', 'src/core/settings.ts', 'src/core/i18n.ts', 'src/core/viewport.ts'],
+      include: ['src/sim/**', 'src/data/**', 'src/core/rng.ts', 'src/core/save.ts', 'src/core/saveData.ts', 'src/core/settings.ts', 'src/core/i18n.ts', 'src/core/viewport.ts'],
       exclude: ['src/data/tileIndex.ts'],
       reporter: ['text'],
       thresholds: { lines: 80, statements: 80, functions: 80, branches: 70 },
