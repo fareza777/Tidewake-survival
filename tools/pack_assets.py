@@ -248,4 +248,5 @@ def copy_singles():
 if __name__ == "__main__":
     build_heroes()
     build_actors()
+    build_monsters()
     build_props()
