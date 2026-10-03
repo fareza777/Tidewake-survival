@@ -1,0 +1,18 @@
+[
+  {
+    "goto": "http://localhost:5188/"
+  },
+  {
+    "until": "window.__game && __game.scene.isActive('Menu')",
+    "timeout": 20000
+  },
+  {
+    "wait": 900
+  },
+  {
+    "shot": "menu"
+  },
+  {
+    "eval": "JSON.stringify(window.__errs)"
+  }
+]

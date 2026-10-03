@@ -197,7 +197,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 3000,
     rollupOptions: { output: { manualChunks: { phaser: ['phaser'] } } },
   },
-  server: { port: 5173 },
+  server: { port: 5188 },
   test: {
     environment: 'node',
     include: ['tests/**/*.test.ts'],
@@ -4013,7 +4013,7 @@ Also update the header comment of the file to list `{"press": "ArrowRight", "ms"
 ```json
 [
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
@@ -4033,7 +4033,7 @@ Also update the header comment of the file to list `{"press": "ArrowRight", "ms"
 
 - [ ] **Step 5: Run the boot scenario**
 
-In one terminal: `npm run dev` (leave it running; it serves `http://localhost:5173`). In another:
+In one terminal: `npm run dev` (leave it running; it serves `http://localhost:5188`). In another:
 
 ```bash
 node tools/play.mjs tools/scripts/boot.json tools/.cache/shots
@@ -4875,13 +4875,13 @@ Create these six files in `tools/scripts/`. Each starts from a clean browser pro
 ```json
 [
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "eval": "localStorage.clear()"
   },
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
@@ -4936,13 +4936,13 @@ Create these six files in `tools/scripts/`. Each starts from a clean browser pro
 ```json
 [
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "eval": "localStorage.clear()"
   },
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
@@ -5028,13 +5028,13 @@ Create these six files in `tools/scripts/`. Each starts from a clean browser pro
 ```json
 [
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "eval": "localStorage.clear()"
   },
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
@@ -5147,7 +5147,7 @@ Create these six files in `tools/scripts/`. Each starts from a clean browser pro
     "eval": "__game.scene.getScene('Game').saveNow()"
   },
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
@@ -5188,13 +5188,13 @@ Create these six files in `tools/scripts/`. Each starts from a clean browser pro
 ```json
 [
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "eval": "localStorage.clear()"
   },
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
@@ -5253,13 +5253,13 @@ Create these six files in `tools/scripts/`. Each starts from a clean browser pro
 ```json
 [
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "eval": "localStorage.clear()"
   },
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
@@ -5309,13 +5309,13 @@ Create these six files in `tools/scripts/`. Each starts from a clean browser pro
 ```json
 [
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "eval": "localStorage.clear(); localStorage.setItem('tidewake.slot.0', '{broken'); localStorage.setItem('tidewake.slot.0.bak', 'nope')"
   },
   {
-    "goto": "http://localhost:5173/"
+    "goto": "http://localhost:5188/"
   },
   {
     "until": "window.__game && __game.scene.isActive('Menu')",
@@ -5392,9 +5392,9 @@ With `npm run dev` running, create `tools/scripts/perf.json`:
 
 ```json
 [
-  {"goto": "http://localhost:5173/"},
+  {"goto": "http://localhost:5188/"},
   {"eval": "localStorage.clear()"},
-  {"goto": "http://localhost:5173/"},
+  {"goto": "http://localhost:5188/"},
   {"until": "window.__game && __game.scene.isActive('Menu')", "timeout": 20000},
   {"eval": "window.__t0 = performance.now(); __game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 777})"},
   {"until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')", "timeout": 20000},
@@ -5431,7 +5431,7 @@ Design: `docs/superpowers/specs/2026-10-03-tidewake-design.md`. Plans: `docs/sup
 ## Run
 
     npm install
-    npm run dev          # http://localhost:5173
+    npm run dev          # http://localhost:5188
     npm test             # unit tests
     npm run test:cov     # tests + coverage gate (80%)
     npm run build        # typecheck + production build into dist/
