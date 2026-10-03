@@ -127,6 +127,17 @@ describe('SaveStore', () => {
     expect(oldest.slotForNewGame()).toEqual({ slot: 1, overwrites: true });
   });
 
+  it('deletes the durable copy too, so a deleted slot cannot come back after a restart', async () => {
+    const mirror = new Map<string, string>();
+    const store = new SaveStore(new MemoryStorage(), (k, v) => mirror.set(k, v), (k) => mirror.delete(k));
+    store.write(make(1));
+    expect(mirror.has('tidewake.slot.1')).toBe(true);
+    store.delete(1);
+    const fresh = new SaveStore(new MemoryStorage());
+    await fresh.restoreFromNative(async (k) => mirror.get(k) ?? null);
+    expect(fresh.load(1)).toBeNull();
+  });
+
   it('works without any storage', () => {
     const s = new SaveStore(null);
     expect(() => s.write(make(0))).not.toThrow();

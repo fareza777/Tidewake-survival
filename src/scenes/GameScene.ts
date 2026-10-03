@@ -21,7 +21,7 @@ import { emptyGather, isAlive, sanitizeGather } from '@/sim/gather';
 import { nearestNode } from '@/sim/interact';
 import { moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import {
-  applyAction, collapse, craftRecipe, moveInventorySlot, rollDay, selectSlot, sessionFromSlot, sessionToSlot, tickSession,
+  applyAction, blocksRegrowth, collapse, craftRecipe, moveInventorySlot, rollDay, selectSlot, sessionFromSlot, sessionToSlot, tickSession,
   transferStack, type Fx, type Session, type Step,
 } from '@/sim/session';
 import { nodesByTile, propSolidTiles } from '@/sim/solids';
@@ -308,7 +308,8 @@ export class GameScene extends BaseScene {
   private onNewDay(): void {
     const before = this.session.gather;
     this.lastDay = this.session.clock.day;
-    this.session = rollDay(this.session, (id) => this.heroIsNear(id));
+    const held = this.session;
+    this.session = rollDay(this.session, (id) => this.heroIsNear(id) || blocksRegrowth(held, this.world.resources[id], this.world.size));
     for (const key of Object.keys(before.gone)) {
       const id = Number(key);
       if (isAlive(this.session.gather, id)) this.objects.setAlive(id, true);

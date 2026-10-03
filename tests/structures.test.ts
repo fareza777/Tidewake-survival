@@ -39,6 +39,14 @@ describe('canPlace', () => {
     expect(canPlace(world, built, noSolids, 11, 10, hero)).toEqual({ ok: false, reason: 'occupied' });
   });
 
+  it('refuses a solid structure that would overlap the hero body, but still allows a torch', () => {
+    const nearEdge = { x: 10.9, y: 10.5 };
+    expect(canPlace(world, emptyStructures(), noSolids, 11, 10, nearEdge)).toEqual({ ok: false, reason: 'hero' });
+    expect(canPlace(world, emptyStructures(), noSolids, 11, 10, nearEdge, false)).toEqual({ ok: true });
+    expect(canPlace(world, emptyStructures(), noSolids, 11, 10, { x: 10.6, y: 10.5 })).toEqual({ ok: true });
+    expect(canPlace(world, emptyStructures(), noSolids, 10, 11, { x: 10.5, y: 10.8 })).toEqual({ ok: false, reason: 'hero' });
+  });
+
   it('refuses tiles that are too far away', () => {
     expect(canPlace(world, emptyStructures(), noSolids, 10 + PLACE_REACH + 1, 10, hero)).toEqual({ ok: false, reason: 'far' });
   });

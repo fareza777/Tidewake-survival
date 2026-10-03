@@ -23,7 +23,7 @@ Generated files in `public/assets/pack/` and `src/data/tileIndex.ts` are committ
 ## Browser smoke tests
 
 With `npm run dev` running: `node tools/play.mjs tools/scripts/<name>.json tools/.cache/shots`.
-Scenarios: boot, island, harvest, persist, night, pause, corrupt, badsave, survive, build, tools, death, sleep, migrate, perf.
+Scenarios: boot, island, harvest, persist, night, pause, corrupt, badsave, survive, build, tools, death, death-back, sleep, migrate, perf.
 
 ## Status (phase 2)
 

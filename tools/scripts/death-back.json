@@ -1,0 +1,58 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "__game.scene.getScene('Game').session = {...__game.scene.getScene('Game').session, vitals: {hp: 0.3, hunger: 0, thirst: 0, stamina: 100}}; 'dying'"
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "eval": "'dead flag: ' + __game.scene.getScene('Game').dead"
+ },
+ {
+  "eval": "'dialogs open: ' + __game.scene.getScene('Hud').children.list.filter(c => c.type === 'Container' && c.depth === 20000).length + ' (expected 1)'"
+ },
+ {
+  "eval": "(() => { const h = __services.platform.backHandlers; let handled = false; for (let i = h.length - 1; i >= 0; i--) { if (h[i]()) { handled = true; break; } } return 'back press handled: ' + handled; })()"
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "'dialogs open: ' + __game.scene.getScene('Hud').children.list.filter(c => c.type === 'Container' && c.depth === 20000).length + ' (expected 1)'"
+ },
+ {
+  "shot": "death-after-back"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').wakeUp(); 'woke up'"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

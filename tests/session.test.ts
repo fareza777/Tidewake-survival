@@ -12,7 +12,7 @@ import { emptyGather, isAlive } from '@/sim/gather';
 import { addItem, countItem, emptyInventory, setDurability } from '@/sim/inventory';
 import { emptyStructures, placeStructure, setStructureInventory } from '@/sim/structures';
 import {
-  applyAction, collapse, craftRecipe, moveInventorySlot, rollDay, selectSlot, sessionFromSlot, sessionToSlot, tickSession,
+  applyAction, blocksRegrowth, collapse, craftRecipe, moveInventorySlot, rollDay, selectSlot, sessionFromSlot, sessionToSlot, tickSession,
   transferStack, type Session,
 } from '@/sim/session';
 import { B, WORLD_SIZE, idx, type ResourceNode } from '@/sim/world/types';
@@ -90,13 +90,21 @@ describe('hitting resource nodes', () => {
     expect(say(r)).toEqual([{ t: 'say', key: 'msgToolBroke', vars: { item: 'item_axe_wood' }, translate: ['item'] }]);
   });
 
-  it('says so when the backpack is full and keeps what fits', () => {
+  it('refuses the final blow while the drops would not fit, and loses nothing', () => {
     let s = base();
     s = { ...s, inventory: emptyInventory(1) };
     s = give(s, ['stone', 99]);
-    const r = applyAction(s, hit({ wear: false, damage: 99 }), pos);
-    expect(say(r).some((f) => f.t === 'say' && f.key === 'msgFull')).toBe(true);
-    expect(r.session.inventory[0]).toEqual({ item: 'stone', qty: 99 });
+    const r = applyAction(s, hit({ wear: true, damage: 99 }), pos);
+    expect(say(r).map((f) => f.t === 'say' && f.key)).toEqual(['msgFull']);
+    expect(r.session).toBe(s);
+    expect(isAlive(r.session.gather, tree.id)).toBe(true);
+  });
+
+  it('still chips a node when the backpack is full, as long as it is not destroyed', () => {
+    let s = { ...base(), inventory: emptyInventory(1) };
+    s = give(s, ['stone', 99]);
+    const r = applyAction(s, hit({ wear: false, damage: 0.34 }), pos);
+    expect(r.session.gather.hp[tree.id]).toBeCloseTo(RESOURCES.tree.hp - 0.34);
   });
 });
 
@@ -149,6 +157,17 @@ describe('other actions', () => {
     expect(countItem(r.session.inventory, 'corn')).toBeGreaterThanOrEqual(1);
     expect(plotAt(r.session.farm, tile)).toEqual({ crop: null, growth: 0, watered: false });
     expect(applyAction(base(), { kind: 'harvest', x: 51, y: 50 }, pos).fx).toEqual([]);
+  });
+
+  it('keeps a ripe crop in the ground while the backpack has no room for it', () => {
+    const tile = idx(51, 50);
+    let farm = plant(till(emptyFarm(), tile), tile, 'pumpkin')!;
+    for (let d = 0; d < CROPS.pumpkin.growDays; d++) farm = advanceDay(water(farm, tile));
+    const full = base({ farm, inventory: addItem(emptyInventory(1), 'stone', 99).inv });
+    const r = applyAction(full, { kind: 'harvest', x: 51, y: 50 }, pos);
+    expect(r.session).toBe(full);
+    expect(plotAt(r.session.farm, tile)?.crop).toBe('pumpkin');
+    expect(say(r).map((f) => f.t === 'say' && f.key)).toEqual(['msgFull']);
   });
 
   it('opens stations and does nothing for none', () => {
@@ -273,6 +292,27 @@ describe('crafting and chests', () => {
     const s = withChest(base());
     expect(transferStack(s, 1, 'bag', 5).session).toBe(s);
     expect(transferStack(s, 99, 'bag', 0).session).toBe(s);
+  });
+});
+
+describe('regrowth and buildings', () => {
+  const node: ResourceNode = { id: 5, kind: 'tree', x: 51, y: 50, variant: 0 };
+
+  it('knows when a chopped tree tile has since been built on or tilled', () => {
+    expect(blocksRegrowth(base(), node, WORLD_SIZE)).toBe(false);
+    const built = base({ structures: placeStructure(emptyStructures(), 'workbench', 51, 50) });
+    expect(blocksRegrowth(built, node, WORLD_SIZE)).toBe(true);
+    const tilled = base({ farm: till(emptyFarm(), idx(51, 50)) });
+    expect(blocksRegrowth(tilled, node, WORLD_SIZE)).toBe(true);
+    expect(blocksRegrowth(base({ structures: placeStructure(emptyStructures(), 'fence', 52, 50) }), node, WORLD_SIZE)).toBe(false);
+  });
+
+  it('keeps a node gone through the day roll while a building stands on its tile, and regrows it after', () => {
+    const s = base({ gather: { hp: {}, gone: { 5: 1 } }, clock: { day: 9, t: 0 }, structures: placeStructure(emptyStructures(), 'chest', 51, 50) });
+    const held = rollDay(s, (id) => id === node.id && blocksRegrowth(s, node, WORLD_SIZE));
+    expect(isAlive(held.gather, 5)).toBe(false);
+    const freed = { ...s, structures: emptyStructures() };
+    expect(isAlive(rollDay(freed, (id) => id === node.id && blocksRegrowth(freed, node, WORLD_SIZE)).gather, 5)).toBe(true);
   });
 });
 

@@ -38,9 +38,15 @@ export class BootScene extends Phaser.Scene {
     const settings = loadSettings(storage, detectLang());
     services.settings = settings;
     setLang(settings.lang);
-    const saves = new SaveStore(storage, (key, value) => {
-      Preferences.set({ key, value }).catch((err) => console.warn('[save] native write failed', err));
-    });
+    const saves = new SaveStore(
+      storage,
+      (key, value) => {
+        Preferences.set({ key, value }).catch((err) => console.warn('[save] native write failed', err));
+      },
+      (key) => {
+        Preferences.remove({ key }).catch((err) => console.warn('[save] native delete failed', err));
+      },
+    );
     services.saves = saves;
     const platform = new Platform();
     platform.hapticsEnabled = settings.vibration;

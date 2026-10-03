@@ -18,6 +18,8 @@ export function showModal(
   body: string,
   buttons: ModalButton[],
   depth = 20000,
+  /** When false the Android Back button leaves the dialog open (it is the only way forward, e.g. after dying). */
+  dismissible = true,
 ): () => void {
   const W = view.w;
   const H = view.h;
@@ -52,10 +54,12 @@ export function showModal(
   });
   container.setAlpha(0);
   scene.tweens.add({ targets: container, alpha: 1, duration: 150 });
-  const unregister = services.platform?.onBack(() => {
-    close();
-    return true;
-  });
+  const unregister = dismissible
+    ? services.platform?.onBack(() => {
+        close();
+        return true;
+      })
+    : undefined;
   return close;
 }
 

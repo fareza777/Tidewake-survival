@@ -89,7 +89,7 @@ export function resolveAction(c: ActionContext): Action {
   const terrain = inside ? c.world.terrain[tile] : T.DEEP;
   if (def?.food) return wouldWaste(c.vitals, def.food) ? NONE : { kind: 'eat', food: def.food };
   if (def?.place) {
-    const ok = canPlace(c.world, c.structures, c.occupied, x, y, c.pos);
+    const ok = canPlace(c.world, c.structures, c.occupied, x, y, c.pos, STRUCTURES[def.place].solid);
     return ok.ok ? { kind: 'place', type: def.place, x, y } : blocked({ reason: 'cannotPlace', why: ok.reason });
   }
   if (def?.seed) return plot && !plot.crop ? { kind: 'plant', x, y, crop: def.seed } : NONE;
@@ -104,13 +104,14 @@ export function resolveAction(c: ActionContext): Action {
     return (slot?.dur ?? 0) > 0 ? { kind: 'water', x, y } : blocked({ reason: 'canEmpty' });
   }
 
+  // Facing fresh water means drinking, even if a bush or tree happens to stand within reach behind the hero.
+  if (terrain === T.RIVER) return { kind: 'drink', x, y };
   if (c.node) {
     const check = checkHit(c.node.kind, slot?.item ?? null);
     if (!check.ok) return blocked({ reason: 'needsTool', tool: check.tool, tier: check.tier });
     if (c.vitals.stamina < check.stamina) return blocked({ reason: 'tired' });
     return { kind: 'hit', node: c.node, damage: check.damage, stamina: check.stamina, wear: check.wear };
   }
-  if (terrain === T.RIVER) return { kind: 'drink', x, y };
   if (terrain === T.SHALLOW || terrain === T.DEEP) return blocked({ reason: 'saltWater' });
   return NONE;
 }

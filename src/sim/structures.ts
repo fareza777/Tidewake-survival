@@ -1,6 +1,6 @@
 import { CHEST_SLOTS, STRUCTURES, type Station, type StructureId } from '@/data/structures';
 import { emptyInventory, type Inventory } from '@/sim/inventory';
-import type { Vec } from '@/sim/movement';
+import { PLAYER_HALF, type Vec } from '@/sim/movement';
 import { idx, inBounds, isWater, type World } from '@/sim/world/types';
 
 export interface Structure {
@@ -29,14 +29,22 @@ export type PlaceResult = { ok: true } | { ok: false; reason: 'bounds' | 'water'
  * Can `type` go on tile (x, y)? `occupied` holds the tiles that are already taken by solid things (resource nodes,
  * landmark scenery, soil, structures); the hero's own tile is never allowed.
  */
-export function canPlace(world: World, structures: Structures, occupied: ReadonlySet<number>, x: number, y: number, hero: Vec): PlaceResult {
+export function canPlace(
+  world: World, structures: Structures, occupied: ReadonlySet<number>, x: number, y: number, hero: Vec, solid = true,
+): PlaceResult {
   if (!inBounds(x, y, world.size)) return { ok: false, reason: 'bounds' };
   const i = idx(x, y, world.size);
   if (isWater(world.terrain[i])) return { ok: false, reason: 'water' };
   if (occupied.has(i) || structureAt(structures, x, y)) return { ok: false, reason: 'occupied' };
   if (Math.floor(hero.x) === x && Math.floor(hero.y) === y) return { ok: false, reason: 'hero' };
+  // A solid building must not appear inside the hero's body, or the hero would walk through it.
+  if (solid && overlapsHero(x, y, hero)) return { ok: false, reason: 'hero' };
   if (Math.hypot(x + 0.5 - hero.x, y + 0.5 - hero.y) > PLACE_REACH) return { ok: false, reason: 'far' };
   return { ok: true };
+}
+
+function overlapsHero(x: number, y: number, hero: Vec): boolean {
+  return hero.x + PLAYER_HALF > x && hero.x - PLAYER_HALF < x + 1 && hero.y + PLAYER_HALF > y && hero.y - PLAYER_HALF < y + 1;
 }
 
 export function placeStructure(s: Structures, type: StructureId, x: number, y: number): Structures {

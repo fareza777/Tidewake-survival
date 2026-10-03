@@ -154,7 +154,7 @@ export class HudScene extends Phaser.Scene {
           onWake();
         },
       },
-    ]);
+    ], 20000, false);
   }
 
   update(): void {

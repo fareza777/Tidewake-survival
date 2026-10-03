@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { SCENES } from './scenes';
 import { AUTO_LOW_KEY, autoQuality, computeViewport, savedHiRes, savedTextScale, setView, view } from './core/viewport';
 import { installBitmapTextDefaults, setTextScale } from './ui/theme';
+import { services } from './core/services';
 
 const hiRes = savedHiRes();
 const vp = computeViewport(window.innerWidth, window.innerHeight, window.devicePixelRatio || 1, hiRes);
@@ -75,6 +76,7 @@ if (hiRes && vp.res > 1 && autoQuality()) {
 // Debug and automated-test hooks: dev server and QA builds only.
 if (import.meta.env.DEV || import.meta.env.VITE_QA === '1') {
   (window as unknown as { __game: Phaser.Game }).__game = game;
+  (window as unknown as { __services: typeof services }).__services = services;
   const errs: string[] = [];
   (window as unknown as { __errs: string[] }).__errs = errs;
   window.addEventListener('error', (e) => errs.push(String((e.error as Error | undefined)?.stack ?? e.message)));

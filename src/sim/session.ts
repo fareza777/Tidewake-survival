@@ -13,9 +13,9 @@ import {
 } from '@/sim/inventory';
 import { craft } from '@/sim/crafting';
 import type { Vec } from '@/sim/movement';
-import { placeStructure, removeStructure, setStructureInventory, type Structure, type Structures } from '@/sim/structures';
+import { placeStructure, removeStructure, setStructureInventory, structureAt, type Structure, type Structures } from '@/sim/structures';
 import { eat, sleepRecovery, spendStamina, tickVitals, type Difficulty, type Vitals } from '@/sim/vitals';
-import { idx, type Biome } from '@/sim/world/types';
+import { idx, type Biome, type ResourceNode } from '@/sim/world/types';
 
 /** The live game state that changes while playing. Pure data: every function here returns a new Session. */
 export interface Session {
@@ -81,13 +81,18 @@ export function rollDay(s: Session, keepGone: (id: number) => boolean): Session 
   return { ...s, gather: startNewDay(s.gather, s.clock.day, keepGone), farm: farmSim.advanceDay(s.farm) };
 }
 
+/** A chopped node must not regrow on a tile the player has since built on or tilled. */
+export function blocksRegrowth(s: Session, node: ResourceNode, size: number): boolean {
+  return structureAt(s.structures, node.x, node.y) !== undefined || idx(node.x, node.y, size) in s.farm.plots;
+}
+
 export function selectSlot(s: Session, index: number): Session {
   return index >= 0 && index < 8 ? { ...s, selected: index } : s;
 }
 
 const say = (key: string, vars?: Record<string, string | number>, translate?: string[]): Fx => ({ t: 'say', key, vars, translate });
 
-function giveItems(inv: Inventory, items: { item: ItemId; qty: number }[]): { inv: Inventory; fx: Fx[] } {
+function giveItems(inv: Inventory, items: { item: ItemId; qty: number }[]): { inv: Inventory; fx: Fx[]; overflow: boolean } {
   const fx: Fx[] = [];
   let cur = inv;
   let overflow = false;
@@ -98,7 +103,7 @@ function giveItems(inv: Inventory, items: { item: ItemId; qty: number }[]): { in
     if (left > 0) overflow = true;
   }
   if (overflow) fx.push(say('msgFull'));
-  return { inv: cur, fx };
+  return { inv: cur, fx, overflow };
 }
 
 function blockedFx(a: Extract<Action, { kind: 'blocked' }>): Fx[] {
@@ -123,6 +128,8 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       const result = hitNode(s.gather, a.node, a.damage, s.clock.day, rng);
       const worn = a.wear ? wearTool(s.inventory, s.selected) : s.inventory;
       const given = giveItems(worn, result.drops.map((d) => ({ item: d.item, qty: d.amount })));
+      // The last blow would throw the drops away: the node stands until there is room.
+      if (result.destroyed && given.overflow) return { session: s, fx: [say('msgFull')] };
       const fx: Fx[] = [{ t: 'swing' }, { t: 'hit', id: a.node.id }];
       if (result.destroyed) fx.push({ t: 'gone', id: a.node.id });
       if (slotBefore && !worn[s.selected]) fx.push(say('msgToolBroke', { item: `item_${slotBefore.item}` }, ['item']));
@@ -175,6 +182,7 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       const result = farmSim.harvest(s.farm, tile, rng);
       if (!result) return { session: s, fx: [] };
       const given = giveItems(s.inventory, result.items);
+      if (given.overflow) return { session: s, fx: [say('msgFull')] };
       return { session: { ...s, farm: result.farm, inventory: given.inv }, fx: [{ t: 'plot', tile }, ...given.fx] };
     }
     case 'drink':

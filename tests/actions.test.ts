@@ -103,6 +103,11 @@ describe('held items', () => {
     });
   });
 
+  it('will not build a wall into the hero body', () => {
+    expect(resolveAction(ctx({ hold: 'fence', pos: { x: 10.9, y: 10.5 } }))).toEqual({ kind: 'blocked', reason: 'cannotPlace', why: 'hero' });
+    expect(resolveAction(ctx({ hold: 'torch', pos: { x: 10.9, y: 10.5 } }))).toMatchObject({ kind: 'place', type: 'torch' });
+  });
+
   it('plants a seed only on empty tilled soil', () => {
     const tile = idx(11, 10);
     expect(kind(resolveAction(ctx({ hold: 'corn_seed' })))).toBe('none');
@@ -152,6 +157,11 @@ describe('the world', () => {
     expect(resolveAction(ctx({ ...down, pos: { x: 11.5, y: 11.5 } }))).toEqual({ kind: 'drink', x: 11, y: 12 });
     expect(resolveAction(ctx({ ...down, pos: { x: 10.5, y: 11.5 } }))).toEqual({ kind: 'blocked', reason: 'saltWater' });
     expect(kind(resolveAction(ctx()))).toBe('none');
+  });
+
+  it('drinks from a river in front even when a resource node is within reach behind the hero', () => {
+    const behind = { id: 9, kind: 'bush' as const, x: 11, y: 10, variant: 0 };
+    expect(resolveAction(ctx({ facing: 'down', pos: { x: 11.5, y: 11.5 }, node: behind }))).toEqual({ kind: 'drink', x: 11, y: 12 });
   });
 
   it('is safe at the edge of the map', () => {

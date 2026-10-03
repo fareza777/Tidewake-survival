@@ -16,8 +16,15 @@ const backupKey = (slot: number): string => `${key(slot)}.bak`;
 
 /** Three save slots on top of a localStorage-like store; every write keeps the previous copy as a backup. */
 export class SaveStore {
-  /** @param mirror optional durable copy (Capacitor Preferences on Android) written after every save. */
-  constructor(private storage: StorageLike | null, private mirror?: (key: string, value: string) => void) {}
+  /**
+   * @param mirror optional durable copy (Capacitor Preferences on Android) written after every save.
+   * @param unmirror removes a key from that durable copy; without it a deleted slot would be restored on the next start.
+   */
+  constructor(
+    private storage: StorageLike | null,
+    private mirror?: (key: string, value: string) => void,
+    private unmirror?: (key: string) => void,
+  ) {}
 
   private check(slot: number): void {
     if (!Number.isInteger(slot) || slot < 0 || slot >= SLOT_COUNT) throw new RangeError(`save slot ${slot} out of range`);
@@ -54,6 +61,8 @@ export class SaveStore {
     this.check(slot);
     this.storage?.removeItem(key(slot));
     this.storage?.removeItem(backupKey(slot));
+    this.unmirror?.(key(slot));
+    this.unmirror?.(backupKey(slot));
   }
 
   list(): (SlotSummary | null)[] {
