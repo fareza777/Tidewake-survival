@@ -11,3 +11,4 @@ android/.gradle
 .env.*
 !.env.qa
 .superpowers/
+apk/
