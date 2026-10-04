@@ -1,9 +1,11 @@
 // Smoke test of the QA build (VITE_QA=1) running in the Android emulator or on a phone with USB debugging.
 //   adb forward tcp:9222 localabstract:webview_devtools_remote_<pid of com.fajar.tidewake>
 //   node tools/android-qa.mjs
+// Build the QA APK first with `npm run android:qa` (a normal build has no test hooks). Needs Node 22 or newer.
 // (Android's WebView speaks only a small part of the DevTools protocol, so this talks to the page directly.)
 const targets = await (await fetch('http://localhost:9222/json')).json();
 const page = targets.find((t) => t.type === 'page');
+if (!page) throw new Error('No page to talk to: start the app and run the adb forward command above first.');
 const socket = new WebSocket(page.webSocketDebuggerUrl);
 await new Promise((resolve, reject) => {
   socket.onopen = resolve;

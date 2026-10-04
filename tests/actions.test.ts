@@ -52,11 +52,12 @@ describe('structures and crops come first', () => {
     }
   });
 
-  it('takes fences and torches down with a plain press, whatever is held', () => {
+  it('takes fences and torches down with a plain press, unless the hero holds food or something to place', () => {
     for (const type of ['fence', 'torch'] as const) {
       const structures = placeStructure(emptyStructures(), type, 11, 10);
       expect(resolveAction(ctx({ structures }))).toMatchObject({ kind: 'pickup', structure: { type } });
-      expect(kind(resolveAction(ctx({ structures, hold: 'carrot' })))).toBe('pickup');
+      expect(kind(resolveAction(ctx({ structures, hold: 'hoe' })))).toBe('pickup');
+      expect(kind(resolveAction(ctx({ structures, hold: 'carrot' })))).not.toBe('pickup');
     }
   });
 

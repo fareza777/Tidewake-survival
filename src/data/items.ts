@@ -165,7 +165,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   sweet_drink: food('sweet_drink', icons('sweet_drink'), 10, 45, 0),
   healing_potion: { ...food('healing_potion', icons('healing_potion'), 0, 0, 60), stack: 10 },
   great_healing_potion: { ...food('great_healing_potion', icons('great_healing_potion'), 0, 0, 100), stack: 5 },
-  stamina_tonic: { id: 'stamina_tonic', stack: 10, icon: icons('stamina_tonic'), food: { hunger: 0, thirst: 10, hp: 0, stamina: 100 } },
+  stamina_tonic: { id: 'stamina_tonic', stack: 10, icon: icons('stamina_tonic'), food: { hunger: 0, thirst: 0, hp: 0, stamina: 100 } },
 
   armor_wood: armor('armor_wood', 1),
   armor_crystal: armor('armor_crystal', 6),

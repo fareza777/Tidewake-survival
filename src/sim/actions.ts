@@ -113,7 +113,10 @@ export function resolveAction(c: ActionContext): Action {
 
   const structure = inside ? structureAt(c.structures, x, y) : undefined;
   if (structure) {
-    const take = STRUCTURES[structure.type].pickup === 'always' || (def?.tool !== undefined && (def.tool.type === 'axe' || def.tool.type === 'pickaxe'));
+    // A plain USE takes down fences, torches and furniture, but not when a blow would land on something, or when the hero
+    // holds something to place or eat (a second sign must not take the first back).
+    const plain = STRUCTURES[structure.type].pickup === 'always' && !c.creature && !def?.place && !def?.food && !def?.seed;
+    const take = plain || (def?.tool !== undefined && (def.tool.type === 'axe' || def.tool.type === 'pickaxe'));
     if (take) {
       return structure.inv?.some(Boolean) ? blocked({ reason: 'chestNotEmpty' }) : { kind: 'pickup', structure };
     }

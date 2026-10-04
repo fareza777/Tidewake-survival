@@ -40,7 +40,7 @@ describe('item catalog', () => {
   it('makes food worth eating', () => {
     for (const def of Object.values(ITEMS)) {
       if (!def.food) continue;
-      expect(def.food.hunger + def.food.thirst + def.food.hp, def.id).toBeGreaterThan(0);
+      expect(def.food.hunger + def.food.thirst + def.food.hp + (def.food.stamina ?? 0), def.id).toBeGreaterThan(0);
     }
     expect(ITEMS.roasted_corn.food!.hunger).toBeGreaterThan(ITEMS.corn.food!.hunger);
     expect(ITEMS.coconut.food!.thirst).toBeGreaterThan(ITEMS.coconut.food!.hunger);

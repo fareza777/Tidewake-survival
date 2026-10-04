@@ -33,7 +33,8 @@ Scenarios: boot, island, harvest, persist, night, pause, corrupt, badsave, survi
 
     npm run android:debug      # builds the web app, syncs it into android/ and assembles a debug APK
     npm run android:release    # the release bundle (AAB); unsigned unless TIDEWAKE_KEYSTORE_PROPS points at your upload key
-    node tools/android-qa.mjs  # smoke test of a QA build (VITE_QA=1) in the emulator or on a phone, see the script header
+    npm run android:qa         # a debug APK with the test hooks switched on (never publish it)
+    node tools/android-qa.mjs  # smoke test of that build in the emulator or on a phone, see the script header
 
 The upload key belongs to the owner and lives outside the repository: set `TIDEWAKE_KEYSTORE_PROPS` to a properties
 file with `storeFile`, `storePassword`, `keyAlias` and `keyPassword`. The privacy policy and contact address in

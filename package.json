@@ -15,6 +15,7 @@
     "play": "node tools/play.mjs",
     "branding": "python tools/make_branding.py && python tools/make_android_assets.py",
     "android:sync": "npm run build && npx cap sync android",
+    "android:qa": "tsc --noEmit && vite build --mode qa && npx cap sync android && cd android && gradlew.bat assembleDebug",
     "android:debug": "npm run android:sync && cd android && gradlew.bat assembleDebug",
     "android:release": "npm run android:sync && cd android && gradlew.bat bundleRelease"
   },

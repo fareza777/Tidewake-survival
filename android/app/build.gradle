@@ -20,11 +20,16 @@ android {
     // (storeFile, storePassword, keyAlias, keyPassword). Without it the release bundle is built unsigned.
     def keyProps = new Properties()
     def keyPropsPath = System.getenv('TIDEWAKE_KEYSTORE_PROPS')
-    if (keyPropsPath && file(keyPropsPath).exists()) file(keyPropsPath).withInputStream { keyProps.load(it) }
+    if (keyPropsPath) {
+        if (!file(keyPropsPath).exists()) throw new GradleException("TIDEWAKE_KEYSTORE_PROPS points at a file that does not exist: ${keyPropsPath}")
+        file(keyPropsPath).withInputStream { keyProps.load(it) }
+        if (!keyProps['storeFile']) throw new GradleException("${keyPropsPath} has no storeFile")
+    }
     signingConfigs {
         release {
             if (keyProps['storeFile']) {
-                storeFile file(keyProps['storeFile'])
+                def given = new File(keyProps['storeFile'])
+                storeFile given.isAbsolute() ? given : new File(file(keyPropsPath).parentFile, keyProps['storeFile'])
                 storePassword keyProps['storePassword']
                 keyAlias keyProps['keyAlias']
                 keyPassword keyProps['keyPassword']

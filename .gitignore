@@ -9,4 +9,5 @@ android/.gradle
 *.log
 .env
 .env.*
+!.env.qa
 .superpowers/
