@@ -35,6 +35,8 @@ export class HudScene extends Phaser.Scene {
   private lastSelected = -1;
   private lastDay = '';
   private menuOpen = false;
+  private bossName!: Phaser.GameObjects.BitmapText;
+  private bossBar!: Bar;
 
   constructor() {
     super('Hud');
@@ -49,6 +51,10 @@ export class HudScene extends Phaser.Scene {
     this.bars = [];
     const { w: W, h: H } = view;
     this.dayText = this.add.bitmapText(8, 8, FONT.body, '').setTint(COLORS.text).setDepth(5);
+    // The boss's health, across the top of the screen, only while a boss fight is on.
+    const bossW = Math.min(180, W - 120);
+    this.bossName = this.add.bitmapText(W / 2, 10, FONT.small, '').setOrigin(0.5, 0).setTint(COLORS.gold).setDepth(5).setVisible(false);
+    this.bossBar = new Bar(this, W / 2 - bossW / 2, 22, bossW, 8, 0xb04adf).setDepth(5).setVisible(false);
     BARS.forEach((b, i) => {
       const y = 30 + i * 13;
       this.add.image(14, y + 4, 'icons', b.icon).setDisplaySize(12, 12).setDepth(5);
@@ -157,7 +163,18 @@ export class HudScene extends Phaser.Scene {
     ], 20000, false);
   }
 
+  /** Show or hide the boss's name and health. */
+  private updateBoss(): void {
+    const boss = this.world.bossBar();
+    this.bossName.setVisible(boss !== null);
+    this.bossBar.setVisible(boss !== null);
+    if (!boss) return;
+    this.bossName.setText(t(boss.name));
+    this.bossBar.setValue(boss.hp / boss.max);
+  }
+
   update(): void {
+    this.updateBoss();
     const s = this.world.session;
     const day = `${t('hudDay', { n: s.clock.day })}  ${clockLabel(s.clock)}`;
     if (day !== this.lastDay) {

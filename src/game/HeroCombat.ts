@@ -5,12 +5,13 @@ import { Wildlife } from '@/game/Wildlife';
 import { FloatText } from '@/gfx/FloatText';
 import { TILE } from '@/gfx/TerrainLayer';
 import type { GameScene } from '@/scenes/GameScene';
-import { HERO_DEFENSE } from '@/sim/combat';
+import { enemyDamage } from '@/sim/combat';
 import { cueForEncounter } from '@/sim/cues';
-import { isNight } from '@/sim/daynight';
-import { hostilesNear, type EncounterEvent } from '@/sim/encounters';
+import { defenseOf } from '@/sim/equipment';
+import { hostilesNear, type Encounters, type EncounterEvent } from '@/sim/encounters';
 import type { Melee } from '@/sim/melee';
 import { hurtHero, type Fx } from '@/sim/session';
+import { emptyStructures } from '@/sim/structures';
 import { COLORS } from '@/ui/theme';
 
 /** The "backpack full" notice for loot on the ground is shown at most this often (seconds). */
@@ -39,6 +40,16 @@ export class HeroCombat {
     return this.wildlife.inReach(this.host.pos, this.host.player.facing, melee);
   }
 
+  /** Hand the creatures of a dungeon to the simulation. */
+  load(e: Encounters): void {
+    this.wildlife.load(e);
+  }
+
+  /** The creatures, items and bolts as they are now. */
+  snapshot(): Encounters {
+    return this.wildlife.snapshot();
+  }
+
   /** True while monsters are on the hero, and for a few seconds after. */
   get fighting(): boolean {
     return this.calm < FIGHT_LINGER;
@@ -58,9 +69,10 @@ export class HeroCombat {
     this.fullTimer = Math.max(0, this.fullTimer - dt);
     this.calm = hostilesNear(this.wildlife.snapshot(), host.pos, FIGHT_RADIUS) > 0 ? 0 : this.calm + dt;
     const s = host.session;
+    const level = host.level;
     this.react(this.wildlife.tick(dt, {
-      world: host.world, solids: host.solids, structures: s.structures, hero: host.pos, heroAlive: !host.dead,
-      night: isNight(s.clock), difficulty: s.difficulty, defense: HERO_DEFENSE,
+      world: host.world, solids: host.solids, structures: level.dungeon ? emptyStructures() : s.structures, hero: host.pos, heroAlive: !host.dead,
+      night: level.isNight(s), difficulty: s.difficulty, defense: defenseOf(s.equipment), fixed: level.fixed,
     }));
     const loot = this.wildlife.take(host.session.inventory, host.pos);
     if (loot.taken.length > 0) {
@@ -83,14 +95,29 @@ export class HeroCombat {
       if (ev.t === 'hit') {
         host.hitStop = HIT_STOP;
         if (services.settings?.damageNumbers !== false) this.numbers.show(ev.x * TILE, ev.y * TILE - 18, `-${ev.amount}`, COLORS.white);
-      } else if (ev.t === 'hurtHero' && host.player.vulnerable) {
-        host.session = hurtHero(host.session, ev.amount);
-        host.player.hurt();
-        if (services.settings?.screenShake !== false) shakeCamera(host.cameras.main, 140, 0.006);
-        services.platform?.haptic('medium');
-        this.numbers.show(host.pos.x * TILE, host.pos.y * TILE - 20, `-${ev.amount}`, 0xff5555);
+      } else if (ev.t === 'hurtHero') {
+        this.hurt(ev.amount);
       }
     }
+    host.level.onEvents(events);
+  }
+
+  /** The hero loses hit points to a blow (red flash, shake, buzz), unless he is still safe from the last one. */
+  private hurt(amount: number): void {
+    const { host } = this;
+    if (!host.player.vulnerable) return;
+    host.session = hurtHero(host.session, amount);
+    host.player.hurt();
+    if (services.settings?.screenShake !== false) shakeCamera(host.cameras.main, 140, 0.006);
+    services.platform?.haptic('medium');
+    this.numbers.show(host.pos.x * TILE, host.pos.y * TILE - 20, `-${amount}`, 0xff5555);
+  }
+
+  /** Damage that does not come from a creature (spike traps), with the difficulty and the armour applied. */
+  harm(raw: number): void {
+    const s = this.host.session;
+    if (this.host.player.vulnerable) services.audio?.sfx('hurt');
+    this.hurt(enemyDamage(raw, s.difficulty, defenseOf(s.equipment)));
   }
 
   /** The hero woke up somewhere else: everything that was chasing him is gone. */

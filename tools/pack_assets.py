@@ -185,6 +185,9 @@ def build_props():
             a.add_strip(f"fire/{f.stem.lower()}", f, 16, 32)
         else:
             a.add_image(f"p/{f.stem.lower()}", f)
+    # Blocks the hero can push (dungeon puzzles).
+    for f in sorted((SRC / "Prefabs_with_behavior" / "block_push_on_contact" / "Sprites").glob("*.png")):
+        a.add_image(f"p/{f.stem.lower()}", f)
     anim = SRC / "Animations"
     for f in sorted((anim / "Chest").glob("*.png")):
         a.add_strip(f"chest/{f.stem.split('_16')[0]}", f, 18, 32)

@@ -38,6 +38,14 @@ describe('item and tool names', () => {
   });
 });
 
+describe('dungeon texts', () => {
+  it('names every dungeon and boss, and has the messages of the dungeon rules, in both languages', () => {
+    for (const id of ['grotto', 'deepmine', 'ruin']) expect(UI_STRINGS[`dungeon_${id}`], id).toBeDefined();
+    for (const id of ['mossback', 'ironbones', 'mirelord']) expect(UI_STRINGS[`boss_${id}`], id).toBeDefined();
+    for (const key of ['msgWayOpens', 'msgBossDefeated', 'wearArmor', 'takeOffArmor', 'armorDefense', 'armorNone']) expect(UI_STRINGS[key], key).toBeDefined();
+  });
+});
+
 describe('new game confirmation', () => {
   it('names the save that will be replaced, in both languages', () => {
     for (const lang of ['en', 'id'] as const) {

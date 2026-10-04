@@ -7,12 +7,14 @@ import { TILE } from '@/gfx/TerrainLayer';
 import type { Facing } from '@/sim/actions';
 import type { SwingStats } from '@/sim/combat';
 import type { Creature } from '@/sim/creatures';
+import type { FlyingShot } from '@/sim/boss';
 import type { Arrow } from '@/sim/encounters';
 import type { Vec } from '@/sim/movement';
 import type { Pickup } from '@/sim/pickups';
 
 const FLASH_MS = 90;
 const WINDUP_TINT = 0xff8a8a;
+const SHOT_TINT = 0xd070ff;
 const FACING_DEG: Record<Facing, number> = { right: 0, down: 90, left: 180, up: 270 };
 /** Where the feet are inside a sprite cell: monsters are drawn in 48x48 cells, animals in 16x20. */
 const FEET: Record<'monsters' | 'actors', number> = { monsters: 0.8, actors: 0.9 };
@@ -35,14 +37,16 @@ export class CreatureLayer {
   private creatures = new Map<number, CreatureView>();
   private items = new Map<number, ItemView>();
   private arrows = new Map<number, Phaser.GameObjects.Image>();
+  private shots = new Map<number, Phaser.GameObjects.Image>();
 
   constructor(private scene: Phaser.Scene) {}
 
   /** Create, move, animate and remove sprites so they match the given state. */
-  sync(creatures: readonly Creature[], pickups: readonly Pickup[], arrows: readonly Arrow[]): void {
+  sync(creatures: readonly Creature[], pickups: readonly Pickup[], arrows: readonly Arrow[], shots: readonly FlyingShot[]): void {
     this.syncCreatures(creatures);
     this.syncItems(pickups);
     this.syncArrows(arrows);
+    this.syncShots(shots);
   }
 
   private syncCreatures(list: readonly Creature[]): void {
@@ -57,7 +61,7 @@ export class CreatureLayer {
       view.sprite.setPosition(px, py).setDepth(py);
       view.shadow.setPosition(px, py - 1).setDepth(py - 1);
       const dir = def.sprite.fixedDir ?? c.facing;
-      const moving = c.state === 'wander' || c.state === 'chase' || c.state === 'flee';
+      const moving = c.state === 'wander' || c.state === 'chase' || c.state === 'flee' || c.state === 'charge';
       if (moving) {
         view.sprite.play(animKey(`${def.sprite.group}/${dir}`), true);
       } else {
@@ -65,9 +69,9 @@ export class CreatureLayer {
         view.sprite.setFrame(`${def.sprite.group}/${dir}/${Math.min(1, def.sprite.frames - 1)}`);
       }
       if (now < view.flashUntil) view.sprite.setTintFill(0xffffff);
-      else if (c.state === 'windup') view.sprite.setTint(WINDUP_TINT);
+      else if (c.state === 'windup' || c.state === 'charge') view.sprite.setTint(WINDUP_TINT);
       else view.sprite.clearTint();
-      view.sprite.setScale(c.state === 'windup' ? 1.12 : 1);
+      view.sprite.setScale((def.sprite.scale ?? 1) * (c.state === 'windup' ? 1.12 : 1));
       this.updateBar(view, c, px, py);
     }
     for (const [id, view] of this.creatures) {
@@ -84,6 +88,7 @@ export class CreatureLayer {
     const dir = def.sprite.fixedDir ?? c.facing;
     const sprite = this.scene.add.sprite(0, 0, def.sprite.atlas, `${def.sprite.group}/${dir}/1`).setOrigin(0.5, FEET[def.sprite.atlas]);
     const shadow = this.scene.add.image(0, 0, 'fx_shadow').setScale(def.radius * 3.2);
+    sprite.setScale(def.sprite.scale ?? 1);
     const color = isHostileKind(c.kind) ? 0xe0524f : 0xff9a3c;
     const back = this.scene.add.rectangle(0, 0, BAR_W, 2, 0x000000, 0.65).setOrigin(0, 0.5).setVisible(false);
     const fill = this.scene.add.rectangle(0, 0, BAR_W, 2, color).setOrigin(0, 0.5).setVisible(false);
@@ -96,9 +101,11 @@ export class CreatureLayer {
   private updateBar(view: CreatureView, c: Creature, px: number, py: number): void {
     const def = CREATURES[c.kind];
     const hurt = c.hp < def.hp;
-    const top = py - (def.sprite.atlas === 'monsters' ? 26 : 22);
-    view.bar[0].setVisible(hurt).setPosition(px - BAR_W / 2, top).setDepth(py + 1);
-    view.bar[1].setVisible(hurt).setPosition(px - BAR_W / 2, top).setDepth(py + 2).setSize(Math.max(1, BAR_W * (c.hp / def.hp)), 2);
+    const scale = def.sprite.scale ?? 1;
+    const top = py - (def.sprite.atlas === 'monsters' ? 26 : 22) * scale;
+    const w = BAR_W * scale;
+    view.bar[0].setVisible(hurt).setPosition(px - w / 2, top).setDepth(py + 1).setSize(w, 2);
+    view.bar[1].setVisible(hurt).setPosition(px - w / 2, top).setDepth(py + 2).setSize(Math.max(1, w * (c.hp / def.hp)), 2);
   }
 
   private syncItems(list: readonly Pickup[]): void {
@@ -145,6 +152,22 @@ export class CreatureLayer {
       if (seen.has(id)) continue;
       img.destroy();
       this.arrows.delete(id);
+    }
+  }
+
+  private syncShots(list: readonly FlyingShot[]): void {
+    const seen = new Set<number>();
+    for (const s of list) {
+      seen.add(s.id);
+      const img = this.shots.get(s.id) ?? this.scene.add.image(0, 0, 'fx_light').setTint(SHOT_TINT).setDisplaySize(16, 16).setBlendMode('ADD');
+      this.shots.set(s.id, img);
+      const py = snapWorld(s.y * TILE);
+      img.setPosition(snapWorld(s.x * TILE), py - 8).setDepth(py);
+    }
+    for (const [id, img] of this.shots) {
+      if (seen.has(id)) continue;
+      img.destroy();
+      this.shots.delete(id);
     }
   }
 

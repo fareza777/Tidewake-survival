@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { TILES_KEY } from '@/data/terrainTiles';
-import { groundFrame, shoreMask, SHORE_E, SHORE_N, SHORE_S, SHORE_W } from '@/sim/tileView';
+import { TILES_KEY, type DungeonTheme } from '@/data/terrainTiles';
+import { dungeonFrame, groundFrame, shoreMask, SHORE_E, SHORE_N, SHORE_S, SHORE_W } from '@/sim/tileView';
 import { idx, type World } from '@/sim/world/types';
 
 export const TILE = 16;
@@ -43,7 +43,8 @@ export class TerrainLayer {
   readonly ground: Phaser.Tilemaps.TilemapLayer;
   readonly shore: Phaser.Tilemaps.TilemapLayer;
 
-  constructor(scene: Phaser.Scene, world: World) {
+  /** `theme` draws a dungeon's flagstones and brick instead of the island's ground. */
+  constructor(scene: Phaser.Scene, world: World, theme?: DungeonTheme) {
     createShoreTexture(scene);
     const size = world.size;
     const groundData: number[][] = [];
@@ -52,7 +53,7 @@ export class TerrainLayer {
       const g: number[] = [];
       const s: number[] = [];
       for (let x = 0; x < size; x++) {
-        g.push(groundFrame(world.terrain[idx(x, y, size)], x, y));
+        g.push(theme ? dungeonFrame(world, x, y, theme) : groundFrame(world.terrain[idx(x, y, size)], x, y));
         const mask = shoreMask(world, x, y);
         s.push(mask === 0 ? -1 : mask);
       }

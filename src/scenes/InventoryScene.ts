@@ -4,6 +4,7 @@ import type { GameScene, OpenOptions } from './GameScene';
 import { t } from '@/core/i18n';
 import { view, vx, vy } from '@/core/viewport';
 import { ITEMS } from '@/data/items';
+import { defenseOf } from '@/sim/equipment';
 import type { Recipe } from '@/data/recipes';
 import { CHEST_SLOTS } from '@/data/structures';
 import { availableRecipes, canCraft, missingFor } from '@/sim/crafting';
@@ -102,6 +103,11 @@ export class InventoryScene extends BaseScene {
         return;
       }
     }
+    if (this.mode !== 'chest' && this.onArmorBox(x, y) && this.world.session.equipment.armor) {
+      this.world.wear(null);
+      this.render();
+      return;
+    }
     const b = hit(this.bagTop(), INVENTORY_SIZE);
     if (b < 0) return;
     if (this.mode === 'chest') {
@@ -113,6 +119,16 @@ export class InventoryScene extends BaseScene {
       this.picked = -1;
     }
     this.render();
+  }
+
+  /** The box on the right of the item info where the worn armour sits; tapping it takes the armour off. */
+  private armorBox(): { x: number; y: number } {
+    return { x: this.gridX() + COLS * (SLOT + GAP) - GAP - SLOT, y: this.bagTop() + 4 * (SLOT + GAP) + 6 };
+  }
+
+  private onArmorBox(x: number, y: number): boolean {
+    const a = this.armorBox();
+    return x >= a.x && x <= a.x + SLOT && y >= a.y && y <= a.y + SLOT;
   }
 
   // ---- drawing
@@ -169,6 +185,7 @@ export class InventoryScene extends BaseScene {
       this.ui.add(label(this, this.gridX(), infoY, t('chestHint'), FONT.small, COLORS.textDim));
       return;
     }
+    this.drawArmorBox();
     if (!slot) return;
     const def = ITEMS[slot.item];
     this.ui.add(label(this, this.gridX(), infoY, t(`item_${slot.item}`), FONT.body, COLORS.text));
@@ -178,6 +195,24 @@ export class InventoryScene extends BaseScene {
     if (def.weapon) {
       this.ui.add(label(this, this.gridX(), infoY + 30, t('weaponDamage', { n: def.weapon.damage }), FONT.small, COLORS.textDim));
     }
+    if (def.armor) {
+      this.ui.add(label(this, this.gridX(), infoY + 18, t('armorDefense', { n: def.armor.defense }), FONT.small, COLORS.textDim));
+      this.ui.add(new Button(this, this.gridX() + 36, infoY + 44, t('wearArmor'), () => {
+        this.world.wear(this.picked);
+        this.picked = -1;
+        this.render();
+      }, { w: 64, h: 22, font: FONT.small, style: 'primary' }));
+    }
+  }
+
+  /** What the hero wears: the armour piece (tap to take it off) and the defence it gives. */
+  private drawArmorBox(): void {
+    const { x, y } = this.armorBox();
+    const worn = this.world.session.equipment;
+    this.ui.add(nine(this, x, y, 'ui_slot', SLOT, SLOT).setOrigin(0, 0));
+    if (worn.armor) this.ui.add(itemIcon(this, x + SLOT / 2, y + SLOT / 2 - 1, worn.armor, 26));
+    const text = worn.armor ? t('armorDefense', { n: defenseOf(worn) }) : t('armorNone');
+    this.ui.add(label(this, x + SLOT, y - 12, text, FONT.small, COLORS.textDim, 1, 0));
   }
 
   private costText(recipe: Recipe): string {

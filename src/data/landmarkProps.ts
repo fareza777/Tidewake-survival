@@ -27,15 +27,18 @@ export const LANDMARK_PROPS: Record<LandmarkId, readonly PropSpec[]> = {
   herbalist: [{ frame: 'p/house_02', dx: 0, dy: 0, blocks: [[-1, 0], [0, 0], [1, 0]] }],
   miner: [{ frame: 'p/house_05', dx: 0, dy: 0, blocks: [[-1, 0], [0, 0], [1, 0]] }],
   grotto: [
+    { frame: 'door/door_dungeon_8_h/0', dx: 0, dy: 0, blocks: [[0, 0]] },
     { frame: 'p/column_01', dx: -1, dy: 0, blocks: [[-1, 0]] },
     { frame: 'p/column_01', dx: 1, dy: 0, blocks: [[1, 0]] },
   ],
   deepmine: [
+    { frame: 'door/door_dungeon_9_h/0', dx: 0, dy: 0, blocks: [[0, 0]] },
     { frame: 'p/column_03', dx: -1, dy: 0, blocks: [[-1, 0]] },
     { frame: 'p/column_03', dx: 1, dy: 0, blocks: [[1, 0]] },
   ],
   ruin: [
-    { frame: 'p/statue_01', dx: 0, dy: 0, blocks: [[0, 0]] },
+    { frame: 'door/door_dungeon_10_h/0', dx: 0, dy: 0, blocks: [[0, 0]] },
+    { frame: 'p/statue_01', dx: 0, dy: -1 },
     { frame: 'p/column_05', dx: -2, dy: 1, blocks: [[-2, 1]] },
     { frame: 'p/column_05', dx: 2, dy: 1, blocks: [[2, 1]] },
   ],

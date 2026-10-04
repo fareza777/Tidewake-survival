@@ -29,6 +29,11 @@ export class Wildlife {
     return this.state;
   }
 
+  /** Replace everything with the given state (a dungeon starts with its guards in place). */
+  load(e: Encounters): void {
+    this.apply(e, []);
+  }
+
   /** Advance everything by `dt` seconds. */
   tick(dt: number, c: Omit<TickContext, 'rng'>): EncounterEvent[] {
     const r = tickEncounters(this.state, { ...c, rng: this.rng }, dt);
@@ -45,7 +50,7 @@ export class Wildlife {
   /** The hero looses an arrow. */
   shoot(hero: Vec, facing: Facing, stats: WeaponStats): void {
     this.state = shoot(this.state, hero, facing, stats);
-    this.layer.sync(this.state.creatures, this.state.pickups, this.state.arrows);
+    this.layer.sync(this.state.creatures, this.state.pickups, this.state.arrows, this.state.shots);
   }
 
   /** Would a blow with this weapon land on a creature right now? */
@@ -63,7 +68,7 @@ export class Wildlife {
   /** Remove every creature, item and arrow (after the hero wakes up somewhere else). */
   clear(): void {
     this.state = emptyEncounters();
-    this.layer.sync([], [], []);
+    this.layer.sync([], [], [], []);
   }
 
   private apply(next: Encounters, events: EncounterEvent[]): EncounterEvent[] {
@@ -72,7 +77,7 @@ export class Wildlife {
       if (ev.t === 'hit') this.layer.flash(ev.id);
       if (ev.t === 'killed') this.layer.puff(ev);
     }
-    this.layer.sync(next.creatures, next.pickups, next.arrows);
+    this.layer.sync(next.creatures, next.pickups, next.arrows, next.shots);
     return events;
   }
 }
