@@ -27,13 +27,24 @@ It needs `numpy`, `scipy` and `imageio-ffmpeg` (or `ffmpeg` on the PATH). The ge
 ## Browser smoke tests
 
 With `npm run dev` running: `node tools/play.mjs tools/scripts/<name>.json tools/.cache/shots`.
-Scenarios: boot, island, harvest, persist, night, pause, corrupt, badsave, survive, build, tools, death, death-back, sleep, migrate, perf, fight, hunt, monster-death, spawn, audio, perf-fight, zoo, dungeon-play, dungeon-death, dungeon-persist, dungeon-perf, dungeon-leave-moving, armor, story-play, shell-flow.
+Scenarios: boot, island, harvest, persist, night, pause, corrupt, badsave, survive, build, tools, death, death-back, sleep, migrate, perf, fight, hunt, monster-death, spawn, audio, perf-fight, zoo, dungeon-play, dungeon-death, dungeon-persist, dungeon-perf, dungeon-leave-moving, armor, story-play, shell-flow, store-shots.
+
+## Android
+
+    npm run android:debug      # builds the web app, syncs it into android/ and assembles a debug APK
+    npm run android:release    # the release bundle (AAB); unsigned unless TIDEWAKE_KEYSTORE_PROPS points at your upload key
+    node tools/android-qa.mjs  # smoke test of a QA build (VITE_QA=1) in the emulator or on a phone, see the script header
+
+The upload key belongs to the owner and lives outside the repository: set `TIDEWAKE_KEYSTORE_PROPS` to a properties
+file with `storeFile`, `storePassword`, `keyAlias` and `keyPassword`. The privacy policy and contact address in
+`src/core/config.ts` and the store link in `src/core/platform.ts` are placeholders until the game is published.
+Store assets: `store/` (listing texts in English and Indonesian, eight screenshots) and `branding/`.
 
 ## Branding
 
     python tools/make_branding.py   # branding/ (icon, adaptive icon, splash, Play feature graphic) and public/ favicons
 
-## Status (phase 6)
+## Status (phase 7: first release candidate)
 
 A survival game on a seed-generated island: hunger, thirst, stamina and health; a 32-slot backpack with a hotbar;
 tools with tiers and durability; 23 recipes at the hand, campfire, workbench and furnace; building (campfire,
@@ -60,6 +71,9 @@ New Game, Settings, About, Share and Rate, a New Game screen (save slot, hero na
 intro, a Settings screen (volumes, vibration, screen shake, damage numbers, auto-attack, joystick, language, graphics
 quality, text size, delete saves) that is also reachable from the pause menu, an About screen with credits, and a one-time
 rating prompt after the old sailor's chapter.
+Phase 7 adds the Android project (debug APK about 8 MB, release bundle about 6 MB), more than 60 recipes (an alchemy
+table with potions and a stamina tonic, more dishes, armour, spears, a longbow, a crystal sword and furniture), guard-rail
+tests for the numbers that decide the feel of the game, the store listing and screenshots, and a privacy policy.
 Measured on the dev PC (headless Edge): tap-to-game 415 ms, 60 fps, still 58 fps with 24 creatures chasing.
 
 ## Credits
