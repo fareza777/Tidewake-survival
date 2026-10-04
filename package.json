@@ -1,6 +1,6 @@
 {
   "name": "tidewake",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,10 +12,15 @@
     "typecheck": "tsc --noEmit",
     "assets": "python tools/pack_assets.py && python tools/pack_tiles.py",
     "audio": "python tools/gen_audio.py",
-    "play": "node tools/play.mjs"
+    "play": "node tools/play.mjs",
+    "branding": "python tools/make_branding.py && python tools/make_android_assets.py",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:debug": "npm run android:sync && cd android && gradlew.bat assembleDebug",
+    "android:release": "npm run android:sync && cd android && gradlew.bat bundleRelease"
   },
   "dependencies": {
     "@capacitor-community/in-app-review": "^8.0.0",
+    "@capacitor/android": "^8.5.2",
     "@capacitor/app": "^8.1.1",
     "@capacitor/core": "^8.5.2",
     "@capacitor/haptics": "^8.0.2",

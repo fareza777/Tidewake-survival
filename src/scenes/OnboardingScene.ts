@@ -75,14 +75,16 @@ export class OnboardingScene extends BaseScene {
     }
     const card = this.cards()[this.step];
     const last = this.step === 2;
-    this.ui.add(panel(this, 16, H * 0.16, W - 32, H * 0.56, 'ui_panel_ornate'));
-    this.ui.add(itemIcon(this, W / 2, H * 0.16 + 54, card.icon, 56));
-    this.ui.add(label(this, W / 2, H * 0.16 + 100, card.title, FONT.head, COLORS.gold, 0.5, 0.5));
-    this.ui.add(para(this, 32, H * 0.16 + 124, card.body, W - 64, FONT.body, COLORS.text));
+    const top = Math.max(24, H * 0.5 - 190);
+    const boxH = 320;
+    this.ui.add(panel(this, 16, top, W - 32, boxH, 'ui_panel_ornate'));
+    this.ui.add(itemIcon(this, W / 2, top + 54, card.icon, 56));
+    this.ui.add(label(this, W / 2, top + 100, card.title, FONT.head, COLORS.gold, 0.5, 0.5));
+    this.ui.add(para(this, 32, top + 124, card.body, W - 64, FONT.body, COLORS.text));
     for (let i = 0; i < 3; i++) {
-      this.ui.add(this.add.rectangle(W / 2 + (i - 1) * 16, H * 0.78, 8, 8, i === this.step ? COLORS.gold : COLORS.textDim).setOrigin(0.5));
+      this.ui.add(this.add.rectangle(W / 2 + (i - 1) * 16, top + boxH + 24, 8, 8, i === this.step ? COLORS.gold : COLORS.textDim).setOrigin(0.5));
     }
-    const y = H * 0.88;
+    const y = top + boxH + 64;
     if (!last) this.ui.add(new Button(this, 56, y, t('onbSkip'), () => this.finish(), { w: 80, h: 30, font: FONT.small }));
     this.ui.add(new Button(this, W - 76, y, last ? t('onbStart') : t('onbNext'), () => (last ? this.finish() : this.go(this.step + 1)), { w: 120, h: 32, style: 'primary' }));
   }

@@ -12,7 +12,11 @@ export type ItemId =
   | 'armor_bone' | 'armor_iron' | 'armor_moss' | 'armor_ironbones' | 'armor_mire'
   | 'small_key' | 'boss_key' | 'compass' | 'hull_planks' | 'lighthouse_key'
   | 'shovel' | 'fishing_rod' | 'raw_fish' | 'cooked_fish' | 'big_fish' | 'sailcloth' | 'antidote' | 'lost_pickaxe'
-  | 'beacon_core' | 'armor_hollow' | 'raft';
+  | 'beacon_core' | 'armor_hollow' | 'raft'
+  | 'veggie_stew' | 'fish_stew' | 'berry_jam' | 'smoked_meat' | 'roasted_turnip' | 'pumpkin_pie' | 'sweet_drink'
+  | 'healing_potion' | 'great_healing_potion' | 'stamina_tonic' | 'armor_wood' | 'armor_crystal'
+  | 'spear_wood' | 'spear_iron' | 'bow_long' | 'sword_crystal'
+  | 'salve' | 'alchemy' | 'sign' | 'table' | 'stool' | 'lamp_post' | 'barrel';
 
 export type ToolType = 'axe' | 'pickaxe' | 'hoe' | 'can' | 'sword' | 'spear' | 'bow' | 'shovel' | 'rod';
 
@@ -48,7 +52,7 @@ export interface ItemDef {
   armor?: { defense: number };
   /** Never lost to the death penalty: keys, story items and the armour bosses leave behind. */
   keep?: true;
-  food?: { hunger: number; thirst: number; hp: number };
+  food?: { hunger: number; thirst: number; hp: number; stamina?: number };
   place?: StructureId;
   seed?: CropId;
 }
@@ -151,10 +155,39 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   torch: placeable('torch', 'torch', 20),
   fence: placeable('fence', 'fence', 50),
   raft: placeable('raft', 'raft', 1),
+
+  veggie_stew: food('veggie_stew', icons('veggie_stew'), 45, 8, 6),
+  fish_stew: food('fish_stew', icons('fish_stew'), 48, 6, 8),
+  berry_jam: food('berry_jam', icons('berry_jam'), 20, 4, 5),
+  smoked_meat: food('smoked_meat', icons('smoked_meat'), 50, 0, 4),
+  roasted_turnip: food('roasted_turnip', icons('roasted_turnip'), 24, 2, 3),
+  pumpkin_pie: food('pumpkin_pie', icons('pumpkin_pie'), 52, 4, 10),
+  sweet_drink: food('sweet_drink', icons('sweet_drink'), 10, 45, 0),
+  healing_potion: { ...food('healing_potion', icons('healing_potion'), 0, 0, 60), stack: 10 },
+  great_healing_potion: { ...food('great_healing_potion', icons('great_healing_potion'), 0, 0, 100), stack: 5 },
+  stamina_tonic: { id: 'stamina_tonic', stack: 10, icon: icons('stamina_tonic'), food: { hunger: 0, thirst: 10, hp: 0, stamina: 100 } },
+
+  armor_wood: armor('armor_wood', 1),
+  armor_crystal: armor('armor_crystal', 6),
+  spear_wood: weapon('spear_wood', 'spear', 1, 50, { kind: 'melee', damage: 4, reach: 1.9, arc: 30, cooldown: 0.6, stamina: 4, knockback: 0.5 }),
+  spear_iron: weapon('spear_iron', 'spear', 3, 140, { kind: 'melee', damage: 9, reach: 1.9, arc: 30, cooldown: 0.55, stamina: 4, knockback: 0.55 }),
+  bow_long: weapon('bow_long', 'bow', 2, 120, { kind: 'bow', damage: 6, reach: 9, arc: 0, cooldown: 0.75, stamina: 3, knockback: 0.3 }),
+  sword_crystal: weapon('sword_crystal', 'sword', 3, 200, sword(11)),
+
+  salve: food('salve', icons('salve'), 0, 0, 40),
+  alchemy: placeable('alchemy', 'alchemy'),
+  sign: placeable('sign', 'sign', 10),
+  table: placeable('table', 'table', 10),
+  stool: placeable('stool', 'stool', 10),
+  lamp_post: placeable('lamp_post', 'lamp_post', 10),
+  barrel: placeable('barrel', 'barrel', 10),
 };
 
 /** Foods that count as a cooked meal for the story. */
-export const COOKED_FOODS: readonly ItemId[] = ['cooked_meat', 'roasted_carrot', 'roasted_corn', 'baked_pumpkin', 'cooked_fish'];
+export const COOKED_FOODS: readonly ItemId[] = [
+  'cooked_meat', 'roasted_carrot', 'roasted_corn', 'baked_pumpkin', 'cooked_fish', 'veggie_stew', 'fish_stew', 'berry_jam', 'smoked_meat',
+  'roasted_turnip', 'pumpkin_pie',
+];
 
 export const ITEM_IDS = Object.keys(ITEMS) as ItemId[];
 

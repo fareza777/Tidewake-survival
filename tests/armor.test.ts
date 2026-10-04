@@ -5,10 +5,10 @@ import { UI_STRINGS } from '@/data/strings';
 import { defenseOf, equipFromSlot, noEquipment, parseEquipment, unequipArmor } from '@/sim/equipment';
 import { addItem, emptyInventory } from '@/sim/inventory';
 
-const ARMORS: ItemId[] = ['armor_bone', 'armor_iron', 'armor_moss', 'armor_ironbones', 'armor_mire', 'armor_hollow'];
+const ARMORS: ItemId[] = ['armor_bone', 'armor_iron', 'armor_moss', 'armor_ironbones', 'armor_mire', 'armor_hollow', 'armor_wood', 'armor_crystal'];
 
 describe('armour items', () => {
-  it('are the five pieces, never stack, never wear out, and name a positive defence', () => {
+  it('are the eight pieces, never stack, never wear out, and name a positive defence', () => {
     expect(ITEM_IDS.filter((id) => ITEMS[id].armor)).toEqual(ARMORS);
     for (const id of ARMORS) {
       expect(ITEMS[id].stack, id).toBe(1);
@@ -23,6 +23,8 @@ describe('armour items', () => {
     expect(d('armor_bone')).toBeLessThan(d('armor_iron'));
     expect(d('armor_moss')).toBeLessThan(d('armor_ironbones'));
     expect(d('armor_ironbones')).toBeLessThan(d('armor_mire'));
+    expect(d('armor_wood')).toBeLessThan(d('armor_bone'));
+    expect(d('armor_iron')).toBeLessThan(d('armor_crystal'));
   });
 
   it('can be crafted from bones and iron at the workbench, while the boss pieces are rewards only', () => {

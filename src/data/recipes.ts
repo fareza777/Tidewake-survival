@@ -24,6 +24,7 @@ export const RECIPES: readonly Recipe[] = [
   r('workbench', 1, [['plank', 6], ['rope', 2]]),
   r('sword_wood', 1, [['wood', 3], ['fiber', 2]]),
   r('bandage', 1, [['fiber', 2], ['gel', 1]]),
+  r('salve', 1, [['gel', 2], ['fiber', 1], ['honey', 1]]),
   // Workbench
   r('axe_stone', 1, [['plank', 2], ['stone', 3], ['rope', 1]], 'workbench'),
   r('pickaxe_stone', 1, [['plank', 2], ['stone', 3], ['rope', 1]], 'workbench'),
@@ -46,6 +47,22 @@ export const RECIPES: readonly Recipe[] = [
   r('fishing_rod', 1, [['wood', 3], ['rope', 2]], 'workbench'),
   r('sailcloth', 1, [['fiber', 10], ['rope', 2]], 'workbench'),
   r('raft', 1, [['plank', 8], ['rope', 3], ['sailcloth', 1], ['hull_planks', 1], ['compass', 1]], 'workbench'),
+  r('spear_wood', 1, [['plank', 2], ['stone', 1]], 'workbench'),
+  r('spear_iron', 1, [['plank', 1], ['iron_ingot', 2], ['rope', 1]], 'workbench'),
+  r('bow_long', 1, [['plank', 3], ['rope', 2], ['iron_ingot', 1]], 'workbench'),
+  r('sword_crystal', 1, [['crystal', 4], ['iron_ingot', 3], ['plank', 1], ['rope', 1]], 'workbench'),
+  r('armor_wood', 1, [['plank', 10], ['rope', 3]], 'workbench'),
+  r('armor_crystal', 1, [['crystal', 6], ['iron_ingot', 4], ['rope', 2]], 'workbench'),
+  r('alchemy', 1, [['plank', 6], ['stone', 4], ['crystal', 2]], 'workbench'),
+  r('sign', 2, [['plank', 2]], 'workbench'),
+  r('table', 1, [['plank', 6]], 'workbench'),
+  r('stool', 2, [['plank', 3]], 'workbench'),
+  r('lamp_post', 1, [['plank', 2], ['iron_ingot', 1], ['crystal', 1]], 'workbench'),
+  r('barrel', 1, [['plank', 6], ['rope', 2]], 'workbench'),
+  // Alchemy table
+  r('healing_potion', 1, [['gel', 2], ['berries', 3], ['honey', 1]], 'alchemy'),
+  r('great_healing_potion', 1, [['healing_potion', 1], ['crystal', 1], ['honey', 2]], 'alchemy'),
+  r('stamina_tonic', 1, [['coconut', 2], ['honey', 1], ['berries', 2]], 'alchemy'),
   // Furnace
   r('iron_ingot', 1, [['iron_ore', 2], ['wood', 1]], 'furnace'),
   // Campfire
@@ -54,5 +71,12 @@ export const RECIPES: readonly Recipe[] = [
   r('baked_pumpkin', 1, [['pumpkin', 1]], 'campfire'),
   r('cooked_meat', 1, [['raw_meat', 1]], 'campfire'),
   r('cooked_fish', 1, [['raw_fish', 1]], 'campfire'),
+  r('roasted_turnip', 1, [['turnip', 1]], 'campfire'),
+  r('veggie_stew', 1, [['carrot', 1], ['turnip', 1], ['pumpkin', 1]], 'campfire'),
+  r('fish_stew', 1, [['raw_fish', 2], ['carrot', 1]], 'campfire'),
+  r('berry_jam', 1, [['berries', 3], ['honey', 1]], 'campfire'),
+  r('smoked_meat', 1, [['raw_meat', 2], ['wood', 1]], 'campfire'),
+  r('pumpkin_pie', 1, [['pumpkin', 1], ['honey', 1], ['corn', 1]], 'campfire'),
+  r('sweet_drink', 1, [['coconut', 2], ['honey', 1]], 'campfire'),
   r('antidote', 1, [['gel', 2], ['fiber', 3], ['berries', 2]], 'campfire'),
 ];

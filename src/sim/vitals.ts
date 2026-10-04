@@ -55,15 +55,18 @@ export interface FoodValue {
   hunger: number;
   thirst: number;
   hp: number;
+  /** Tonics give stamina back. */
+  stamina?: number;
 }
 
 export function eat(v: Vitals, food: FoodValue): Vitals {
-  return { ...v, hunger: clamp(v.hunger + food.hunger), thirst: clamp(v.thirst + food.thirst), hp: clamp(v.hp + food.hp) };
+  return { ...v, hunger: clamp(v.hunger + food.hunger), thirst: clamp(v.thirst + food.thirst), hp: clamp(v.hp + food.hp), stamina: clamp(v.stamina + (food.stamina ?? 0)) };
 }
 
 /** True when eating this would change nothing (all three affected meters are already full). */
 export function wouldWaste(v: Vitals, food: FoodValue): boolean {
-  return (food.hunger <= 0 || v.hunger >= VITAL_MAX) && (food.thirst <= 0 || v.thirst >= VITAL_MAX) && (food.hp <= 0 || v.hp >= VITAL_MAX);
+  return (food.hunger <= 0 || v.hunger >= VITAL_MAX) && (food.thirst <= 0 || v.thirst >= VITAL_MAX) && (food.hp <= 0 || v.hp >= VITAL_MAX)
+    && ((food.stamina ?? 0) <= 0 || v.stamina >= VITAL_MAX);
 }
 
 /** Lose hit points to a blow; the other meters are untouched. */
