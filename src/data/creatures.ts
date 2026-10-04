@@ -1,12 +1,13 @@
 import { B, type Biome } from '@/sim/world/types';
 import type { Drop } from './resources';
+import type { BossId } from './dungeons';
 
 export type EnemyId = 'slime' | 'mushroom' | 'wasp' | 'skeleton' | 'zombie' | 'worm' | 'ghost' | 'scorpion' | 'skeleton_warrior';
 export type AnimalId = 'rabbit' | 'fox' | 'bird' | 'boar';
-export type CreatureId = EnemyId | AnimalId;
+export type CreatureId = EnemyId | AnimalId | BossId;
 
-/** Chasers hunt the hero on sight, fleeing animals run from him, defenders only fight back once hurt. */
-export type Temper = 'chase' | 'flee' | 'defend';
+/** Chasers hunt the hero on sight, fleeing animals run from him, defenders only fight back once hurt, bosses follow a script (`src/data/bosses.ts`). */
+export type Temper = 'chase' | 'flee' | 'defend' | 'boss';
 
 export interface CreatureSprite {
   atlas: 'monsters' | 'actors';
@@ -16,6 +17,8 @@ export interface CreatureSprite {
   frames: number;
   /** Sheets that only have front-facing rows (the bonus monsters) always show this row. */
   fixedDir?: 'down' | 'left' | 'right' | 'up';
+  /** Drawn this many times bigger than the sheet (bosses). */
+  scale?: number;
 }
 
 export interface CreatureDef {
@@ -41,6 +44,10 @@ export interface CreatureDef {
 }
 
 const monster = (group: string, fixedDir?: CreatureSprite['fixedDir']): CreatureSprite => ({ atlas: 'monsters', group, frames: 3, fixedDir });
+const boss = (id: BossId, hp: number, speed: number, damage: number, group: string, drops: readonly Drop[]): CreatureDef => ({
+  id, temper: 'boss', hp, speed, damage, sight: 14, reach: 1.4, windup: 0.7, cooldown: 1, radius: 0.7, sprite: { ...monster(group), scale: 1.5 }, drops,
+  spawn: { biomes: [], weight: 1, when: 'any' },
+});
 const critter = (group: string, frames = 3): CreatureSprite => ({ atlas: 'actors', group, frames });
 
 const enemy = (
@@ -61,6 +68,10 @@ export const CREATURES: Record<CreatureId, CreatureDef> = {
   scorpion: enemy('scorpion', 16, 1.8, 12, 6, 0.35, 1.2, monster('m04_5'), [{ item: 'raw_meat', min: 1, max: 2 }, { item: 'bone', min: 1, max: 1, chance: 0.5 }], { biomes: [DESERT], weight: 8, when: 'any' }),
   skeleton_warrior: { ...enemy('skeleton_warrior', 24, 1.6, 16, 7, 0.45, 1.3, monster('m05_3'), [{ item: 'bone', min: 1, max: 3 }, { item: 'iron_ore', min: 1, max: 1, chance: 0.3 }], { biomes: [DESERT], weight: 5, when: 'night' }), reach: 1 },
 
+  mossback: boss('mossback', 140, 1.6, 12, 'm04_2', [{ item: 'compass', min: 1, max: 1 }, { item: 'armor_moss', min: 1, max: 1 }]),
+  ironbones: boss('ironbones', 160, 1.7, 14, 'm04_3', [{ item: 'hull_planks', min: 1, max: 1 }, { item: 'armor_ironbones', min: 1, max: 1 }]),
+  mirelord: boss('mirelord', 180, 1.5, 9, 'm04_0', [{ item: 'lighthouse_key', min: 1, max: 1 }, { item: 'armor_mire', min: 1, max: 1 }]),
+
   rabbit: { id: 'rabbit', temper: 'flee', hp: 3, speed: 3, damage: 0, sight: 4, reach: 0, windup: 0, cooldown: 0, radius: 0.2, sprite: critter('bunny1/walk'), drops: [{ item: 'raw_meat', min: 1, max: 1 }], spawn: { biomes: [FOREST], weight: 10, when: 'any' } },
   fox: { id: 'fox', temper: 'flee', hp: 6, speed: 2.9, damage: 0, sight: 5, reach: 0, windup: 0, cooldown: 0, radius: 0.22, sprite: critter('fox1/walk'), drops: [{ item: 'raw_meat', min: 1, max: 2 }], spawn: { biomes: [FOREST, MOUNTAIN, DESERT], weight: 5, when: 'any' } },
   bird: { id: 'bird', temper: 'flee', hp: 2, speed: 3.1, damage: 0, sight: 4, reach: 0, windup: 0, cooldown: 0, radius: 0.18, sprite: critter('bird1/walk'), drops: [{ item: 'raw_meat', min: 1, max: 1, chance: 0.7 }], spawn: { biomes: [FOREST, MOUNTAIN, SWAMP, DESERT], weight: 8, when: 'day' } },
@@ -69,8 +80,8 @@ export const CREATURES: Record<CreatureId, CreatureDef> = {
 
 export const CREATURE_IDS = Object.keys(CREATURES) as CreatureId[];
 
-/** True for creatures that attack the hero without being provoked. */
-export const isHostileKind = (id: CreatureId): boolean => CREATURES[id].temper === 'chase';
+/** True for creatures that attack the hero without being provoked (monsters and bosses). */
+export const isHostileKind = (id: CreatureId): boolean => CREATURES[id].temper === 'chase' || CREATURES[id].temper === 'boss';
 
 /** Creatures that may appear in a biome at this time of day, with their spawn weights. */
 export function spawnWeights(biome: Biome, night: boolean): (readonly [CreatureId, number])[] {

@@ -1,11 +1,14 @@
 import type { Rng } from '@/core/rng';
+import { BOSSES } from '@/data/bosses';
 import { CREATURES, type CreatureDef, type CreatureId } from '@/data/creatures';
+import type { BossId } from '@/data/dungeons';
+import { stepBoss, type Shot } from '@/sim/boss';
 import type { Facing } from '@/sim/actions';
 import { facingFromVector } from '@/sim/combat';
 import { PLAYER_HALF, moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import type { World } from '@/sim/world/types';
 
-export type CreatureState = 'idle' | 'wander' | 'chase' | 'windup' | 'recover' | 'flee';
+export type CreatureState = 'idle' | 'wander' | 'chase' | 'windup' | 'recover' | 'flee' | 'charge';
 
 /** One monster or animal in the world. Immutable: every step returns a new value. */
 export interface Creature {
@@ -28,6 +31,8 @@ export interface Creature {
   readonly pushY: number;
   /** Seconds of stagger after a hit, during which it cannot act. */
   readonly stun: number;
+  /** A boss's place in its list of moves. */
+  readonly step: number;
 }
 
 export interface StepContext {
@@ -44,6 +49,12 @@ export interface StepResult {
   creature: Creature;
   /** The blow lands on the hero in this step. */
   strike: boolean;
+  /** Hit points the blow takes, when it is not the creature's usual strike (bosses). */
+  damage?: number;
+  /** Bolts the creature fires in this step (bosses). */
+  shots?: Shot[];
+  /** Creatures it calls in this step (bosses). */
+  summons?: CreatureId[];
 }
 
 /** Fraction of its speed a creature strolls at. */
@@ -63,7 +74,7 @@ export const HURT_STUN = 0.25;
 export function newCreature(id: number, kind: CreatureId, x: number, y: number, rng: Rng): Creature {
   return {
     id, kind, x, y, hp: CREATURES[kind].hp, facing: 'down', state: 'idle', timer: rng.float(0.5, 3),
-    headX: 0, headY: 0, angry: false, pushX: 0, pushY: 0, stun: 0,
+    headX: 0, headY: 0, angry: false, pushX: 0, pushY: 0, stun: 0, step: 0,
   };
 }
 
@@ -76,6 +87,8 @@ export interface HurtResult {
 export function hurtCreature(c: Creature, amount: number, push: Vec): HurtResult {
   const hp = Math.max(0, c.hp - amount);
   if (hp === 0) return { creature: { ...c, hp }, dead: true };
+  // A boss is neither staggered nor pushed: its script runs on.
+  if (CREATURES[c.kind].temper === 'boss') return { creature: { ...c, hp, angry: true }, dead: false };
   const state: CreatureState = c.state === 'windup' ? 'recover' : c.state === 'idle' || c.state === 'wander' ? 'chase' : c.state;
   // Going from idling or strolling to hunting must drop the old countdown and heading, or they would pass for a detour.
   const unsettled = c.state === 'idle' || c.state === 'wander';
@@ -198,6 +211,7 @@ function flee(c: Creature, def: CreatureDef, ctx: StepContext): Creature {
 /** Advance one creature by `ctx.dt` seconds. Pure: the same inputs and random stream give the same result. */
 export function stepCreature(c: Creature, ctx: StepContext): StepResult {
   const def = CREATURES[c.kind];
+  if (def.temper === 'boss') return stepBoss(c, def, BOSSES[c.kind as BossId], ctx);
   const pushed = applyPush(c, def, ctx);
   if (pushed.stun > 0) return { creature: { ...pushed, stun: Math.max(0, pushed.stun - ctx.dt) }, strike: false };
   if (def.temper === 'flee') return { creature: ctx.heroAlive ? flee(pushed, def, ctx) : stroll(settle(pushed, ctx.rng), def, ctx), strike: false };

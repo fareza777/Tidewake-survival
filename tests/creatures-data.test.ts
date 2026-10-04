@@ -15,12 +15,12 @@ const LAND_BIOMES = [B.FOREST, B.MOUNTAIN, B.SWAMP, B.DESERT];
 
 describe('creature catalog', () => {
   it('keys every entry by its own id and gives it sane stats', () => {
-    expect(CREATURE_IDS).toHaveLength(13);
+    expect(CREATURE_IDS).toHaveLength(16);
     for (const id of CREATURE_IDS) {
       const c = CREATURES[id];
       expect(c.id).toBe(id);
       for (const v of [c.hp, c.speed, c.radius]) expect(v, id).toBeGreaterThan(0);
-      expect(c.spawn.biomes.length, id).toBeGreaterThan(0);
+      if (c.temper !== 'boss') expect(c.spawn.biomes.length, id).toBeGreaterThan(0);
       expect(c.spawn.weight, id).toBeGreaterThan(0);
     }
   });
@@ -47,6 +47,17 @@ describe('creature catalog', () => {
     expect(by('defend')).toEqual(['boar']);
     expect(isHostileKind('slime')).toBe(true);
     expect(isHostileKind('boar')).toBe(false);
+  });
+
+  it('has three bosses that never appear by themselves, count as hostile, and drop their dungeon rewards', () => {
+    const bosses = CREATURE_IDS.filter((id) => CREATURES[id].temper === 'boss');
+    expect(bosses.sort()).toEqual(['ironbones', 'mirelord', 'mossback']);
+    for (const id of bosses) {
+      expect(isHostileKind(id), id).toBe(true);
+      expect(CREATURES[id].hp, id).toBeGreaterThanOrEqual(100);
+      expect(CREATURES[id].sprite.scale, id).toBeGreaterThan(1);
+      for (const biome of LAND_BIOMES) for (const night of [false, true]) expect(spawnWeights(biome, night).map(([k]) => k), id).not.toContain(id);
+    }
   });
 
   it('puts a hostile creature and an animal in every land biome, each biome with its own roster', () => {

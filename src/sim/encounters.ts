@@ -1,8 +1,10 @@
 import type { Rng } from '@/core/rng';
-import { CREATURES, type CreatureId } from '@/data/creatures';
+import { CREATURES, isHostileKind, type CreatureId } from '@/data/creatures';
 import type { WeaponStats } from '@/data/items';
 import type { Facing } from '@/sim/actions';
 import { enemyDamage, inSwing, knockbackVec, type SwingStats } from '@/sim/combat';
+import type { FlyingShot } from '@/sim/boss';
+import { flyShots, launch, placeSummons } from '@/sim/bossFight';
 import { hurtCreature, stepCreature, type Creature } from '@/sim/creatures';
 import type { Inventory } from '@/sim/inventory';
 import { moveWithCollision, tileBlocked, type Vec } from '@/sim/movement';
@@ -24,11 +26,21 @@ export interface Arrow {
   readonly knockback: number;
 }
 
+/** Something the hero can strike with a blow or an arrow that is not a creature (a crystal in a dungeon). */
+export interface Target {
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+}
+
 /** Everything that lives on the island besides the hero and the scenery. Not saved: it is rebuilt around the hero. */
 export interface Encounters {
   readonly creatures: readonly Creature[];
   readonly pickups: readonly Pickup[];
   readonly arrows: readonly Arrow[];
+  /** Bolts fired by bosses. */
+  readonly shots: readonly FlyingShot[];
+  readonly targets: readonly Target[];
   /** Shared counter for creature, pickup and arrow ids. */
   readonly nextId: number;
   readonly spawnTimer: number;
@@ -37,7 +49,8 @@ export interface Encounters {
 export type EncounterEvent =
   | { t: 'hurtHero'; amount: number; from: Vec; kind: CreatureId }
   | { t: 'hit'; id: number; kind: CreatureId; amount: number; x: number; y: number }
-  | { t: 'killed'; id: number; kind: CreatureId; x: number; y: number };
+  | { t: 'killed'; id: number; kind: CreatureId; x: number; y: number }
+  | { t: 'struck'; id: number };
 
 export interface EncounterStep {
   e: Encounters;
@@ -55,14 +68,20 @@ export interface TickContext {
   /** Armour: points taken off every blow. */
   defense: number;
   rng: Rng;
+  /** No creatures appear or fade by themselves (dungeons: the rooms hold what they hold). */
+  fixed?: boolean;
 }
 
 export const ARROW_SPEED = 9;
 const ARROW_REACH = 0.18;
+/** How big a target is for blows and arrows. */
+const TARGET_RADIUS = 0.45;
 /** Arrows move in steps no longer than this, so a fast one cannot skip over a small target. */
 const ARROW_SUBSTEP = 0.3;
 
-export const emptyEncounters = (): Encounters => ({ creatures: [], pickups: [], arrows: [], nextId: 1, spawnTimer: SPAWN_INTERVAL });
+export const emptyEncounters = (): Encounters => ({
+  creatures: [], pickups: [], arrows: [], shots: [], targets: [], nextId: 1, spawnTimer: SPAWN_INTERVAL,
+});
 
 /** Deal damage to one creature. A death removes it and leaves its loot on the ground. */
 function damageCreature(e: Encounters, id: number, amount: number, push: Vec, rng: Rng): EncounterStep {
@@ -87,6 +106,9 @@ export function swing(e: Encounters, hero: Vec, facing: Facing, stats: SwingStat
     const r = damageCreature(cur, c.id, stats.damage, knockbackVec(hero, c, stats.knockback), rng);
     cur = r.e;
     events.push(...r.events);
+  }
+  for (const t of e.targets) {
+    if (inSwing(hero, facing, stats.reach, stats.arc, t, TARGET_RADIUS)) events.push({ t: 'struck', id: t.id });
   }
   return { e: cur, events };
 }
@@ -116,6 +138,12 @@ function flyArrows(e: Encounters, c: TickContext, dt: number): EncounterStep {
       travel -= step;
       left -= step;
       if (tileBlocked(c.world, c.solids, Math.floor(x), Math.floor(y))) {
+        alive = false;
+        break;
+      }
+      const target = cur.targets.find((t) => Math.hypot(t.x - x, t.y - y) <= TARGET_RADIUS + ARROW_REACH);
+      if (target) {
+        events.push({ t: 'struck', id: target.id });
         alive = false;
         break;
       }
@@ -151,20 +179,30 @@ function separate(creatures: readonly Creature[], c: TickContext): Creature[] {
   return out;
 }
 
-/** Advance the island's creatures, arrows and loose items by `dt` seconds. */
+/** Advance the island's creatures, arrows, bolts and loose items by `dt` seconds. */
 export function tickEncounters(e: Encounters, c: TickContext, dt: number): EncounterStep {
   const events: EncounterEvent[] = [];
-  const stepped = e.creatures.map((cr) => {
+  const stepped: Creature[] = [];
+  const fired: { kind: CreatureId; shots: NonNullable<ReturnType<typeof stepCreature>['shots']> }[] = [];
+  const called: { boss: Creature; kinds: CreatureId[] }[] = [];
+  for (const cr of e.creatures) {
     const r = stepCreature(cr, { world: c.world, solids: c.solids, hero: c.hero, heroAlive: c.heroAlive, rng: c.rng, dt });
     if (r.strike) {
-      const amount = enemyDamage(CREATURES[cr.kind].damage, c.difficulty, c.defense);
+      const amount = enemyDamage(r.damage ?? CREATURES[cr.kind].damage, c.difficulty, c.defense);
       events.push({ t: 'hurtHero', amount, from: { x: cr.x, y: cr.y }, kind: cr.kind });
     }
-    return r.creature;
-  });
-  const flight = flyArrows({ ...e, creatures: separate(stepped, c) }, c, dt);
-  events.push(...flight.events);
-  let cur: Encounters = { ...flight.e, pickups: ageOut(drift(flight.e.pickups, c.hero, dt), dt) };
+    if (r.shots) fired.push({ kind: cr.kind, shots: r.shots });
+    if (r.summons) called.push({ boss: r.creature, kinds: r.summons });
+    stepped.push(r.creature);
+  }
+  let cur: Encounters = { ...e, creatures: separate(stepped, c) };
+  for (const f of fired) cur = launch(cur, f.kind, f.shots);
+  for (const s of called) cur = placeSummons(cur, s.boss, s.kinds, c);
+  const arrows = flyArrows(cur, c, dt);
+  const bolts = flyShots(arrows.e, c, dt);
+  events.push(...arrows.events, ...bolts.events);
+  cur = { ...bolts.e, pickups: ageOut(drift(bolts.e.pickups, c.hero, dt), dt) };
+  if (c.fixed) return { e: cur, events };
   const timer = cur.spawnTimer - dt;
   if (timer > 0) return { e: { ...cur, spawnTimer: timer }, events };
   const born = trySpawn({
@@ -191,12 +229,13 @@ export function takePickups(e: Encounters, inv: Inventory, hero: Vec): Taken {
 /** How many monsters within `radius` tiles of the hero are hunting him (chasing, winding up or recovering from a blow). */
 export function hostilesNear(e: Encounters, hero: Vec, radius: number): number {
   return e.creatures.filter((c) => {
-    if (CREATURES[c.kind].temper !== 'chase') return false;
-    return (c.state === 'chase' || c.state === 'windup' || c.state === 'recover') && Math.hypot(c.x - hero.x, c.y - hero.y) <= radius;
+    if (!isHostileKind(c.kind)) return false;
+    return (c.state === 'chase' || c.state === 'windup' || c.state === 'recover' || c.state === 'charge') && Math.hypot(c.x - hero.x, c.y - hero.y) <= radius;
   }).length;
 }
 
-/** Would a blow of this reach and width land on any creature? Used to decide what ACTION does. */
+/** Would a blow of this reach and width land on a creature or a target? Used to decide what ACTION does. */
 export function creatureInReach(e: Encounters, hero: Vec, facing: Facing, reach: number, arc: number): boolean {
-  return e.creatures.some((c) => inSwing(hero, facing, reach, arc, c, CREATURES[c.kind].radius));
+  return e.creatures.some((c) => inSwing(hero, facing, reach, arc, c, CREATURES[c.kind].radius))
+    || e.targets.some((t) => inSwing(hero, facing, reach, arc, t, TARGET_RADIUS));
 }
