@@ -93,6 +93,21 @@ describe('the tracked quest', () => {
   });
 });
 
+describe('parseQuests against hostile data', () => {
+  it('ignores quest ids that are built-in object properties, and keeps the rest of the save', () => {
+    const raw = JSON.parse('{"active":{"constructor":{"step":0,"base":{}},"__proto__":{"step":0},"toString":{"step":0},"one":{"step":0,"base":{}}},"done":["constructor","toString","two"],"counters":{"__proto__":5,"constructor":3,"night":1}}');
+    const q = parseQuests(raw, defs);
+    expect(Object.keys(q.active)).toEqual(['one']);
+    expect(q.done).toEqual(['two']);
+    expect(Object.keys(q.counters)).toEqual(['night']);
+  });
+
+  it('pays back only rewards that a quest can really give, and no more than it gives', () => {
+    const q = parseQuests({ owed: [{ item: 'bandage', qty: 2 }, { item: 'bandage', qty: 50 }, { item: 'beacon_core', qty: 1 }, { item: 'lost_pickaxe', qty: 1 }, { item: 'nope', qty: 1 }] }, defs);
+    expect(q.owed).toEqual([{ item: 'bandage', qty: 2 }, { item: 'lost_pickaxe', qty: 1 }]);
+  });
+});
+
 describe('parseQuests', () => {
   it('gives an empty state for anything that is not a record', () => {
     for (const raw of [null, undefined, 5, 'x', [], true]) expect(parseQuests(raw, defs), String(raw)).toEqual(emptyQuests());

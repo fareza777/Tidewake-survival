@@ -48,7 +48,7 @@ const MARLO: NpcDef = {
         L('The compass lies deep in the Mushroom Grotto, the planks in the Deepmine. Sailcloth you can weave from fiber.', 'Kompas ada di dalam Gua Jamur, papannya di Tambang Dalam. Layar bisa kau anyam dari serat.'),
       ],
     },
-    { when: at('treasure', 1), lines: [L('Three holes dug and three chests of old coin! You have the nose of a pirate. Take these arrows.', 'Tiga lubang digali dan tiga peti koin lama! Hidungmu setajam bajak laut. Ambil anak panah ini.')] },
+    { when: at('treasure', 1), lines: [L('Three holes dug and three chests of old treasure! You have the nose of a pirate. Take these arrows.', 'Tiga lubang digali dan tiga peti harta lama! Hidungmu setajam bajak laut. Ambil anak panah ini.')] },
     { when: at('bottles', 1), lines: [L('Five bottles! So the sea did not swallow them all. Their words are the island\'s memory. Take this key for your trouble.', 'Lima botol! Jadi laut tidak menelan semuanya. Kata-kata di dalamnya adalah ingatan pulau ini. Ambil kunci ini.')] },
     { when: at('watch', 1), lines: [L('You stood the night and the dark did not take you. A sailor respects that. Here, torches for the next one.', 'Kau bertahan semalaman dan gelap tidak membawamu. Pelaut menghormati itu. Ini obor untuk malam berikutnya.')] },
     {
@@ -74,10 +74,16 @@ const MARLO: NpcDef = {
     { when: active('bottles'), lines: [L('Keep walking the beaches. The tide leaves bottles in quiet corners.', 'Terus susuri pantai. Pasang meninggalkan botol di sudut-sudut sepi.')] },
     { when: active('watch'), lines: [L('Do not sleep. Light a fire or a torch and let the night pass over you.', 'Jangan tidur. Nyalakan api atau obor dan biarkan malam lewat di atasmu.')] },
     {
-      when: { quest: 'c10', is: 'active' },
+      when: at('c10', 3),
       lines: [
         L('The raft, at last. Sail home, or stay and light the lighthouse again. A ship that knows the light will come back.', 'Rakitnya akhirnya jadi. Berlayarlah pulang, atau tinggal dan nyalakan lagi mercusuar. Kapal yang mengenal cahaya akan kembali.'),
         L('I will not tell you which. I only say the island needs a keeper.', 'Aku tidak akan bilang pilih yang mana. Aku hanya bilang pulau ini butuh penjaga.'),
+      ],
+    },
+    {
+      when: active('c10'),
+      lines: [
+        L('A raft needs a compass, hull planks, sailcloth and a good deal of rope and plank. Have you got them all?', 'Rakit butuh kompas, papan lambung, kain layar, dan banyak tali serta papan. Sudah kau kumpulkan semua?'),
       ],
     },
   ],
@@ -101,7 +107,7 @@ const NIA: NpcDef = {
       when: at('c7', 3),
       lines: [
         L('It works! Already the shaking stops. The swamp camp is yours to use, and so is my thanks.', 'Berhasil! Gemetarnya sudah berhenti. Kemah rawa ini boleh kau pakai, dan terima kasihku juga.'),
-        L('Go east to the desert. The Sunken Ruin keeps the key to the lighthouse.', 'Pergilah ke timur, ke gurun. Reruntuhan Tenggelam menyimpan kunci mercusuar.'),
+        L('Go find the desert. The Sunken Ruin keeps the key to the lighthouse.', 'Pergilah mencari gurun. Reruntuhan Tenggelam menyimpan kunci mercusuar.'),
       ],
     },
     { when: at('recipes', 1), lines: [L('Roasted, baked and honest. My grandmother would have wept. Take this honey.', 'Dipanggang, dipanggang dan jujur. Nenekku pasti terharu. Ambil madu ini.')] },

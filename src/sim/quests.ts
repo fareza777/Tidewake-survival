@@ -144,13 +144,18 @@ const MAX_ENTRIES = 120;
 const KEY = /^[a-z0-9:_]{1,40}$/;
 const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 1_000_000;
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+const has = (o: object, k: string): boolean => Object.prototype.hasOwnProperty.call(o, k);
+/** Keys that must never become a counter name. */
+const RESERVED = new Set(['__proto__', 'constructor', 'prototype']);
+/** What a save may owe the hero besides the rewards of quests (Brock's pickaxe, for a hero who emptied its chest before it was there). */
+const EXTRA_OWED: Readonly<Record<string, number>> = { lost_pickaxe: 1 };
 
 function parseCounters(raw: unknown): Record<string, number> {
   const out: Record<string, number> = {};
   if (!isRecord(raw)) return out;
   for (const [k, v] of Object.entries(raw)) {
     if (Object.keys(out).length >= MAX_ENTRIES) break;
-    if (KEY.test(k) && isCount(v)) out[k] = v;
+    if (KEY.test(k) && !RESERVED.has(k) && isCount(v)) out[k] = v;
   }
   return out;
 }
@@ -165,12 +170,20 @@ function parseStrings(raw: unknown, ok: (s: string) => boolean): string[] {
   return out;
 }
 
-function parseOwed(raw: unknown): Reward[] {
+/** The most of each item any quest hands over, so that a save cannot owe anything else. */
+function rewardLimits(defs: QuestDefs): Record<string, number> {
+  const limit: Record<string, number> = { ...EXTRA_OWED };
+  for (const def of Object.values(defs)) for (const r of def.reward ?? []) limit[r.item] = Math.max(limit[r.item] ?? 0, r.qty);
+  return limit;
+}
+
+function parseOwed(raw: unknown, defs: QuestDefs): Reward[] {
   const out: Reward[] = [];
   if (!Array.isArray(raw)) return out;
+  const limit = rewardLimits(defs);
   for (const r of raw as unknown[]) {
     if (out.length >= 20) break;
-    if (isRecord(r) && isItemId(r.item) && typeof r.qty === 'number' && Number.isInteger(r.qty) && r.qty >= 1 && r.qty <= 99) out.push({ item: r.item, qty: r.qty });
+    if (isRecord(r) && isItemId(r.item) && typeof r.qty === 'number' && Number.isInteger(r.qty) && r.qty >= 1 && r.qty <= (limit[r.item] ?? 0)) out.push({ item: r.item, qty: r.qty });
   }
   return out;
 }
@@ -178,17 +191,17 @@ function parseOwed(raw: unknown): Reward[] {
 /** Validate untrusted JSON into quest progress; anything unreadable is dropped. */
 export function parseQuests(raw: unknown, defs: QuestDefs): QuestState {
   if (!isRecord(raw)) return emptyQuests();
-  const done = parseStrings(raw.done, (id) => id in defs);
+  const done = parseStrings(raw.done, (id) => has(defs, id));
   const active: Record<string, QuestRun> = {};
   if (isRecord(raw.active)) {
     for (const [id, r] of Object.entries(raw.active)) {
-      const def = defs[id];
+      const def = has(defs, id) ? defs[id] : undefined;
       if (!def || done.includes(id) || !isRecord(r) || !isCount(r.step) || r.step >= def.steps.length) continue;
       active[id] = { step: r.step, base: parseCounters(r.base) };
     }
   }
   return {
     active, done, counters: parseCounters(raw.counters), found: parseStrings(raw.found, (s) => KEY.test(s)),
-    ending: raw.ending === 'A' || raw.ending === 'B' ? raw.ending : null, owed: parseOwed(raw.owed),
+    ending: raw.ending === 'A' || raw.ending === 'B' ? raw.ending : null, owed: parseOwed(raw.owed, defs),
   };
 }

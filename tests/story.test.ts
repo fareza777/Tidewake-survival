@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { NPCS, NPC_IDS } from '@/data/npcs';
 import { QUESTS } from '@/data/quests';
 import { TABLETS, BOTTLES } from '@/data/lore';
+import { ITEMS } from '@/data/items';
+import { RECIPES } from '@/data/recipes';
 import { pickTopic } from '@/sim/story';
 import { bump, emptyQuests, settle, startQuest, type QuestState } from '@/sim/quests';
-import { emptyInventory } from '@/sim/inventory';
+import { addItem, emptyInventory } from '@/sim/inventory';
 import { npcAt, npcPlaces, spotAt, spotsOf, visibleSpots } from '@/sim/world/spots';
 import { propSolidTiles, nodesByTile } from '@/sim/solids';
 import { generateWorld } from '@/sim/world/generate';
@@ -161,6 +163,49 @@ describe('islanders and finds on the island', () => {
     expect(npcAt(npcPlaces(w), p.x + 5, p.y + 5)).toBeNull();
   });
 });
+
+describe('the main quest cannot be locked by what the hero does first', () => {
+  it('never waits for a unique item to be carried: a raft crafted early would eat the compass and the planks', () => {
+    const consumed = new Set(RECIPES.flatMap((r) => r.cost.map(([item]) => item)));
+    for (const def of Object.values(QUESTS)) {
+      for (const step of def.steps) {
+        if ('have' in step.obj && ITEMS[step.obj.have].keep) expect(consumed.has(step.obj.have), `${def.id}: ${step.obj.have}`).toBe(false);
+      }
+    }
+  });
+
+  it('finishes all ten chapters from the counters alone when everything was done in the wrong order', () => {
+    const counters: Record<string, number> = {};
+    for (const key of ['craft:axe_wood', 'build:campfire', 'build:bed', 'eat:cooked', 'night', 'reach:sailor', 'talk:marlo', 'reach:grotto', 'boss:mossback', 'claim:grotto',
+      'build:furnace', 'craft:iron_ingot', 'craft:pickaxe_iron', 'reach:deepmine', 'boss:ironbones', 'claim:deepmine', 'reach:herbalist', 'talk:nia', 'craft:antidote',
+      'reach:ruin', 'boss:mirelord', 'claim:ruin', 'reach:lighthouse', 'boss:hollowkeeper', 'claim:lighthouse', 'craft:sailcloth', 'craft:raft', 'build:raft', 'ending']) counters[key] = 3;
+    const bag = addItemsFor(['wood', 5], ['iron_ore', 4]);
+    const first = settle({ ...emptyQuests(), counters }, bag, QUESTS).q;
+    // Dawn after the first night, and bringing the antidote, each need something to happen after they begin, so the chain waits there, and only there.
+    expect(first.done).toEqual(['c1']);
+    expect(first.active.c2.step).toBe(2);
+    const q = settle(bump(first, 'night'), bag, QUESTS).q;
+    expect(q.done).toEqual(['c1', 'c2']);
+    expect(q.active.c3.step).toBe(1);
+    // Marlo and then Nia each have to be heard (twice, for Nia) once their step has begun; nothing else is needed.
+    let cur = q;
+    for (let i = 0; i < 3; i++) cur = settle(bump(bump(cur, 'talk:marlo'), 'talk:nia'), bag, QUESTS).q;
+    expect(cur.done).toEqual(['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10']);
+  });
+
+  it('does not count talks held before a talk step began: the story is told, not skipped', () => {
+    let q = settle(emptyQuests(), emptyInventory(), QUESTS).q;
+    q = { ...q, active: {}, done: ['c1', 'c2'], counters: { 'talk:marlo': 4 } };
+    q = settle(bump(q, 'reach:sailor'), emptyInventory(), QUESTS).q;
+    expect(q.active.c3.step).toBe(1);
+    expect(settle(q, emptyInventory(), QUESTS).q.active.c3.step).toBe(1);
+    expect(settle(bump(q, 'talk:marlo'), emptyInventory(), QUESTS).q.done).toContain('c3');
+  });
+});
+
+function addItemsFor(...pairs: [Parameters<typeof addItem>[1], number][]): ReturnType<typeof emptyInventory> {
+  return pairs.reduce((inv, [item, n]) => addItem(inv, item, n).inv, emptyInventory());
+}
 
 describe('counters', () => {
   it('count what was done (a sanity check of the helpers the story uses)', () => {

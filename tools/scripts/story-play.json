@@ -331,7 +331,7 @@
   "wait": 900
  },
  {
-  "eval": "'after the fall: beacon core ' + H.inv('beacon_core') + ' hollow plate ' + H.inv('armor_hollow') + ' dialogue ' + H.dialogOpen() + ' claimed ' + H.g().session.dungeons.lighthouse.claimed + ' boss counter ' + H.g().session.quests.counters['boss:hollowkeeper']"
+  "eval": "'after the fall: beacon core ' + H.inv('beacon_core') + ' hollow plate ' + H.inv('armor_hollow') + ' dialogue ' + H.dialogOpen() + ' claimed ' + H.g().session.dungeons.lighthouse.claimed + ' boss counter ' + H.g().session.quests.counters['boss:hollowkeeper'] + ' claim counter ' + H.g().session.quests.counters['claim:lighthouse']"
  },
  {
   "shot": "story-secret"

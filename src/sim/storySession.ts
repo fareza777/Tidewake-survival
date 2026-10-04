@@ -31,6 +31,7 @@ export function story(s: Session, events: readonly string[] = []): Step {
     if (r.qty - left > 0) fx.push({ t: 'gain', item: r.item, qty: r.qty - left });
     if (left > 0) owed.push({ item: r.item, qty: left });
   }
+  if (events.length === 0 && fx.length === 0 && owed.length === queue.length) return { session: s, fx: [] };
   if (incoming.length > 0 && owed.length > 0) fx.push(say('questOwed'));
   return { session: { ...s, inventory: inv, quests: { ...settled.q, owed } }, fx };
 }

@@ -25,12 +25,12 @@ const MAIN: QuestDef[] = [
   ]),
   chapter(3, L('The Old Sailor', 'Pelaut Tua'), [
     count('reach:sailor', 1, L("Find the old sailor's hut", 'Temukan gubuk pelaut tua')),
-    count('talk:marlo', 1, L('Talk to Marlo', 'Bicara dengan Marlo')),
+    count('talk:marlo', 1, L('Talk to Marlo', 'Bicara dengan Marlo'), true),
   ]),
   chapter(4, L('Mushroom Grotto', 'Gua Jamur'), [
     count('reach:grotto', 1, L('Find the Mushroom Grotto', 'Temukan Gua Jamur')),
     count('boss:mossback', 1, L('Defeat Mossback', 'Kalahkan Mossback')),
-    have('compass', 1, L('Take the compass', 'Ambil kompasnya')),
+    count('claim:grotto', 1, L('Take the compass', 'Ambil kompasnya')),
   ]),
   chapter(5, L('Iron and Fire', 'Besi dan Api'), [
     have('iron_ore', 4, L('Mine 4 iron ore on the mountain', 'Tambang 4 bijih besi di gunung')),
@@ -41,23 +41,23 @@ const MAIN: QuestDef[] = [
   chapter(6, L('Deepmine', 'Tambang Dalam'), [
     count('reach:deepmine', 1, L('Find the Deepmine', 'Temukan Tambang Dalam')),
     count('boss:ironbones', 1, L('Defeat Ironbones', 'Kalahkan Ironbones')),
-    have('hull_planks', 1, L('Take the hull planks', 'Ambil papan lambung')),
+    count('claim:deepmine', 1, L('Take the hull planks', 'Ambil papan lambung')),
   ]),
   chapter(7, L('Swamp Fever', 'Demam Rawa'), [
     count('reach:herbalist', 1, L('Reach the herbalist in the swamp', 'Capai tabib di rawa')),
-    count('talk:nia', 1, L('Talk to Nia', 'Bicara dengan Nia')),
+    count('talk:nia', 1, L('Talk to Nia', 'Bicara dengan Nia'), true),
     count('craft:antidote', 1, L('Craft an antidote at a campfire', 'Buat penawar di api unggun')),
-    count('talk:nia', 1, L('Bring the antidote to Nia', 'Bawa penawar ke Nia'), true),
+    count('talk:nia', 1, L('Tell Nia the antidote is ready', 'Beritahu Nia penawarnya sudah siap'), true),
   ]),
   chapter(8, L('Sunken Ruin', 'Reruntuhan Tenggelam'), [
     count('reach:ruin', 1, L('Find the Sunken Ruin in the desert', 'Temukan Reruntuhan Tenggelam di gurun')),
     count('boss:mirelord', 1, L('Defeat Mirelord', 'Kalahkan Mirelord')),
-    have('lighthouse_key', 1, L('Take the lighthouse key', 'Ambil kunci mercusuar')),
+    count('claim:ruin', 1, L('Take the lighthouse key', 'Ambil kunci mercusuar')),
   ]),
   chapter(9, L('The Lighthouse', 'Mercusuar'), [
     count('reach:lighthouse', 1, L('Reach the lighthouse on the north cape', 'Capai mercusuar di tanjung utara')),
     count('boss:hollowkeeper', 1, L('Defeat the Hollow Keeper', 'Kalahkan Hollow Keeper')),
-    have('beacon_core', 1, L('Take the beacon core', 'Ambil inti mercusuar')),
+    count('claim:lighthouse', 1, L('Take the beacon core', 'Ambil inti mercusuar')),
   ]),
   chapter(10, L('Set Sail', 'Berlayar'), [
     count('craft:sailcloth', 1, L('Make sailcloth', 'Buat layar')),
@@ -87,7 +87,7 @@ const SIDE: QuestDef[] = [
   ], [{ item: 'rope', qty: 4 }]),
   side('pickaxe', 'brock', 'c5', L("Brock's Pickaxe", 'Beliung Brock'), [
     have('lost_pickaxe', 1, L("Find Brock's pickaxe in the Deepmine", 'Temukan beliung Brock di Tambang Dalam')),
-    count('talk:brock', 1, L('Return it to Brock', 'Kembalikan ke Brock'), true),
+    count('talk:brock', 1, L('Show Brock the pickaxe', 'Tunjukkan beliung itu ke Brock'), true),
   ], [{ item: 'iron_ingot', qty: 3 }]),
   side('harvest', 'tali', 'c2', L('Harvest Season', 'Musim Panen'), [
     count('harvest', 10, L('Harvest 10 crops', 'Panen 10 tanaman')),

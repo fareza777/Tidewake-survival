@@ -10,6 +10,7 @@ import type { GameScene } from '@/scenes/GameScene';
 import { frontTile } from '@/sim/actions';
 import { isBoss } from '@/sim/boss';
 import { claimReward } from '@/sim/dungeon/rewards';
+import { story } from '@/sim/session';
 import { lightCrystal, newRun, pushBlock, solidTiles, solveRooms, targetAt, trapUnder, type Run } from '@/sim/dungeon/rules';
 import { bossOf, creaturesInRoom, startEncounters } from '@/sim/dungeon/start';
 import type { DungeonProgress } from '@/sim/dungeon/progress';
@@ -154,6 +155,7 @@ export class DungeonLevel implements Level {
     this.told = false;
     host.session = { ...host.session, inventory: bag };
     host.session = updateDungeon(host.session, (q) => ({ ...q, claimed: true }));
+    host.commitStory(story(host.session, [`claim:${this.dungeon.id}`]));
   }
 
   /** Lean on the block in front of the hero; after a moment it slides one tile. */

@@ -21,17 +21,15 @@ import { MusicDirector } from '@/game/MusicDirector';
 import { resetControls } from '@/game/input';
 import { frontTile, resolveAction, type Action } from '@/sim/actions';
 import { cueForFx } from '@/sim/cues';
-import { QUESTS } from '@/data/quests';
 import { newClock } from '@/sim/daynight';
 import { generateDungeon } from '@/sim/dungeon/generate';
 import { DUNGEON_VERSION, emptyDungeons, type DungeonId } from '@/sim/dungeon/progress';
 import { doorwayOutside } from '@/sim/dungeon/rules';
 import { emptyGather, sanitizeGather } from '@/sim/gather';
 import { meleeFor } from '@/sim/melee';
-import { settle } from '@/sim/quests';
 import { moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import {
-  applyAction, collapse, craftRecipe, equipArmor, moveInventorySlot, selectSlot, sessionFromSlot, sessionToSlot, takeOffArmor, tickSession,
+  applyAction, collapse, craftRecipe, story, equipArmor, moveInventorySlot, selectSlot, sessionFromSlot, sessionToSlot, takeOffArmor, tickSession,
   transferStack, type Fx, type Session, type Step,
 } from '@/sim/session';
 import { isDead } from '@/sim/vitals';
@@ -146,6 +144,8 @@ export class GameScene extends BaseScene {
     });
     this.followCamera();
     this.fadeIn(400);
+    // Start the chapters that are due (the first one in a new game), with their toasts.
+    this.commitStory(story(this.session));
     if (where) services.notify?.(t(`dungeon_${where}`));
   }
 
@@ -154,7 +154,7 @@ export class GameScene extends BaseScene {
     const s = sessionFromSlot(this.slotData);
     const current = this.slotData.dungeonVersion === DUNGEON_VERSION;
     const gather = !island ? s.gather : this.slotData.worldVersion === GENERATOR_VERSION ? sanitizeGather(s.gather, island.resources.length) : emptyGather();
-    return { ...s, gather, location: where, dungeons: current ? s.dungeons : emptyDungeons(), quests: settle(s.quests, s.inventory, QUESTS).q };
+    return { ...s, gather, location: where, dungeons: current ? s.dungeons : emptyDungeons() };
   }
 
   private setupCamera(): void {

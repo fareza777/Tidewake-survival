@@ -68,6 +68,14 @@ describe('story', () => {
   });
 });
 
+describe('a backpack that stays full', () => {
+  it('does not rebuild anything every time the owed reward is tried again', () => {
+    const owedSession: Session = { ...full(base()), quests: { ...base().quests, owed: [{ item: 'bandage', qty: 3 }] } };
+    expect(story(owedSession).session).toBe(owedSession);
+    expect(claimOwed(owedSession).fx).toEqual([]);
+  });
+});
+
 describe('talking', () => {
   const talk = (s: Session, npc: Extract<Action, { kind: 'talk' }>['npc']) => applyAction(s, { kind: 'talk', npc }, pos);
 

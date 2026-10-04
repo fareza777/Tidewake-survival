@@ -9,6 +9,7 @@ import { emptyFarm, type Farm, type Plot } from '@/sim/farm';
 import { emptyGather, type GatherState } from '@/sim/gather';
 import { HOTBAR_SIZE, INVENTORY_SIZE, addItem, emptyInventory, type Inventory, type Slot } from '@/sim/inventory';
 import { emptyQuests, parseQuests, settle, type QuestState } from '@/sim/quests';
+import { migrateQuests } from '@/sim/questMigration';
 import type { Structure, Structures } from '@/sim/structures';
 import { VITAL_MAX, fullVitals, type Difficulty, type Vitals } from '@/sim/vitals';
 import { GENERATOR_VERSION } from '@/sim/world/generate';
@@ -166,6 +167,7 @@ export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
   if (!isRecordOfNumbers(hp) || !isRecordOfNumbers(gone)) return null;
   const respawn = isRecord(d.respawn) && isNum(d.respawn.x) && isNum(d.respawn.y) ? { x: d.respawn.x, y: d.respawn.y } : { x: player.x, y: player.y };
   const now = Date.now();
+  const dungeons = parseDungeons(d.dungeons);
   return {
     version: SAVE_VERSION,
     slot,
@@ -187,8 +189,8 @@ export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
     farm: parseFarm(d.farm),
     location: isDungeonId(d.location) ? d.location : null,
     equipment: parseEquipment(d.equipment),
-    dungeons: parseDungeons(d.dungeons),
+    dungeons,
     dungeonVersion: isInt(d.dungeonVersion) ? d.dungeonVersion : DUNGEON_VERSION,
-    quests: parseQuests(d.quests, QUESTS),
+    quests: d.version === SAVE_VERSION ? parseQuests(d.quests, QUESTS) : migrateQuests(parseQuests(d.quests, QUESTS), dungeons, d.seed >>> 0),
   };
 }
