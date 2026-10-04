@@ -1,0 +1,116 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, room(kind) { return this.d().rooms.find(r => r.kind === kind); }, inv(item) { return this.g().session.inventory.filter(s => s && s.item === item).reduce((n, s) => n + s.qty, 0); }, prog() { const g = this.g(); return g.session.dungeons[g.session.location]; }, creatures() { return this.g().combat.wildlife.state.creatures; }, kill(pred) { const w = this.g().combat.wildlife; w.state = {...w.state, creatures: w.state.creatures.filter(c => !pred(c))}; w.apply(w.state, []); } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { const g = H.g(); const l = g.world.landmarks.find(l => l.id === 'grotto'); H.tp(l.x + 0.5, l.y + 1.5, 0, -1); const inv = g.session.inventory.slice(); inv[0] = {item: 'sword_iron', qty: 1, dur: 160}; inv[1] = {item: 'bow', qty: 1, dur: 80}; inv[2] = {item: 'arrow', qty: 20}; g.session = {...g.session, inventory: inv, selected: 0}; return 'armed at the grotto door'; })()"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "until": "(() => { const g = H.g(); return g.level && g.level.dungeon && g.scene.isActive('Game'); })()",
+  "timeout": 15000
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, room(kind) { return this.d().rooms.find(r => r.kind === kind); }, inv(item) { return this.g().session.inventory.filter(s => s && s.item === item).reduce((n, s) => n + s.qty, 0); }, prog() { const g = this.g(); return g.session.dungeons[g.session.location]; }, creatures() { return this.g().combat.wildlife.state.creatures; }, kill(pred) { const w = this.g().combat.wildlife; w.state = {...w.state, creatures: w.state.creatures.filter(c => !pred(c))}; w.apply(w.state, []); } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { const d = H.d(); const c = d.chests.find(c => !c.locked); H.tp(c.x + 0.5, c.y + 1.5, 0, -1); return 'at the free chest'; })()"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "(() => { const g = H.g(); const d = H.d(); H.tp(d.rooms[2].x0 + 3.5, d.rooms[2].y0 + 4.5, 1, 0); g.saveNow(); return 'saved inside at ' + g.pos.x.toFixed(1) + ',' + g.pos.y.toFixed(1); })()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 900
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, room(kind) { return this.d().rooms.find(r => r.kind === kind); }, inv(item) { return this.g().session.inventory.filter(s => s && s.item === item).reduce((n, s) => n + s.qty, 0); }, prog() { const g = this.g(); return g.session.dungeons[g.session.location]; }, creatures() { return this.g().combat.wildlife.state.creatures; }, kill(pred) { const w = this.g().combat.wildlife; w.state = {...w.state, creatures: w.state.creatures.filter(c => !pred(c))}; w.apply(w.state, []); } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { const g = H.g(); return 'continued: location ' + g.session.location + ' pos ' + g.pos.x.toFixed(1) + ',' + g.pos.y.toFixed(1) + ' looted ' + JSON.stringify(H.prog().looted) + ' keys ' + H.inv('small_key') + ' toast-free layer ok'; })()"
+ },
+ {
+  "shot": "dungeon-continued"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "(() => { let n = 0; for (const k of Object.keys(localStorage)) { if (!k.includes('slot.0')) continue; const raw = JSON.parse(localStorage.getItem(k)); raw.dungeonVersion = 0; localStorage.setItem(k, JSON.stringify(raw)); n++; } return 'saved with an old dungeon version in ' + n + ' places'; })()"
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 900
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, room(kind) { return this.d().rooms.find(r => r.kind === kind); }, inv(item) { return this.g().session.inventory.filter(s => s && s.item === item).reduce((n, s) => n + s.qty, 0); }, prog() { const g = this.g(); return g.session.dungeons[g.session.location]; }, creatures() { return this.g().combat.wildlife.state.creatures; }, kill(pred) { const w = this.g().combat.wildlife; w.state = {...w.state, creatures: w.state.creatures.filter(c => !pred(c))}; w.apply(w.state, []); } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { const g = H.g(); return 'old dungeon version: location ' + g.session.location + ' on island ' + !g.level.dungeon + ' pos ' + g.pos.x.toFixed(1) + ',' + g.pos.y.toFixed(1) + ' respawn ' + g.session.respawn.x.toFixed(1) + ',' + g.session.respawn.y.toFixed(1) + ' dungeons ' + JSON.stringify(g.session.dungeons.grotto); })()"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

@@ -1,0 +1,285 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, room(kind) { return this.d().rooms.find(r => r.kind === kind); }, inv(item) { return this.g().session.inventory.filter(s => s && s.item === item).reduce((n, s) => n + s.qty, 0); }, prog() { const g = this.g(); return g.session.dungeons[g.session.location]; }, creatures() { return this.g().combat.wildlife.state.creatures; }, kill(pred) { const w = this.g().combat.wildlife; w.state = {...w.state, creatures: w.state.creatures.filter(c => !pred(c))}; w.apply(w.state, []); } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { const g = H.g(); const l = g.world.landmarks.find(l => l.id === 'grotto'); H.tp(l.x + 0.5, l.y + 1.5, 0, -1); const inv = g.session.inventory.slice(); inv[0] = {item: 'sword_iron', qty: 1, dur: 160}; inv[1] = {item: 'bow', qty: 1, dur: 80}; inv[2] = {item: 'arrow', qty: 20}; g.session = {...g.session, inventory: inv, selected: 0}; return 'armed at the grotto door'; })()"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "until": "(() => { const g = H.g(); return g.level && g.level.dungeon && g.scene.isActive('Game'); })()",
+  "timeout": 15000
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, room(kind) { return this.d().rooms.find(r => r.kind === kind); }, inv(item) { return this.g().session.inventory.filter(s => s && s.item === item).reduce((n, s) => n + s.qty, 0); }, prog() { const g = this.g(); return g.session.dungeons[g.session.location]; }, creatures() { return this.g().combat.wildlife.state.creatures; }, kill(pred) { const w = this.g().combat.wildlife; w.state = {...w.state, creatures: w.state.creatures.filter(c => !pred(c))}; w.apply(w.state, []); } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { const d = H.d(); const c = d.chests.find(c => !c.locked); H.tp(c.x + 0.5, c.y + 1.5, 0, -1); return 'at the free chest ' + c.x + ',' + c.y; })()"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'small keys: ' + H.inv('small_key') + ' looted: ' + JSON.stringify(H.prog().looted)"
+ },
+ {
+  "shot": "dungeon-chest"
+ },
+ {
+  "eval": "(() => { const g = H.g(); window.__gb = JSON.stringify(g.session.gather) + JSON.stringify(g.session.farm); g.session = {...g.session, clock: {day: g.session.clock.day, t: 599.9}}; return 'the day is about to end, day ' + g.session.clock.day; })()"
+ },
+ {
+  "wait": 700
+ },
+ {
+  "eval": "(() => { const g = H.g(); return 'new day below ground: day ' + g.session.clock.day + ' island untouched ' + (window.__gb === JSON.stringify(g.session.gather) + JSON.stringify(g.session.farm)) + ' still in ' + g.session.location; })()"
+ },
+ {
+  "eval": "(() => { const d = H.d(); const b = d.blocks[0]; H.tp(b.x - 0.5, b.y + 0.5, 1, 0); return 'left of the block at ' + b.x + ',' + b.y; })()"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "shot": "dungeon-block-before"
+ },
+ {
+  "press": "ArrowRight",
+  "ms": 4200
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "'block puzzle solved: ' + H.prog().solved.includes(H.room('block').id) + ' blocks: ' + JSON.stringify(H.g().level.run.blocks)"
+ },
+ {
+  "shot": "dungeon-block-after"
+ },
+ {
+  "eval": "(() => { const r = H.room('fight'); const before = H.creatures().length; H.kill(c => c.x >= r.x0 && c.x < r.x0 + 13 && c.y >= r.y0 && c.y < r.y0 + 11); return 'fight room emptied: ' + before + ' -> ' + H.creatures().length; })()"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "eval": "'fight room solved: ' + H.prog().solved.includes(H.room('fight').id) + ' solved rooms: ' + JSON.stringify(H.prog().solved)"
+ },
+ {
+  "eval": "(() => { const c = H.d().crystals[0]; H.tp(c.x - 0.5, c.y + 0.5, 1, 0); return 'at crystal 0'; })()"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "eval": "(() => { const c = H.d().crystals[1]; H.tp(c.x - 0.5, c.y + 0.5, 1, 0); return 'at crystal 1'; })()"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "eval": "(() => { const c = H.d().crystals[2]; H.tp(c.x - 0.5, c.y + 0.5, 1, 0); return 'at crystal 2'; })()"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 900
+ },
+ {
+  "eval": "'crystals lit: ' + JSON.stringify(H.prog().lit) + ' crystal room solved: ' + H.prog().solved.includes(H.room('crystal').id)"
+ },
+ {
+  "shot": "dungeon-crystals"
+ },
+ {
+  "eval": "(() => { const c = H.d().chests.find(c => c.locked && c.loot.some(l => l.item === 'boss_key')); H.tp(c.x + 0.5, c.y + 1.5, 0, -1); return 'at the vault chest'; })()"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'boss keys: ' + H.inv('boss_key') + ' small keys left: ' + H.inv('small_key')"
+ },
+ {
+  "eval": "(() => { const c = H.d().chests.find(c => c.locked && c.loot.length === 3); H.tp(c.x + 0.5, c.y + 1.5, 0, -1); return 'at the treasure chest'; })()"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'bandages: ' + H.inv('bandage') + ' arrows: ' + H.inv('arrow') + ' small keys left: ' + H.inv('small_key')"
+ },
+ {
+  "eval": "(() => { const d = H.d(); const door = d.doors.find(x => x.lock === 'boss'); H.tp(door.x - 0.5, door.y + 0.5, 1, 0); return 'at the boss door'; })()"
+ },
+ {
+  "wait": 150
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 900
+ },
+ {
+  "eval": "'boss door opened: ' + JSON.stringify(H.prog().opened) + ' boss keys left: ' + H.inv('boss_key')"
+ },
+ {
+  "shot": "dungeon-boss-door"
+ },
+ {
+  "eval": "(() => { const d = H.d(); H.tp(d.rooms[6].x0 + 1.5, d.boss.y + 0.5, 1, 0); return 'in the boss room'; })()"
+ },
+ {
+  "wait": 1800
+ },
+ {
+  "eval": "(() => { const b = H.creatures().find(c => c.kind === H.d().boss.kind); return 'boss: ' + b.state + ' hp ' + b.hp + ' angry ' + b.angry + ' bar ' + JSON.stringify(H.g().bossBar()); })()"
+ },
+ {
+  "shot": "dungeon-boss-fight"
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "eval": "(() => { const b = H.creatures().find(c => c.kind === H.d().boss.kind); return 'boss: ' + b.state + ' shots ' + H.g().combat.wildlife.state.shots.length + ' hero hp ' + H.g().session.vitals.hp.toFixed(0); })()"
+ },
+ {
+  "eval": "(() => { const g = H.g(); g.session = {...g.session, vitals: {...g.session.vitals, hp: 100}}; const b = H.creatures().find(c => c.kind === H.d().boss.kind); H.tp(b.x - 1.2, b.y, 1, 0); g.combat.onFx({t: 'strike', melee: {damage: 99999, reach: 3, arc: 360, knockback: 0, stamina: 0, cooldown: 0, wear: false}}); return 'boss struck down'; })()"
+ },
+ {
+  "wait": 2200
+ },
+ {
+  "eval": "'boss dead in progress: ' + H.prog().boss + ' compass: ' + H.inv('compass') + ' moss armor: ' + H.inv('armor_moss') + ' creatures left: ' + H.creatures().length"
+ },
+ {
+  "shot": "dungeon-boss-dead"
+ },
+ {
+  "eval": "(() => { const g = H.g(); const i = g.session.inventory.findIndex(s => s && s.item === 'armor_moss'); g.wear(i); return 'worn: ' + g.session.equipment.armor; })()"
+ },
+ {
+  "eval": "(() => { const d = H.d(); H.tp(d.exit.x + 0.5, d.exit.y - 0.5, 0, 1); return 'at the exit'; })()"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "until": "(() => { const g = H.g(); return g.level && !g.level.dungeon && g.scene.isActive('Game'); })()",
+  "timeout": 15000
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, room(kind) { return this.d().rooms.find(r => r.kind === kind); }, inv(item) { return this.g().session.inventory.filter(s => s && s.item === item).reduce((n, s) => n + s.qty, 0); }, prog() { const g = this.g(); return g.session.dungeons[g.session.location]; }, creatures() { return this.g().combat.wildlife.state.creatures; }, kill(pred) { const w = this.g().combat.wildlife; w.state = {...w.state, creatures: w.state.creatures.filter(c => !pred(c))}; w.apply(w.state, []); } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { const g = H.g(); const l = g.world.landmarks.find(l => l.id === 'grotto'); return 'back on the island: location ' + g.session.location + ' pos ' + g.pos.x.toFixed(1) + ',' + g.pos.y.toFixed(1) + ' door at ' + l.x + ',' + l.y + ' armor ' + g.session.equipment.armor; })()"
+ },
+ {
+  "shot": "dungeon-outside"
+ },
+ {
+  "eval": "(() => { const g = H.g(); const l = g.world.landmarks.find(l => l.id === 'grotto'); H.tp(l.x + 0.5, l.y + 1.5, 0, -1); return 'at the door again'; })()"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "until": "(() => { const g = H.g(); return g.level && g.level.dungeon && g.scene.isActive('Game'); })()",
+  "timeout": 15000
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, room(kind) { return this.d().rooms.find(r => r.kind === kind); }, inv(item) { return this.g().session.inventory.filter(s => s && s.item === item).reduce((n, s) => n + s.qty, 0); }, prog() { const g = this.g(); return g.session.dungeons[g.session.location]; }, creatures() { return this.g().combat.wildlife.state.creatures; }, kill(pred) { const w = this.g().combat.wildlife; w.state = {...w.state, creatures: w.state.creatures.filter(c => !pred(c))}; w.apply(w.state, []); } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { const w = H.g().combat.wildlife.state; const d = H.d(); return 'second visit: boss alive ' + w.creatures.some(c => c.kind === d.boss.kind) + ' guards ' + w.creatures.length + ' crystal targets ' + w.targets.length + ' progress ' + JSON.stringify(H.prog()); })()"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]
