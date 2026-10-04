@@ -1,0 +1,166 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "store-1-menu"
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('NewGame'); s.name = 'Ari'; s.render(); return 1; })()"
+ },
+ {
+  "shot": "store-2-new-game"
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1000
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, npc(id) { return this.g().level.places.find(p => p.id === id); }, stand(p) { this.tp(p.x - 0.5, p.y + 0.5, 1, 0); }, give(list) { const g = this.g(); const inv = g.session.inventory.slice(); list.forEach(([item, qty, dur], i) => { inv[i] = dur ? { item, qty, dur } : { item, qty }; }); g.session = { ...g.session, inventory: inv, selected: 0 }; } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { H.give([['axe_wood', 1, 40], ['pickaxe_stone', 1, 80], ['sword_iron', 1, 160], ['bow', 1, 80], ['arrow', 24], ['cooked_meat', 4], ['healing_potion', 2], ['torch', 6]]); const g = H.g(); g.session = { ...g.session, quests: { ...g.session.quests, active: {}, done: ['c1', 'c2'] } }; return 1; })()"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "eval": "(() => { H.stand(H.npc('tali')); return 1; })()"
+ },
+ {
+  "wait": 800
+ },
+ {
+  "shot": "store-3-camp"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 700
+ },
+ {
+  "shot": "store-4-talk"
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 300
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 300
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { H.g().openQuests(); return 1; })()"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "store-5-quests"
+ },
+ {
+  "eval": "(() => { __game.scene.getScene('Quests').scene.stop(); H.g().scene.resume(); return 1; })()"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { H.g().openInventory({ mode: 'bag' }); return 1; })()"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "store-6-bag"
+ },
+ {
+  "eval": "(() => { __game.scene.getScene('Inventory').scene.stop(); H.g().scene.resume(); return 1; })()"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const g = H.g(); g.session = { ...g.session, clock: { ...g.session.clock, t: 470 } }; return 1; })()"
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "store-7-night"
+ },
+ {
+  "eval": "(() => { const g = H.g(); g.session = { ...g.session, location: 'grotto', clock: { ...g.session.clock, t: 200 } }; g.saveNow(); g.goTo('Game', { slot: 0 }); return 1; })()"
+ },
+ {
+  "until": "(() => { const g = H.g(); return g.level && g.level.dungeon && g.scene.isActive('Game'); })()",
+  "timeout": 20000
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, npc(id) { return this.g().level.places.find(p => p.id === id); }, stand(p) { this.tp(p.x - 0.5, p.y + 0.5, 1, 0); }, give(list) { const g = this.g(); const inv = g.session.inventory.slice(); list.forEach(([item, qty, dur], i) => { inv[i] = dur ? { item, qty, dur } : { item, qty }; }); g.session = { ...g.session, inventory: inv, selected: 0 }; } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { const g = H.g(); g.session = { ...g.session, inventory: g.session.inventory.map((s, i) => (i === 2 ? s : s)), selected: 2 }; const d = H.d(); H.tp(d.rooms[6].x0 + 2.5, d.boss.y + 0.5, 1, 0); return 1; })()"
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "store-8-boss"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]
