@@ -79,7 +79,7 @@ export class DungeonLevel implements Level {
   }
 
   view(session: Session, _hero: Vec, front: { x: number; y: number }): LevelView {
-    return { structures: emptyStructures(), farm: emptyFarm(), node: null, entrance: null, target: targetAt(this.run, this.progress(session), front.x, front.y) };
+    return { structures: emptyStructures(), farm: emptyFarm(), node: null, entrance: null, npc: null, spot: null, target: targetAt(this.run, this.progress(session), front.x, front.y) };
   }
 
   lit(): Lit {

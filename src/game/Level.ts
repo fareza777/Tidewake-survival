@@ -4,11 +4,13 @@ import type { DungeonId } from '@/sim/dungeon/progress';
 import type { Target } from '@/sim/dungeon/rules';
 import type { Dungeon } from '@/sim/dungeon/types';
 import type { Encounters, EncounterEvent } from '@/sim/encounters';
+import type { NpcId } from '@/data/npcs';
 import type { Farm } from '@/sim/farm';
 import type { Vec } from '@/sim/movement';
 import type { Fx, Session } from '@/sim/session';
 import type { Blocking } from '@/sim/solids';
 import type { Structures } from '@/sim/structures';
+import type { Spot } from '@/sim/world/spots';
 import type { ResourceKind, ResourceNode, World } from '@/sim/world/types';
 
 /** What the resolver needs to know about the place the hero is standing in. */
@@ -21,6 +23,10 @@ export interface LevelView {
   entrance: DungeonId | null;
   /** A locked door, a chest or the exit in front of the hero (dungeons). */
   target: Target | null;
+  /** The islander on the tile in front of the hero. */
+  npc: NpcId | null;
+  /** The find in front of the hero or under his feet. */
+  spot: Spot | null;
 }
 
 /** The darkness laid over the world, and the lights cut out of it (world pixels). */

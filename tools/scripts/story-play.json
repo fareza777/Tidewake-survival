@@ -1,0 +1,465 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, npc(id) { return this.g().level.places.find(p => p.id === id); }, spot(id) { return this.g().level.finds.find(s => s.id === id); }, stand(p) { this.tp(p.x - 0.5, p.y + 0.5, 1, 0); }, inv(item) { return this.g().session.inventory.filter(s => s && s.item === item).reduce((n, s) => n + s.qty, 0); }, hold(item, dur) { const g = this.g(); const inv = g.session.inventory.slice(); inv[0] = { item, qty: 1, dur: dur || 80 }; g.session = { ...g.session, inventory: inv, selected: 0 }; }, quests(patch) { const g = this.g(); g.session = { ...g.session, quests: { ...g.session.quests, ...patch } }; }, dialogOpen() { return __game.scene.isActive('Dialogue'); } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { const h = __game.scene.getScene('Hud'); return 'tracker: ' + JSON.stringify(h.tracker.text) + ' active ' + Object.keys(H.g().session.quests.active); })()"
+ },
+ {
+  "shot": "story-start"
+ },
+ {
+  "eval": "(() => { const g = H.g(); return 'islanders ' + g.level.places.map(p => p.id + '@' + p.x + ',' + p.y).join(' ') + ' | finds ' + g.level.finds.length; })()"
+ },
+ {
+  "eval": "(() => { H.quests({ active: {}, done: ['c1', 'c2'] }); return 'chapters 1-2 done'; })()"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "eval": "(() => { H.stand(H.npc('tali')); return 'in front of Tali: chapter ' + Object.keys(H.g().session.quests.active); })()"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'dialogue open: ' + H.dialogOpen()"
+ },
+ {
+  "shot": "story-talk"
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 250
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 250
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "(() => { const q = H.g().session.quests; return 'after talking: dialogue open ' + H.dialogOpen() + ' quests ' + Object.keys(q.active) + ' talked ' + q.counters['talk:tali']; })()"
+ },
+ {
+  "eval": "(() => { H.g().openQuests(); return 'quest log opened'; })()"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "shot": "story-quest-log"
+ },
+ {
+  "eval": "(() => { __game.scene.getScene('Quests').scene.stop(); H.g().scene.resume(); return 'quest log closed, paused: ' + H.g().scene.isPaused(); })()"
+ },
+ {
+  "eval": "(() => { const s = H.spot('bottle:1'); H.stand(s); return 'at bottle 1 (' + s.x + ',' + s.y + ')'; })()"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'bottle read: dialogue ' + H.dialogOpen() + ' found ' + H.g().session.quests.found + ' bottle count ' + H.g().session.quests.counters.bottle"
+ },
+ {
+  "shot": "story-bottle"
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "(() => { H.hold('shovel', 60); const s = H.spot('treasure:1'); H.stand(s); return 'at treasure 1 with a shovel'; })()"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'dug: found ' + H.g().session.quests.found + ' iron ingots ' + H.inv('iron_ingot') + ' arrows ' + H.inv('arrow') + ' dig ' + H.g().session.quests.counters.dig"
+ },
+ {
+  "eval": "(() => { const g = H.g(); const w = g.world; const sx = w.start.x; const sy = w.start.y; for (let r = 0; r < 30; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const x = sx + dx; const y = sy + dy; const t = w.terrain[y * w.size + x]; const l = w.terrain[y * w.size + x - 1]; if ((t === 1 || t === 0) && l === 2 && !g.solids.has(y * w.size + x - 1)) { H.hold('fishing_rod', 80); H.tp(x - 0.5, y + 0.5, 1, 0); return 'fishing at ' + x + ',' + y; } } return 'no beach found'; })()"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 450
+ },
+ {
+  "eval": "'fishing: raw fish ' + H.inv('raw_fish') + ' rare ' + H.inv('big_fish') + ' stamina ' + H.g().session.vitals.stamina.toFixed(0)"
+ },
+ {
+  "eval": "(() => { const l = H.g().world.landmarks.find(l => l.id === 'lighthouse'); H.tp(l.x + 0.5, l.y + 1.5, 0, -1); return 'at the lighthouse door'; })()"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'door without key: still on the island ' + (H.g().level.dungeon === null)"
+ },
+ {
+  "eval": "(() => { const g = H.g(); const inv = g.session.inventory.slice(); inv[1] = { item: 'lighthouse_key', qty: 1 }; inv[2] = { item: 'sword_iron', qty: 1, dur: 160 }; g.session = { ...g.session, inventory: inv, selected: 2 }; return 'key and sword given'; })()"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "until": "(() => { const g = H.g(); return g.level && g.level.dungeon && g.scene.isActive('Game'); })()",
+  "timeout": 15000
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, npc(id) { return this.g().level.places.find(p => p.id === id); }, spot(id) { return this.g().level.finds.find(s => s.id === id); }, stand(p) { this.tp(p.x - 0.5, p.y + 0.5, 1, 0); }, inv(item) { return this.g().session.inventory.filter(s => s && s.item === item).reduce((n, s) => n + s.qty, 0); }, hold(item, dur) { const g = this.g(); const inv = g.session.inventory.slice(); inv[0] = { item, qty: 1, dur: dur || 80 }; g.session = { ...g.session, inventory: inv, selected: 0 }; }, quests(patch) { const g = this.g(); g.session = { ...g.session, quests: { ...g.session.quests, ...patch } }; }, dialogOpen() { return __game.scene.isActive('Dialogue'); } }; 'helpers ready'"
+ },
+ {
+  "eval": "'in the lighthouse: ' + H.d().id + ' boss ' + H.d().boss.kind + ' creatures ' + H.g().combat.wildlife.state.creatures.length"
+ },
+ {
+  "eval": "(() => { const d = H.d(); H.tp(d.rooms[6].x0 + 1.5, d.boss.y + 0.5, 1, 0); return 'in the boss room'; })()"
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "shot": "story-hollow-keeper"
+ },
+ {
+  "eval": "(() => { const g = H.g(); g.session = {...g.session, vitals: {...g.session.vitals, hp: 100}}; const b = g.combat.wildlife.state.creatures.find(c => c.kind === 'hollowkeeper'); H.tp(b.x - 1.2, b.y, 1, 0); g.combat.onFx({t: 'strike', melee: {damage: 99999, reach: 3, arc: 360, knockback: 0, stamina: 0, cooldown: 0, wear: false}}); return 'Hollow Keeper struck down'; })()"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "eval": "'after the fall: beacon core ' + H.inv('beacon_core') + ' hollow plate ' + H.inv('armor_hollow') + ' dialogue ' + H.dialogOpen() + ' claimed ' + H.g().session.dungeons.lighthouse.claimed + ' boss counter ' + H.g().session.quests.counters['boss:hollowkeeper']"
+ },
+ {
+  "shot": "story-secret"
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 250
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 250
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "(() => { const x = H.d().exit; H.tp(x.x + 0.5, x.y - 0.5, 0, 1); return 'at the exit'; })()"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "until": "(() => { const g = H.g(); return g.level && !g.level.dungeon && g.scene.isActive('Game'); })()",
+  "timeout": 15000
+ },
+ {
+  "wait": 1000
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), d() { return this.g().level.dungeon; }, tp(x, y, fx, fy) { const g = this.g(); g.pos = { x, y }; g.player.face(fx, fy); }, npc(id) { return this.g().level.places.find(p => p.id === id); }, spot(id) { return this.g().level.finds.find(s => s.id === id); }, stand(p) { this.tp(p.x - 0.5, p.y + 0.5, 1, 0); }, inv(item) { return this.g().session.inventory.filter(s => s && s.item === item).reduce((n, s) => n + s.qty, 0); }, hold(item, dur) { const g = this.g(); const inv = g.session.inventory.slice(); inv[0] = { item, qty: 1, dur: dur || 80 }; g.session = { ...g.session, inventory: inv, selected: 0 }; }, quests(patch) { const g = this.g(); g.session = { ...g.session, quests: { ...g.session.quests, ...patch } }; }, dialogOpen() { return __game.scene.isActive('Dialogue'); } }; 'helpers ready'"
+ },
+ {
+  "eval": "(() => { const g = H.g(); const s = g.session; const done = ['c1','c2','c3','c4','c5','c6','c7','c8','c9']; const inv = s.inventory.slice(); inv[3] = { item: 'beacon_core', qty: 1 }; g.session = { ...s, inventory: inv, quests: { ...s.quests, active: {}, done, counters: { ...s.quests.counters, 'craft:sailcloth': 1, 'craft:raft': 1, 'build:raft': 1 } }, structures: { next: 99, list: [...s.structures.list, { id: 98, type: 'raft', x: Math.floor(g.pos.x) + 1, y: Math.floor(g.pos.y) }] } }; g.rebuildBlocking(); return 'raft placed in front of the hero'; })()"
+ },
+ {
+  "wait": 1000
+ },
+ {
+  "eval": "(() => { const g = H.g(); g.player.face(1, 0); return 'chapter ' + Object.keys(g.session.quests.active) + ' step ' + g.session.quests.active.c10.step; })()"
+ },
+ {
+  "press": "Space",
+  "ms": 80
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "'raft choice dialogue: ' + H.dialogOpen()"
+ },
+ {
+  "shot": "story-ending-choice"
+ },
+ {
+  "tap": [
+   194,
+   757
+  ]
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const q = H.g().session.quests; return 'ending chosen: ' + q.ending + ' chapter ten done ' + q.done.includes('c10') + ' dialogue ' + H.dialogOpen(); })()"
+ },
+ {
+  "shot": "story-the-end"
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 250
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 250
+ },
+ {
+  "tap": [
+   180,
+   500
+  ]
+ },
+ {
+  "wait": 400
+ },
+ {
+  "shot": "story-the-end-choices"
+ },
+ {
+  "tap": [
+   194,
+   798
+  ]
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const g = H.g(); return 'back to the island: dialogue ' + H.dialogOpen() + ' paused ' + g.scene.isPaused() + ' location ' + g.session.location + ' ending ' + g.session.quests.ending; })()"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

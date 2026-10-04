@@ -96,7 +96,7 @@ export function generateDungeon(seed: number, id: DungeonId): Dungeon {
       trapField(room, out, out.traps.length);
       out.chests.push({ id: chestId++, ...at(room, 11, 1), locked: true, loot: [{ item: 'bandage', qty: 3 }, { item: 'honey', qty: 2 }, { item: 'arrow', qty: 12 }] });
     }
-    if (room.kind === 'side') out.chests.push({ id: chestId++, ...at(room, 6, 2), locked: false, loot: [{ item: 'small_key', qty: 2 }] });
+    if (room.kind === 'side') out.chests.push({ id: chestId++, ...at(room, 6, 2), locked: false, loot: [{ item: 'small_key', qty: 2 }, ...(def.id === 'deepmine' ? [{ item: 'lost_pickaxe' as const, qty: 1 }] : [])] });
     if (room.kind === 'vault') out.chests.push({ id: chestId++, ...at(room, 3, 2), locked: true, loot: [{ item: 'boss_key', qty: 1 }] });
   }
   for (const p of out.pillars) terrain[idx(p.x, p.y, DUNGEON_SIZE)] = T.WALL;

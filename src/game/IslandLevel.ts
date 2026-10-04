@@ -1,6 +1,7 @@
 import type { Station } from '@/data/structures';
 import type { Level, LevelView, Lit } from '@/game/Level';
 import { FarmLayer } from '@/gfx/FarmLayer';
+import { StoryLayer } from '@/gfx/StoryLayer';
 import { StructureLayer } from '@/gfx/StructureLayer';
 import { TerrainLayer } from '@/gfx/TerrainLayer';
 import { WorldObjects } from '@/gfx/WorldObjects';
@@ -15,7 +16,8 @@ import type { Vec } from '@/sim/movement';
 import { blocksRegrowth, rollDay, type Fx, type Session } from '@/sim/session';
 import { blockingTiles, nodesByTile, propSolidTiles, type Blocking } from '@/sim/solids';
 import { nearbyStations } from '@/sim/structures';
-import type { ResourceKind, ResourceNode, World } from '@/sim/world/types';
+import { npcAt, npcPlaces, spotAt, spotsOf, visibleSpots, type NpcPlace, type Spot } from '@/sim/world/spots';
+import { idx, type ResourceKind, type ResourceNode, type World } from '@/sim/world/types';
 
 /** How far the hero reaches for trees, rocks and bushes, and how close he may stand to a node that would grow back (tiles). */
 const HIT_REACH = 1.4;
@@ -32,6 +34,9 @@ export class IslandLevel implements Level {
   private objects: WorldObjects;
   private structureLayer: StructureLayer;
   private farmLayer: FarmLayer;
+  private storyLayer: StoryLayer;
+  private places: NpcPlace[];
+  private finds: Spot[];
 
   constructor(scene: GameScene, readonly world: World, session: Session) {
     this.nodes = nodesByTile(world);
@@ -41,6 +46,9 @@ export class IslandLevel implements Level {
     for (const n of world.resources) if (!isAlive(session.gather, n.id)) this.objects.setAlive(n.id, false, false);
     this.structureLayer = new StructureLayer(scene, session.structures);
     this.farmLayer = new FarmLayer(scene, session.farm);
+    this.places = npcPlaces(world);
+    this.finds = spotsOf(world);
+    this.storyLayer = new StoryLayer(scene, this.places, this.finds);
   }
 
   place(saved: Vec): Vec {
@@ -51,12 +59,21 @@ export class IslandLevel implements Level {
     return null;
   }
 
+  /** Islanders stand in the way like scenery does. */
   blocking(session: Session): Blocking {
-    return blockingTiles(this.world, this.propTiles, session);
+    const b = blockingTiles(this.world, this.propTiles, session);
+    for (const p of this.places) {
+      const tile = idx(p.x, p.y, this.world.size);
+      b.solids.add(tile);
+      b.occupied.add(tile);
+    }
+    return b;
   }
 
   view(session: Session, hero: Vec, front: { x: number; y: number }): LevelView {
+    this.storyLayer.sync(this.finds, session.quests);
     return {
+      npc: npcAt(this.places, front.x, front.y), spot: spotAt(visibleSpots(this.finds, session.quests), front, hero),
       structures: session.structures, farm: session.farm, target: null, entrance: entranceAt(this.world, front.x, front.y),
       node: nearestNode(this.nodes, this.world.size, hero, HIT_REACH, (id) => isAlive(session.gather, id)),
     };

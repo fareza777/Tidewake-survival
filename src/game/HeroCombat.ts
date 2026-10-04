@@ -91,7 +91,10 @@ export class HeroCombat {
     const { host } = this;
     for (const ev of events) {
       if (ev.t !== 'hurtHero' || host.player.vulnerable) services.audio?.sfx(cueForEncounter(ev));
-      if (ev.t === 'killed') host.hitStop = KILL_STOP;
+      if (ev.t === 'killed') {
+        host.hitStop = KILL_STOP;
+        host.story.kill(ev.kind);
+      }
       if (ev.t === 'hit') {
         host.hitStop = HIT_STOP;
         if (services.settings?.damageNumbers !== false) this.numbers.show(ev.x * TILE, ev.y * TILE - 18, `-${ev.amount}`, COLORS.white);

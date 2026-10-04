@@ -1,12 +1,14 @@
 import Phaser from 'phaser';
 import type { GameScene } from './GameScene';
-import { t } from '@/core/i18n';
+import { t, tr } from '@/core/i18n';
 import { services } from '@/core/services';
 import { view, vx, vy } from '@/core/viewport';
 import { ITEMS } from '@/data/items';
 import { controls } from '@/game/input';
+import { QUESTS } from '@/data/quests';
 import { clockLabel } from '@/sim/daynight';
 import { HOTBAR_SIZE, type Inventory } from '@/sim/inventory';
+import { progressOf, trackedQuest, type QuestState } from '@/sim/quests';
 import type { Difficulty } from '@/sim/vitals';
 import { showModal } from '@/ui/modal';
 import { itemIcon } from '@/ui/itemIcon';
@@ -37,6 +39,8 @@ export class HudScene extends Phaser.Scene {
   private menuOpen = false;
   private bossName!: Phaser.GameObjects.BitmapText;
   private bossBar!: Bar;
+  private tracker!: Phaser.GameObjects.BitmapText;
+  private lastQuests: QuestState | null = null;
 
   constructor() {
     super('Hud');
@@ -48,6 +52,7 @@ export class HudScene extends Phaser.Scene {
     this.lastInventory = null;
     this.lastSelected = -1;
     this.lastDay = '';
+    this.lastQuests = null;
     this.bars = [];
     const { w: W, h: H } = view;
     this.dayText = this.add.bitmapText(8, 8, FONT.body, '').setTint(COLORS.text).setDepth(5);
@@ -64,6 +69,8 @@ export class HudScene extends Phaser.Scene {
     });
     new Button(this, W - 24, 22, 'II', () => this.openMenu(), { w: 34, h: 28 }).setDepth(6);
     new Button(this, W - 24, 54, t('tabBag'), () => this.world.openInventory({ mode: 'bag' }), { w: 34, h: 24, font: FONT.small }).setDepth(6);
+    new Button(this, W - 26, 82, t('questShort'), () => this.world.openQuests(), { w: 44, h: 24, font: FONT.small }).setDepth(6);
+    this.tracker = this.add.bitmapText(8, 86, FONT.small, '').setTint(COLORS.gold).setDepth(5).setMaxWidth(W - 90);
     new Button(this, W - 52, H - 100, t('useAction'), () => {
       controls.action = true;
     }, { w: 68, h: 68, style: 'primary' }).setDepth(6);
@@ -173,8 +180,24 @@ export class HudScene extends Phaser.Scene {
     this.bossBar.setValue(boss.hp / boss.max);
   }
 
+  /** The running quest and its current step, under the bars; redrawn only when the quests or the backpack change. */
+  private updateTracker(): void {
+    const s = this.world.session;
+    if (s.quests === this.lastQuests && s.inventory === this.lastInventory) return;
+    this.lastQuests = s.quests;
+    const def = trackedQuest(s.quests, QUESTS);
+    if (!def) {
+      this.tracker.setText('');
+      return;
+    }
+    const p = progressOf(s.quests, QUESTS, def.id, s.inventory);
+    const step = tr(def.steps[s.quests.active[def.id].step].text);
+    this.tracker.setText(`${tr(def.title)}\n${step}${p.need > 1 ? ` ${t('questProgress', { have: p.have, need: p.need })}` : ''}`);
+  }
+
   update(): void {
     this.updateBoss();
+    this.updateTracker();
     const s = this.world.session;
     const day = `${t('hudDay', { n: s.clock.day })}  ${clockLabel(s.clock)}`;
     if (day !== this.lastDay) {

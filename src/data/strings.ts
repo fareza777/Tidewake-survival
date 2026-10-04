@@ -178,6 +178,7 @@ export const UI_STRINGS: Record<string, L10n> = {
   msgTabletRead: { en: 'You read the weathered tablet', id: 'Kamu membaca prasasti yang lapuk' },
   msgDugUp: { en: 'You dig up a buried chest', id: 'Kamu menggali sebuah peti terkubur' },
   questLog: { en: 'Quests', id: 'Misi' },
+  questShort: { en: 'Quest', id: 'Misi' },
   questMain: { en: 'Main quest', id: 'Misi utama' },
   questSide: { en: 'Side quests', id: 'Misi sampingan' },
   questDoneHeader: { en: 'Completed', id: 'Selesai' },

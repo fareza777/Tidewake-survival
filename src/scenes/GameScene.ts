@@ -13,6 +13,7 @@ import { NightLight } from '@/gfx/NightLight';
 import { TILE } from '@/gfx/TerrainLayer';
 import { DungeonLevel } from '@/game/DungeonLevel';
 import { InputReader } from '@/game/InputReader';
+import { StoryDirector } from '@/game/StoryDirector';
 import { HeroCombat } from '@/game/HeroCombat';
 import { IslandLevel } from '@/game/IslandLevel';
 import type { Level } from '@/game/Level';
@@ -20,12 +21,14 @@ import { MusicDirector } from '@/game/MusicDirector';
 import { resetControls } from '@/game/input';
 import { frontTile, resolveAction, type Action } from '@/sim/actions';
 import { cueForFx } from '@/sim/cues';
+import { QUESTS } from '@/data/quests';
 import { newClock } from '@/sim/daynight';
 import { generateDungeon } from '@/sim/dungeon/generate';
 import { DUNGEON_VERSION, emptyDungeons, type DungeonId } from '@/sim/dungeon/progress';
 import { doorwayOutside } from '@/sim/dungeon/rules';
 import { emptyGather, sanitizeGather } from '@/sim/gather';
 import { meleeFor } from '@/sim/melee';
+import { settle } from '@/sim/quests';
 import { moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import {
   applyAction, collapse, craftRecipe, equipArmor, moveInventorySlot, selectSlot, sessionFromSlot, sessionToSlot, takeOffArmor, tickSession,
@@ -63,6 +66,7 @@ export class GameScene extends BaseScene {
   session!: Session;
   level!: Level;
   combat!: HeroCombat;
+  story!: StoryDirector;
   pos: Vec = { x: 0, y: 0 };
   player!: Player;
   float!: FloatText;
@@ -117,6 +121,7 @@ export class GameScene extends BaseScene {
 
     this.rebuildBlocking();
     this.player = new Player(this, this.pos);
+    this.story = new StoryDirector(this);
     this.combat = new HeroCombat(this);
     const start = this.level.start();
     if (start) this.combat.load(start);
@@ -149,7 +154,7 @@ export class GameScene extends BaseScene {
     const s = sessionFromSlot(this.slotData);
     const current = this.slotData.dungeonVersion === DUNGEON_VERSION;
     const gather = !island ? s.gather : this.slotData.worldVersion === GENERATOR_VERSION ? sanitizeGather(s.gather, island.resources.length) : emptyGather();
-    return { ...s, gather, location: where, dungeons: current ? s.dungeons : emptyDungeons() };
+    return { ...s, gather, location: where, dungeons: current ? s.dungeons : emptyDungeons(), quests: settle(s.quests, s.inventory, QUESTS).q };
   }
 
   private setupCamera(): void {
@@ -184,6 +189,7 @@ export class GameScene extends BaseScene {
     this.player.update(this.pos, move);
     this.combat.tick(dt);
     this.level.update(dt, move, this.combat.snapshot());
+    this.story.update(dt);
     this.music.update(this.level.isNight(this.session), this.combat.fighting);
 
     this.cooldown = Math.max(0, this.cooldown - dt);
@@ -212,12 +218,12 @@ export class GameScene extends BaseScene {
     return resolveAction({
       world: this.world, inv: s.inventory, selected: s.selected, vitals: s.vitals, pos: this.pos, facing: this.player.facing,
       structures: view.structures, farm: view.farm, occupied: this.occupied, node: view.node, creature: this.combat.reaches(melee),
-      entrance: view.entrance, target: view.target,
+      entrance: view.entrance, target: view.target, npc: view.npc, spot: view.spot,
     });
   }
 
   private showCursor(a: Action): void {
-    const targeted = ['place', 'till', 'plant', 'water', 'refill', 'harvest', 'open', 'sleep', 'drink', 'pickup', 'enter', 'leave', 'chest', 'door'].includes(a.kind);
+    const targeted = ['place', 'till', 'plant', 'water', 'refill', 'harvest', 'open', 'sleep', 'drink', 'pickup', 'enter', 'leave', 'chest', 'door', 'talk', 'inspect', 'dig', 'raft', 'fish'].includes(a.kind);
     const refused = a.kind === 'blocked' && a.reason === 'cannotPlace';
     this.cursor.setVisible(targeted || refused);
     if (!targeted && !refused) return;
@@ -253,7 +259,11 @@ export class GameScene extends BaseScene {
       case 'strike':
       case 'shot': this.combat.onFx(fx); break;
       case 'open': this.openStructure(fx.structure.type, fx.structure.id); break;
-      case 'slept': this.cameras.main.flash(700, 8, 10, 30); break;
+      case 'slept': this.cameras.main.flash(700, 8, 10, 30); this.story.play(fx); break;
+      case 'quest':
+      case 'dialog':
+      case 'ending':
+      case 'theEnd': this.story.play(fx); break;
       case 'travel': this.travel(fx.to); break;
     }
   }
@@ -282,6 +292,17 @@ export class GameScene extends BaseScene {
     this.float.show(this.pos.x * TILE, this.pos.y * TILE - 26, text, COLORS.gold, true);
   }
 
+  /** Hand the story's result (a quest moved on, a reward paid) to the game; nothing happens when nothing changed. */
+  commitStory(step: Step): void {
+    if (step.session === this.session && step.fx.length === 0) return;
+    this.commit(step, true);
+  }
+
+  /** Is a fire or a torch within `radius` tiles of the hero? */
+  nearLight(radius: number): boolean {
+    return this.session.structures.list.some((s) => (s.type === 'campfire' || s.type === 'torch') && Math.hypot(s.x + 0.5 - this.pos.x, s.y + 0.5 - this.pos.y) <= radius);
+  }
+
   /** Walk-blocking tiles and the tiles nothing can be built or tilled on, as the level has them now. */
   rebuildBlocking(): void {
     const { solids, occupied } = this.level.blocking(this.session);
@@ -292,6 +313,7 @@ export class GameScene extends BaseScene {
   private onNewDay(): void {
     this.lastDay = this.session.clock.day;
     this.session = this.level.newDay(this.session, this.pos);
+    this.story.newDay();
     this.rebuildBlocking();
     services.notify?.(t('hudDay', { n: this.lastDay }));
     this.saveNow();
@@ -370,6 +392,13 @@ export class GameScene extends BaseScene {
   /** The boss's name key and health while the fight is on, for the health bar. */
   bossBar(): { name: string; hp: number; max: number } | null {
     return this.level.bossBar(this.combat.snapshot());
+  }
+
+  /** Open the quest log; the island waits while it is open. */
+  openQuests(): void {
+    if (this.scene.isPaused()) return;
+    this.scene.pause('Game');
+    this.scene.launch('Quests', { game: this });
   }
 
   /** Open the backpack, the crafting list of a station, or a chest; the island waits while it is open. */

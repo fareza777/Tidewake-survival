@@ -29,6 +29,17 @@ describe('dungeon definitions', () => {
   });
 });
 
+describe('the side room chest', () => {
+  it('holds the two small keys, and in the Deepmine also the pickaxe Brock lost', () => {
+    for (const seed of SEEDS) {
+      for (const id of DUNGEON_IDS) {
+        const side = generateDungeon(seed, id).chests.find((c) => !c.locked && c.loot.some((l) => l.item === 'small_key'))!;
+        expect(side.loot.some((l) => l.item === 'lost_pickaxe'), `${id}/${seed}`).toBe(id === 'deepmine');
+      }
+    }
+  });
+});
+
 describe('generateDungeon', () => {
   it('is the same dungeon for the same seed and a different one for another seed', () => {
     const a = generateDungeon(7, 'grotto');
