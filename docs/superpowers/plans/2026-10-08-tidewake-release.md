@@ -17,7 +17,7 @@
 | Item | Result |
 |---|---|
 | Unit and integration tests, 80% coverage of sim, data and core | all pass; about 96% of lines |
-| Browser smoke scenarios | 35 scenarios, no page errors |
+| Browser smoke scenarios | 32 scenarios, no page errors |
 | App size under 80 MB (AAB) | release bundle about 6 MB; debug APK about 8 MB |
 | Texture memory under 64 MB | about 20 MB of atlases and fonts, uncompressed |
 | 60 fps on a mid-range phone | 58 fps in desktop Edge with 24 creatures; the emulator (software rendering, no GPU) shows only 13 fps and says nothing about a real phone, which still has to be tried by hand |
