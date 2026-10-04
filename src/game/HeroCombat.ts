@@ -3,6 +3,7 @@ import { services } from '@/core/services';
 import { t } from '@/core/i18n';
 import { Wildlife } from '@/game/Wildlife';
 import { FloatText } from '@/gfx/FloatText';
+import { burst } from '@/gfx/Impact';
 import { TILE } from '@/gfx/TerrainLayer';
 import type { GameScene } from '@/scenes/GameScene';
 import { enemyDamage } from '@/sim/combat';
@@ -97,6 +98,7 @@ export class HeroCombat {
       }
       if (ev.t === 'hit') {
         host.hitStop = HIT_STOP;
+        burst(host, ev.x * TILE, ev.y * TILE - 6, 'spark', ev.y * TILE + 4, host.player.facing === 'left' ? -1 : host.player.facing === 'right' ? 1 : 0);
         if (services.settings?.damageNumbers !== false) this.numbers.show(ev.x * TILE, ev.y * TILE - 18, `-${ev.amount}`, COLORS.white);
       } else if (ev.t === 'hurtHero') {
         this.hurt(ev.amount);

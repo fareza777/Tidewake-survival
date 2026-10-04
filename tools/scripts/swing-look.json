@@ -1,0 +1,106 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1000
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), tpTo(a, b) { const w = this.g().level.world; const n = w.size; const T = {DEEP:0,SHALLOW:1,SAND:2,GRASS:3,SWAMP:4,DIRT:5,STONE:6,DESERT:7,RIVER:8}; for (let y = 4; y < n - 4; y++) for (let x = 4; x < n - 4; x++) { if (w.terrain[y*n+x] !== T[a]) continue; let hit = false; for (let dy = -2; dy <= 2 && !hit; dy++) for (let dx = -2; dx <= 2; dx++) if (w.terrain[(y+dy)*n+x+dx] === T[b]) { hit = true; break; } if (hit) { this.g().pos = { x: x + 0.5, y: y + 0.5 }; return x + ',' + y; } } return 'none'; } }; 'ok'"
+ },
+ {
+  "eval": "H.tpTo('SAND','SHALLOW')"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const g = H.g(); const inv = g.session.inventory.slice(); inv[0] = { item: 'axe_iron', qty: 1, dur: 100 }; inv[1] = { item: 'sword_iron', qty: 1, dur: 160 }; g.session = { ...g.session, inventory: inv, selected: 0 }; g.player.face(1, 0); return 1; })()"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "press": "Space",
+  "ms": 40
+ },
+ {
+  "wait": 60
+ },
+ {
+  "shot": "s-axe1"
+ },
+ {
+  "wait": 70
+ },
+ {
+  "shot": "s-axe2"
+ },
+ {
+  "wait": 120
+ },
+ {
+  "shot": "s-axe3"
+ },
+ {
+  "eval": "(() => { const g = H.g(); g.session = { ...g.session, selected: 1 }; g.cooldown = 0; return 1; })()"
+ },
+ {
+  "wait": 700
+ },
+ {
+  "press": "Space",
+  "ms": 40
+ },
+ {
+  "wait": 80
+ },
+ {
+  "shot": "s-sw1"
+ },
+ {
+  "wait": 80
+ },
+ {
+  "shot": "s-sw2"
+ },
+ {
+  "wait": 80
+ },
+ {
+  "shot": "s-sw3"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

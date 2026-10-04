@@ -1,0 +1,107 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('NewGame'); s.name='Ari'; s.seedText='1234'; s.begin(); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Intro')",
+  "timeout": 10000
+ },
+ {
+  "wait": 2500
+ },
+ {
+  "shot": "c-intro1"
+ },
+ {
+  "wait": 5000
+ },
+ {
+  "shot": "c-intro2"
+ },
+ {
+  "eval": "__game.scene.getScene('Intro').finish(), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "c-game-hint"
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game') }; (() => { const g = H.g(); const w = g.world; const t = w.resources.find(r => r.kind === 'tree'); g.pos = { x: t.x + 0.5, y: t.y + 1.6 }; g.player.face(0, -1); return t.x + ',' + t.y; })()"
+ },
+ {
+  "wait": 600
+ },
+ {
+  "press": "Space",
+  "ms": 60
+ },
+ {
+  "wait": 110
+ },
+ {
+  "shot": "c-axe-a"
+ },
+ {
+  "wait": 120
+ },
+ {
+  "shot": "c-axe-b"
+ },
+ {
+  "eval": "(() => { const g = H.g(); const inv = g.session.inventory.slice(); inv[0] = { item: 'sword_iron', qty: 1, dur: 160 }; g.session = { ...g.session, inventory: inv, selected: 0 }; g.player.face(1, 0); return 1; })()"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "press": "Space",
+  "ms": 60
+ },
+ {
+  "wait": 120
+ },
+ {
+  "shot": "c-sword-a"
+ },
+ {
+  "wait": 120
+ },
+ {
+  "shot": "c-sword-b"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

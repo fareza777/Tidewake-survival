@@ -98,6 +98,14 @@ const NONE: Action = { kind: 'none' };
  * Decide what pressing ACTION does. Order: a structure in front, then a ripe crop in front, then whatever the
  * selected item is for, and finally the world itself (chopping, mining, drinking). The scene carries the action out.
  */
+/** The structure in front of the hero that can be taken down with the Pick up button, and what that would do. */
+export function dismantleAt(structures: Structures, pos: Vec, facing: Facing): Action | null {
+  const { x, y } = frontTile(pos, facing);
+  const structure = structureAt(structures, x, y);
+  if (!structure || STRUCTURES[structure.type].pickup !== 'tool') return null;
+  return structure.inv?.some(Boolean) ? blocked({ reason: 'chestNotEmpty' }) : { kind: 'pickup', structure };
+}
+
 export function resolveAction(c: ActionContext): Action {
   const { x, y } = frontTile(c.pos, c.facing);
   const inside = inBounds(x, y, c.world.size);
@@ -116,10 +124,9 @@ export function resolveAction(c: ActionContext): Action {
     // A plain USE takes down fences, torches and furniture, but not when a blow would land on something, or when the hero
     // holds something to place or eat (a second sign must not take the first back).
     const plain = STRUCTURES[structure.type].pickup === 'always' && !c.creature && !def?.place && !def?.food && !def?.seed;
-    const take = plain || (def?.tool !== undefined && (def.tool.type === 'axe' || def.tool.type === 'pickaxe'));
-    if (take) {
-      return structure.inv?.some(Boolean) ? blocked({ reason: 'chestNotEmpty' }) : { kind: 'pickup', structure };
-    }
+    // Chests, benches, beds and the like are always USED (a hero with an axe in hand must still be able to open a chest);
+    // taking one down is its own button, see `dismantleAt`.
+    if (plain) return structure.inv?.some(Boolean) ? blocked({ reason: 'chestNotEmpty' }) : { kind: 'pickup', structure };
     if (structure.type === 'bed') return { kind: 'sleep', structure };
     if (structure.type === 'raft') return { kind: 'raft', structure };
     if (structure.type === 'chest' || STRUCTURES[structure.type].station) return { kind: 'open', structure };

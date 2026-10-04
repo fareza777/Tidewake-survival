@@ -6,14 +6,13 @@ import { services } from '@/core/services';
 import { defaultSettings } from '@/core/settings';
 import { commitSettings } from '@/core/settingsApply';
 import { browserStorage } from '@/core/storage';
-import type { ItemId } from '@/data/items';
-import { itemIcon } from '@/ui/itemIcon';
 import { nightBackdrop } from '@/ui/backdrop';
 import { COLORS, FONT } from '@/ui/theme';
 import { Button, label, panel, para } from '@/ui/widgets';
 
 interface Card {
-  icon: ItemId;
+  /** Key of the painted banner (assets/cinematic/onb*.webp). */
+  art: string;
   title: string;
   body: string;
 }
@@ -25,6 +24,10 @@ export class OnboardingScene extends BaseScene {
 
   constructor() {
     super('Onboarding');
+  }
+
+  preload(): void {
+    for (let i = 1; i <= 3; i++) if (!this.textures.exists(`onb${i}`)) this.load.image(`onb${i}`, `assets/cinematic/onb${i}.webp`);
   }
 
   create(): void {
@@ -44,9 +47,9 @@ export class OnboardingScene extends BaseScene {
 
   private cards(): Card[] {
     return [
-      { icon: 'axe_wood', title: t('onb1Title'), body: t('onb1Body') },
-      { icon: 'compass', title: t('onb2Title'), body: t('onb2Body') },
-      { icon: 'sword_iron', title: t('onb3Title'), body: t('onb3Body') },
+      { art: 'onb1', title: t('onb1Title'), body: t('onb1Body') },
+      { art: 'onb2', title: t('onb2Title'), body: t('onb2Body') },
+      { art: 'onb3', title: t('onb3Title'), body: t('onb3Body') },
     ];
   }
 
@@ -77,12 +80,21 @@ export class OnboardingScene extends BaseScene {
     }
     const card = this.cards()[this.step];
     const last = this.step === 2;
-    const top = Math.max(24, H * 0.5 - 190);
-    const boxH = 320;
-    this.ui.add(panel(this, 16, top, W - 32, boxH, 'ui_panel_ornate'));
-    this.ui.add(itemIcon(this, W / 2, top + 54, card.icon, 56));
-    this.ui.add(label(this, W / 2, top + 100, card.title, FONT.head, COLORS.gold, 0.5, 0.5));
-    this.ui.add(para(this, 32, top + 124, card.body, W - 64, FONT.body, COLORS.text));
+    const boxW = W - 32;
+    const bannerW = boxW - 20;
+    const bannerH = Math.round(bannerW * 0.52);
+    const boxH = bannerH + 200;
+    const top = Math.max(24, Math.round(H * 0.5 - boxH / 2) - 20);
+    this.ui.add(panel(this, 16, top, boxW, boxH, 'ui_panel_ornate'));
+    // The painting is cropped to a wide banner and eases in slowly.
+    const art = this.add.image(W / 2, top + 10 + bannerH / 2, card.art);
+    const cropH = Math.round(art.width * 0.52);
+    art.setCrop(0, Math.round((art.height - cropH) / 2), art.width, cropH).setScale(bannerW / art.width).setAlpha(0);
+    this.tweens.add({ targets: art, alpha: 1, duration: 450 });
+    this.ui.add(art);
+    this.ui.add(this.add.rectangle(W / 2, top + 10 + bannerH / 2, bannerW, bannerH).setStrokeStyle(2, COLORS.gold, 0.9));
+    this.ui.add(label(this, W / 2, top + bannerH + 36, card.title, FONT.head, COLORS.gold, 0.5, 0.5));
+    this.ui.add(para(this, 30, top + bannerH + 58, card.body, W - 60, FONT.body, COLORS.text));
     for (let i = 0; i < 3; i++) {
       this.ui.add(this.add.rectangle(W / 2 + (i - 1) * 16, top + boxH + 24, 8, 8, i === this.step ? COLORS.gold : COLORS.textDim).setOrigin(0.5));
     }

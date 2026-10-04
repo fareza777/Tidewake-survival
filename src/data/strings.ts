@@ -35,6 +35,23 @@ export const UI_STRINGS: Record<string, L10n> = {
   hudDay: { en: 'Day {n}', id: 'Hari {n}' },
   useAction: { en: 'USE', id: 'PAKAI' },
   runAction: { en: 'Run', id: 'Lari' },
+  tutMove: { en: 'Drag your thumb on the left side of the screen to walk.', id: 'Geser jempol di sisi kiri layar untuk berjalan.' },
+  tutChop: {
+    en: 'Face a tree and tap USE to chop it. Collect some wood.',
+    id: 'Hadapi sebuah pohon dan ketuk PAKAI untuk menebangnya. Kumpulkan kayu.',
+  },
+  tutBag: { en: 'Good! Now open your Bag.', id: 'Bagus! Sekarang buka Tas.' },
+  tutCraft: {
+    en: 'Tap the Craft tab and make something from your wood. A workbench or campfire is a good start.',
+    id: 'Ketuk tab Buat dan buat sesuatu dari kayumu. Meja kerja atau api unggun adalah awal yang baik.',
+  },
+  tutRun: { en: 'Nearly done. Tap Run to sprint, but it uses stamina.', id: 'Hampir selesai. Ketuk Lari untuk berlari, tapi memakai stamina.' },
+  tutDone: {
+    en: 'You are ready. The Quest button always shows your next goal. Good luck out there!',
+    id: 'Kamu siap. Tombol Misi selalu menunjukkan tujuan berikutnya. Semoga berhasil!',
+  },
+  tutSkip: { en: 'Skip tips', id: 'Lewati tips' },
+  dismantle: { en: 'Pick up', id: 'Ambil' },
   saved: { en: 'Game saved', id: 'Game tersimpan' },
   paused: { en: 'Paused', id: 'Jeda' },
   resume: { en: 'Resume', id: 'Lanjut' },
@@ -291,7 +308,21 @@ export const UI_STRINGS: Record<string, L10n> = {
   diffDesc_normal: { en: 'Lose half of your hotbar when you collapse.', id: 'Kehilangan separuh hotbar saat pingsan.' },
   diffDesc_hardcore: { en: 'Collapsing deletes the save.', id: 'Pingsan menghapus simpanan.' },
   introSkip: { en: 'Skip', id: 'Lewati' },
-  intro1: { en: 'A storm tore your ship apart in the night.', id: 'Badai mencabik kapalmu di malam hari.' },
-  intro2: { en: 'You wake on a beach, with nothing but the clothes you wear.', id: 'Kamu terbangun di pantai, hanya dengan pakaian di badan.' },
-  intro3: { en: 'Somewhere on this island, a light is waiting.', id: 'Di suatu tempat di pulau ini, sebuah cahaya menunggu.' },
+  intro1: { en: 'Three nights ago, a storm tore the Tidewake apart.', id: 'Tiga malam lalu, badai mengoyak kapal Tidewake hingga berkeping-keping.' },
+  intro2: {
+    en: 'The sea took your crew, your cargo... everything, except a single plank of wood.',
+    id: 'Laut merenggut awak kapal, muatan... segalanya, kecuali sebilah papan kayu.',
+  },
+  intro3: {
+    en: 'You woke alone on a moonlit beach, with nothing but the clothes you wear.',
+    id: 'Kau terbangun sendirian di pantai bermandikan bulan, hanya dengan pakaian di badan.',
+  },
+  intro4: {
+    en: 'But this island is not empty. High on the cliff, an old lighthouse is waiting.',
+    id: 'Tapi pulau ini tidak kosong. Di atas tebing, sebuah mercusuar tua menunggu.',
+  },
+  intro5: {
+    en: 'Gather. Build. Survive. And learn why the tide brought you here.',
+    id: 'Kumpulkan. Bangun. Bertahan. Dan cari tahu mengapa ombak membawamu ke sini.',
+  },
 };

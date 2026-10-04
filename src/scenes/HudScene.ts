@@ -15,7 +15,7 @@ import { itemIcon } from '@/ui/itemIcon';
 import { Joystick } from '@/ui/Joystick';
 import { nine } from '@/ui/skin';
 import { COLORS, FONT } from '@/ui/theme';
-import { Bar, Button } from '@/ui/widgets';
+import { Bar, Button, panel } from '@/ui/widgets';
 
 const SLOT = 34;
 const GAP = 3;
@@ -41,6 +41,11 @@ export class HudScene extends Phaser.Scene {
   private bossBar!: Bar;
   private tracker!: Phaser.GameObjects.BitmapText;
   private runButton!: Button;
+  private pickUpButton!: Button;
+  private bagButton!: Button;
+  private useButton!: Button;
+  private hint?: Phaser.GameObjects.Container;
+  private pulsing?: Phaser.Tweens.Tween;
   private lastQuests: QuestState | null = null;
 
   constructor() {
@@ -69,16 +74,17 @@ export class HudScene extends Phaser.Scene {
       this.bars.push({ bar, last: -1 });
     });
     new Button(this, W - 24, 22, 'II', () => this.openMenu(), { w: 34, h: 28 }).setDepth(6);
-    new Button(this, W - 24, 54, t('tabBag'), () => this.world.openInventory({ mode: 'bag' }), { w: 34, h: 24, font: FONT.small }).setDepth(6);
+    this.bagButton = new Button(this, W - 24, 54, t('tabBag'), () => this.world.openInventory({ mode: 'bag' }), { w: 34, h: 24, font: FONT.small }).setDepth(6);
     new Button(this, W - 26, 82, t('questShort'), () => this.world.openQuests(), { w: 44, h: 24, font: FONT.small }).setDepth(6);
     this.tracker = this.add.bitmapText(8, 86, FONT.small, '').setTint(COLORS.gold).setDepth(5).setMaxWidth(W - 90);
-    new Button(this, W - 52, H - 100, t('useAction'), () => {
+    this.useButton = new Button(this, W - 52, H - 100, t('useAction'), () => {
       controls.action = true;
     }, { w: 68, h: 68, style: 'primary' }).setDepth(6);
     const run = new Button(this, W - 52, H - 148, t('runAction'), () => {
       controls.run = !controls.run;
     }, { w: 68, h: 28, font: FONT.small }).setDepth(6);
     this.runButton = run;
+    this.pickUpButton = new Button(this, W - 52, H - 182, t('dismantle'), () => this.world.dismantle(), { w: 68, h: 28, font: FONT.small, style: 'danger' }).setDepth(6).setVisible(false);
     new Joystick(this, () => services.settings?.joystick ?? 'floating');
     this.slotLayer = this.add.container(0, 0).setDepth(7);
     this.input.on('pointerdown', this.onTap, this);
@@ -128,6 +134,31 @@ export class HudScene extends Phaser.Scene {
         this.slotLayer.add(this.add.rectangle(x + 4, y + SLOT - 5, Math.round((SLOT - 8) * ratio), 2, tool.type === 'can' ? 0x5fa8ff : 0x6bd46b).setOrigin(0, 0));
       }
     }
+  }
+
+  /**
+   * A coaching hint in a banner over the world, with the button it is about pulsing; null clears it. `onSkip` is what the
+   * "Skip tips" link does.
+   */
+  setHint(text: string | null, point: 'bag' | 'run' | 'use' | null, onSkip?: () => void): void {
+    this.hint?.destroy();
+    this.hint = undefined;
+    this.pulsing?.stop();
+    for (const b of [this.bagButton, this.runButton, this.useButton]) b.setScale(1);
+    if (!text) return;
+    const { w: W, h: H } = view;
+    const boxW = Math.min(W - 40, 320);
+    const body = this.add.bitmapText(0, 0, FONT.body, text).setTint(COLORS.text).setMaxWidth(boxW - 28);
+    const boxH = Math.round(body.height) + 54;
+    const top = Math.round(H * 0.2);
+    const bg = panel(this, 0, 0, boxW, boxH, 'ui_panel_ornate');
+    body.setPosition(14, 12);
+    const skip = this.add.bitmapText(boxW - 14, boxH - 10, FONT.small, t('tutSkip')).setOrigin(1, 1).setTint(COLORS.textDim).setInteractive({ useHandCursor: true });
+    skip.on('pointerup', () => onSkip?.());
+    this.hint = this.add.container(Math.round((W - boxW) / 2), top, [bg, body, skip]).setDepth(8).setAlpha(0);
+    this.tweens.add({ targets: this.hint, alpha: 1, y: top + 4, duration: 260, ease: 'Sine.easeOut' });
+    const target = point === 'bag' ? this.bagButton : point === 'run' ? this.runButton : point === 'use' ? this.useButton : null;
+    if (target) this.pulsing = this.tweens.add({ targets: target, scale: 1.14, duration: 480, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
 
   /** Pause dialog: the island stops while it is open. Also used for the Android back button. */
@@ -212,6 +243,7 @@ export class HudScene extends Phaser.Scene {
   update(): void {
     // The Run button glows green while running is switched on (it switches itself off when the breath runs out).
     this.runButton.text.setTint(controls.run ? 0x6bd46b : COLORS.text);
+    this.pickUpButton.setVisible(this.world.canDismantle);
     this.updateBoss();
     this.updateTracker();
     const s = this.world.session;

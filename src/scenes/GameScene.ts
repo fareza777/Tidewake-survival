@@ -11,16 +11,19 @@ import type { Recipe } from '@/data/recipes';
 import type { Station, StructureId } from '@/data/structures';
 import { FloatText } from '@/gfx/FloatText';
 import { NightLight } from '@/gfx/NightLight';
+import { ITEMS, type ItemId } from '@/data/items';
+import { burst, impactOf } from '@/gfx/Impact';
 import { TILE } from '@/gfx/TerrainLayer';
 import { DungeonLevel } from '@/game/DungeonLevel';
 import { InputReader } from '@/game/InputReader';
 import { StoryDirector } from '@/game/StoryDirector';
+import { TutorialDirector } from '@/game/TutorialDirector';
 import { HeroCombat } from '@/game/HeroCombat';
 import { IslandLevel } from '@/game/IslandLevel';
 import type { Level } from '@/game/Level';
 import { MusicDirector } from '@/game/MusicDirector';
 import { controls, resetControls } from '@/game/input';
-import { frontTile, resolveAction, type Action } from '@/sim/actions';
+import { dismantleAt, frontTile, resolveAction, type Action } from '@/sim/actions';
 import { cueForFx } from '@/sim/cues';
 import { newClock } from '@/sim/daynight';
 import { generateDungeon } from '@/sim/dungeon/generate';
@@ -89,6 +92,11 @@ export class GameScene extends BaseScene {
   /** Where the hero is heading, in tiles a second: it eases toward the stick instead of jumping. */
   private vel: Vec = { x: 0, y: 0 };
   private running = false;
+  /** True while the hero faces something he built that can be taken down (a chest, a bench, a bed...). */
+  canDismantle = false;
+  private tutorial?: TutorialDirector;
+  /** What the hero held when he used it (the stack may be gone, or changed, by the time the effect plays). */
+  private swingItem: ItemId | null = null;
   private saveTimer = 0;
   private wiped = false;
   private occupied = new Set<number>();
@@ -132,6 +140,7 @@ export class GameScene extends BaseScene {
     this.rebuildBlocking();
     this.player = new Player(this, this.pos);
     this.story = new StoryDirector(this);
+    this.tutorial = new TutorialDirector(this, data.seed !== undefined && !this.level.dungeon);
     this.combat = new HeroCombat(this);
     const start = this.level.start();
     if (start) this.combat.load(start);
@@ -217,11 +226,13 @@ export class GameScene extends BaseScene {
     this.combat.tick(dt);
     this.level.update(dt, move, this.combat.snapshot());
     this.story.update(dt);
+    this.tutorial?.update(dt);
     this.music.update(this.level.isNight(this.session), this.combat.fighting);
 
     this.cooldown = Math.max(0, this.cooldown - dt);
     const pressed = this.keys.actionPressed();
     const action = this.computeAction();
+    this.canDismantle = !this.level.dungeon && dismantleAt(this.session.structures, this.pos, this.player.facing) !== null;
     this.showCursor(action);
     // With auto-attack on, a blow follows by itself whenever one would land on something.
     const auto = services.settings?.autoAttack === true && action.kind === 'attack';
@@ -251,6 +262,12 @@ export class GameScene extends BaseScene {
     });
   }
 
+  /** The Pick up button: take down what the hero faces (a chest must be empty first). */
+  dismantle(): void {
+    const action = dismantleAt(this.session.structures, this.pos, this.player.facing);
+    if (action && !this.dead && !this.transitioning) this.perform(action);
+  }
+
   private showCursor(a: Action): void {
     const onGrid = ['place', 'till', 'plant', 'water', 'refill', 'harvest', 'open', 'drink', 'pickup', 'dig', 'fish'].includes(a.kind);
     const onThing = ['sleep', 'enter', 'leave', 'chest', 'door', 'talk', 'inspect', 'raft'].includes(a.kind);
@@ -265,9 +282,21 @@ export class GameScene extends BaseScene {
 
   private perform(action: Action): void {
     this.cooldown = action.kind === 'attack' ? action.melee.cooldown : action.kind === 'shoot' ? action.stats.cooldown : ACTION_COOLDOWN;
+    if (action.kind === 'none' && !this.transitioning && !this.dead) {
+      // Nothing to hit: a sword, spear, axe or pickaxe still swings through the air (no cost), so the hero always answers USE.
+      const held = this.session.inventory[this.session.selected]?.item ?? null;
+      const type = held ? ITEMS[held].tool?.type : undefined;
+      if (held && (type === 'sword' || type === 'spear' || type === 'axe' || type === 'pickaxe')) {
+        this.cooldown = 0.45;
+        this.player.swing(held);
+        services.audio?.sfx('swing');
+      }
+      return;
+    }
     if (action.kind === 'none' || this.transitioning) return;
     if (action.kind === 'hit') this.player.face(action.node.x + 0.5 - this.pos.x, action.node.y + 0.5 - this.pos.y);
     if (action.kind !== 'blocked') this.idle = 0;
+    this.swingItem = this.session.inventory[this.session.selected]?.item ?? null;
     this.commit(applyAction(this.session, action, this.pos));
     services.platform?.haptic('light');
   }
@@ -287,7 +316,8 @@ export class GameScene extends BaseScene {
     switch (fx.t) {
       case 'say': services.notify?.(this.sayText(fx)); break;
       case 'gain': this.showGain(`+${fx.qty} ${t(`item_${fx.item}`)}`); break;
-      case 'swing': this.player.punch(); break;
+      case 'swing': this.player.swing(this.swingItem); break;
+      case 'hit': this.chips(fx.id); break;
       case 'strike':
       case 'shot': this.combat.onFx(fx); break;
       case 'open': this.openStructure(fx.structure.type, fx.structure.id); break;
@@ -298,6 +328,15 @@ export class GameScene extends BaseScene {
       case 'theEnd': this.story.play(fx); break;
       case 'travel': this.travel(fx.to); break;
     }
+  }
+
+  /** Chips, leaves or sparks fly off the thing the tool just struck, as the blow lands. */
+  private chips(id: number): void {
+    const node = this.world.resources[id];
+    if (!node) return;
+    const at = this.player.strikePoint();
+    const kind = impactOf(node.kind);
+    this.time.delayedCall(120, () => burst(this, (node.x + 0.5) * TILE + (at.x - (node.x + 0.5) * TILE) * 0.2, (node.y + 0.6) * TILE - 6, kind, (node.y + 1) * TILE + 2));
   }
 
   /** Go through a dungeon door, either way: save, then start the scene again in the other place. */
@@ -437,6 +476,7 @@ export class GameScene extends BaseScene {
 
   /** Open the backpack, the crafting list of a station, or a chest; the island waits while it is open. */
   openInventory(opts: OpenOptions): void {
+    this.tutorial?.bagWasOpened();
     if (this.scene.isPaused()) return;
     this.scene.pause('Game');
     this.scene.launch('Inventory', { game: this, ...opts });

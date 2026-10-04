@@ -3,6 +3,7 @@ import type { StorageLike } from '@/core/save';
 /** Things that are asked or shown once per install. */
 export const FLAG_ONBOARDED = 'tidewake.onboarded';
 export const FLAG_RATE_ASKED = 'tidewake.rateAsked';
+export const FLAG_TUTORIAL = 'tidewake.tutorial';
 
 export function readFlag(storage: StorageLike | null, key: string): boolean {
   try {

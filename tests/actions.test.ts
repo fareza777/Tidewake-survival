@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ItemId } from '@/data/items';
 import { advanceDay, emptyFarm, plant, till, water } from '@/sim/farm';
-import { frontTile, resolveAction, type Action, type ActionContext, type Facing } from '@/sim/actions';
+import { dismantleAt, frontTile, resolveAction, type Action, type ActionContext, type Facing } from '@/sim/actions';
 import { addItem, emptyInventory, setDurability } from '@/sim/inventory';
 import { emptyStructures, placeStructure, setStructureInventory } from '@/sim/structures';
 import { fullVitals } from '@/sim/vitals';
@@ -61,20 +61,22 @@ describe('structures and crops come first', () => {
     }
   });
 
-  it('dismantles stations, beds and chests only while holding an axe or pickaxe', () => {
+  it('uses stations, beds and chests even with an axe or pickaxe in hand, and takes them down with the Pick up button', () => {
     for (const type of ['workbench', 'furnace', 'campfire', 'bed', 'chest'] as const) {
       const structures = placeStructure(emptyStructures(), type, 11, 10);
-      expect(kind(resolveAction(ctx({ structures, hold: 'axe_wood' })))).toBe('pickup');
-      expect(kind(resolveAction(ctx({ structures, hold: 'pickaxe_stone' })))).toBe('pickup');
-      expect(kind(resolveAction(ctx({ structures, hold: 'hoe' })))).not.toBe('pickup');
+      for (const hold of ['axe_wood', 'pickaxe_stone', 'hoe'] as const) expect(kind(resolveAction(ctx({ structures, hold })))).not.toBe('pickup');
+      expect(dismantleAt(structures, { x: 10.5, y: 10.5 }, 'right')).toMatchObject({ kind: 'pickup', structure: { type } });
     }
   });
 
-  it('refuses to dismantle a chest that still holds items', () => {
+  it('opens a chest with an axe in hand, and refuses to take down a chest that still holds items', () => {
     const full = setStructureInventory(placeStructure(emptyStructures(), 'chest', 11, 10), 1, addItem(emptyInventory(20), 'wood', 3).inv);
-    expect(resolveAction(ctx({ structures: full, hold: 'axe_wood' }))).toEqual({ kind: 'blocked', reason: 'chestNotEmpty' });
+    expect(kind(resolveAction(ctx({ structures: full, hold: 'axe_wood' })))).toBe('open');
+    expect(dismantleAt(full, { x: 10.5, y: 10.5 }, 'right')).toEqual({ kind: 'blocked', reason: 'chestNotEmpty' });
     const empty = setStructureInventory(placeStructure(emptyStructures(), 'chest', 11, 10), 1, emptyInventory(20));
-    expect(kind(resolveAction(ctx({ structures: empty, hold: 'axe_wood' })))).toBe('pickup');
+    expect(kind(resolveAction(ctx({ structures: empty, hold: 'axe_wood' })))).toBe('open');
+    expect(kind(dismantleAt(empty, { x: 10.5, y: 10.5 }, 'right')!)).toBe('pickup');
+    expect(dismantleAt(emptyStructures(), { x: 10.5, y: 10.5 }, 'right')).toBeNull();
   });
 
   it('harvests a ripe crop but not a young one', () => {

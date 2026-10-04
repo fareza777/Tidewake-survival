@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { snapWorld } from '@/core/viewport';
+import { ITEMS, type ItemId } from '@/data/items';
 import { dirFromVector, type Dir } from '@/gfx/animations';
 import { TILE } from '@/gfx/TerrainLayer';
 import { HERO_IFRAMES } from '@/sim/combat';
@@ -15,6 +16,18 @@ export interface Gait {
 }
 
 type Pose = 'idle' | 'walk' | 'run';
+/**
+ * Where the feet are inside a 64x64 attack frame, per direction (the swing frames are drawn on a bigger canvas than the
+ * 32x32 walking frames, with the crescent of the blow around the hero).
+ */
+const ATTACK_FEET: Record<Dir, readonly [number, number]> = { right: [25, 32], left: [39, 32], down: [32, 32], up: [32, 49] };
+/** Hand position of a held tool relative to the feet, per direction, and how it swings (degrees: raised back, then through). */
+const HAND: Record<Dir, { x: number; y: number; wind: number; strike: number; flip: boolean; front: boolean }> = {
+  right: { x: 5, y: -10, wind: -95, strike: 45, flip: false, front: true },
+  left: { x: -5, y: -10, wind: -95, strike: 45, flip: true, front: true },
+  down: { x: 6, y: -9, wind: -110, strike: 60, flip: false, front: true },
+  up: { x: 5, y: -12, wind: -80, strike: 40, flip: false, front: false },
+};
 /** Seconds between two puffs of dust while running. */
 const DUST_EVERY = 0.13;
 
@@ -22,7 +35,10 @@ export class Player {
   readonly sprite: Phaser.GameObjects.Sprite;
   private shadow: Phaser.GameObjects.Image;
   private dir: Dir = 'down';
-  private pose: Pose = 'idle';
+  private pose: Pose | null = 'idle';
+  private attacking = false;
+  private lunge = { x: 0, y: 0 };
+  private tool?: Phaser.GameObjects.Image;
   private dustIn = 0;
   /** Seconds left in which a blow cannot hurt him. */
   private safeFor = 0;
@@ -39,20 +55,25 @@ export class Player {
   }
 
   private animKey(): string {
-    const group = this.pose === 'idle' ? 'breath_idle' : this.pose;
+    const group = this.pose === 'idle' || this.pose === null ? 'breath_idle' : this.pose;
     return `hero${this.skin}_${group}_${this.dir}`;
   }
 
   /** Put the hero at a position given in tile units. Depth follows the feet so trees sort correctly. */
   private place(pos: Vec): void {
-    const px = snapWorld(pos.x * TILE);
-    const py = snapWorld(pos.y * TILE);
+    const px = snapWorld(pos.x * TILE + this.lunge.x);
+    const py = snapWorld(pos.y * TILE + this.lunge.y);
     this.sprite.setPosition(px, py).setDepth(py);
     this.shadow.setPosition(px, py - 1).setDepth(py - 1);
   }
 
   /** Move to `pos`, facing along the stick and animating at the pace he really moves (slow steps when he eases in or out). */
   update(pos: Vec, move: Vec, gait: Gait, dt: number): void {
+    if (this.attacking) {
+      // Mid-swing the blow's own frames play; he only follows the ground.
+      this.place(pos);
+      return;
+    }
     const pose: Pose = gait.pace < 0.12 ? 'idle' : gait.running ? 'run' : 'walk';
     const dir = dirFromVector(move.x, move.y, this.dir);
     if (pose !== this.pose || dir !== this.dir) {
@@ -83,8 +104,90 @@ export class Player {
     });
   }
 
+  /**
+   * The hero uses what he holds. A sword or spear plays the swing with its white crescent, a bow the draw, and a tool
+   * (axe, pickaxe, hoe...) shows in his hand and chops through; with nothing in hand he just jabs.
+   */
+  swing(item: ItemId | null): void {
+    const type = item ? ITEMS[item].tool?.type : undefined;
+    if (item && (type === 'sword' || type === 'spear')) this.slash();
+    else if (item && type && type !== 'bow') this.swingTool(item);
+    else this.punch();
+  }
+
+  /** The sword blow: the wind-up, the cut with the crescent of light, and the follow-through, with a small lunge forward. */
+  private slash(): void {
+    const key = `hero${this.skin}_attack_${this.dir}`;
+    if (!this.scene.anims.exists(key)) {
+      this.punch();
+      return;
+    }
+    const [fx, fy] = ATTACK_FEET[this.dir];
+    this.attacking = true;
+    this.sprite.setOrigin(fx / 64, fy / 64);
+    this.sprite.play(key, true);
+    this.sprite.anims.timeScale = 1.55;
+    const vec = this.dir === 'left' ? [-1, 0] : this.dir === 'right' ? [1, 0] : this.dir === 'up' ? [0, -1] : [0, 1];
+    this.scene.tweens.killTweensOf(this.lunge);
+    this.lunge.x = 0;
+    this.lunge.y = 0;
+    this.scene.tweens.add({ targets: this.lunge, x: vec[0] * 3, y: vec[1] * 3, duration: 90, yoyo: true, ease: 'Quad.easeOut' });
+    this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.endAttack());
+  }
+
+  private endAttack(): void {
+    this.attacking = false;
+    this.sprite.setOrigin(0.5, FEET_Y);
+    this.sprite.anims.timeScale = 1;
+    this.pose = null;
+    this.lunge.x = 0;
+    this.lunge.y = 0;
+    this.sprite.play(this.animKey(), true);
+  }
+
+  /** The tool appears in his hand, is raised behind the shoulder and brought down through the target. */
+  private swingTool(item: ItemId): void {
+    const icon = ITEMS[item].icon;
+    const hand = HAND[this.dir];
+    this.tool?.destroy();
+    const img = this.scene.add.image(this.sprite.x + hand.x, this.sprite.y + hand.y, icon.atlas, icon.frame)
+      .setOrigin(0.14, 0.86).setFlipX(hand.flip).setScale(0.95)
+      .setDepth(this.sprite.depth + (hand.front ? 0.5 : -0.5));
+    const sign = hand.flip ? -1 : 1;
+    img.setAngle(sign * hand.wind * 0.6);
+    this.tool = img;
+    this.scene.tweens.add({ targets: img, angle: sign * hand.wind, duration: 70, ease: 'Quad.easeOut' });
+    this.scene.tweens.add({
+      targets: img, angle: sign * hand.strike, duration: 80, delay: 70, ease: 'Cubic.easeIn',
+      onComplete: () => {
+        this.scene.tweens.add({
+          targets: img, alpha: 0, duration: 120, delay: 90,
+          onComplete: () => {
+            img.destroy();
+            if (this.tool === img) this.tool = undefined;
+          },
+        });
+      },
+    });
+    // The body leans into the blow.
+    const push = this.dir === 'left' ? [-2, 0] : this.dir === 'right' ? [2, 0] : this.dir === 'up' ? [0, -2] : [0, 2];
+    this.scene.tweens.killTweensOf(this.lunge);
+    this.lunge.x = 0;
+    this.lunge.y = 0;
+    this.scene.tweens.add({ targets: this.lunge, x: push[0], y: push[1], duration: 80, delay: 70, yoyo: true, ease: 'Quad.easeOut' });
+    this.punch();
+  }
+
+  /** Where the held tool lands when it strikes (world pixels), for the chips that fly off. */
+  strikePoint(): { x: number; y: number } {
+    const hand = HAND[this.dir];
+    const reach = this.dir === 'left' ? -9 : this.dir === 'right' ? 9 : 0;
+    return { x: this.sprite.x + hand.x + reach, y: this.sprite.y + (this.dir === 'down' ? 2 : this.dir === 'up' ? -16 : -6) };
+  }
+
   /** Turn toward (dx, dy) without moving (used to face the thing being hit). */
   face(dx: number, dy: number): void {
+    if (this.attacking) return;
     this.dir = dirFromVector(dx, dy, this.dir);
     this.pose = 'idle';
     this.sprite.play(this.animKey(), true);

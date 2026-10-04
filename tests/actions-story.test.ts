@@ -87,10 +87,10 @@ describe('fishing', () => {
 });
 
 describe('the raft and the lighthouse door', () => {
-  it('uses a placed raft instead of picking it up, unless an axe is held', () => {
+  it('uses a placed raft, even with an axe in hand', () => {
     const structures = placeStructure(emptyStructures(), 'raft', 11, 10);
     expect(resolveAction(ctx({ structures })).kind).toBe('raft');
-    expect(resolveAction(ctx({ structures, give: [['axe_wood', 1]] })).kind).toBe('pickup');
+    expect(resolveAction(ctx({ structures, give: [['axe_wood', 1]] })).kind).toBe('raft');
   });
 
   it('keeps the lighthouse door shut without the key, and opens it with it', () => {
