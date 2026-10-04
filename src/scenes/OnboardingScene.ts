@@ -8,6 +8,7 @@ import { commitSettings } from '@/core/settingsApply';
 import { browserStorage } from '@/core/storage';
 import type { ItemId } from '@/data/items';
 import { itemIcon } from '@/ui/itemIcon';
+import { nightBackdrop } from '@/ui/backdrop';
 import { COLORS, FONT } from '@/ui/theme';
 import { Button, label, panel, para } from '@/ui/widgets';
 
@@ -30,6 +31,7 @@ export class OnboardingScene extends BaseScene {
     this.transitioning = false;
     this.step = -1;
     this.cameras.main.setBackgroundColor(COLORS.bg0);
+    nightBackdrop(this);
     this.fadeIn(300);
     this.ui = this.add.container(0, 0);
     this.handleBack(() => {

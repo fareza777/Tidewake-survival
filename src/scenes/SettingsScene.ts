@@ -5,6 +5,7 @@ import { services } from '@/core/services';
 import { defaultSettings, type Settings } from '@/core/settings';
 import { commitSettings } from '@/core/settingsApply';
 import { SLOT_COUNT } from '@/core/save';
+import { nightBackdrop } from '@/ui/backdrop';
 import { COLORS, FONT } from '@/ui/theme';
 import { Button, label, panel, shrinkToFit, toast } from '@/ui/widgets';
 import { confirm, showModal } from '@/ui/modal';
@@ -35,6 +36,7 @@ export class SettingsScene extends BaseScene {
     this.startLang = this.cur.lang;
     this.transitioning = false;
     this.cameras.main.setBackgroundColor(COLORS.bg0);
+    nightBackdrop(this);
     this.ui = this.add.container(0, 0);
     this.handleBack(() => {
       this.close();
@@ -78,7 +80,7 @@ export class SettingsScene extends BaseScene {
     const s = this.cur;
     // (blocks taps from reaching the game's own buttons underneath)
     this.ui.add(this.add.rectangle(0, 0, W, H, COLORS.bg0, 1).setOrigin(0, 0).setInteractive());
-    this.ui.add(panel(this, 6, 6, W - 12, H - 12, 'ui_panel_dark'));
+    this.ui.add(panel(this, 6, 6, W - 12, H - 12, 'ui_panel_dark').setAlpha(0.9));
     this.ui.add(label(this, 16, 14, t('setTitle'), FONT.head, COLORS.gold));
     const top = 46;
     const rowH = Math.min(34, Math.floor((H - top - 56) / 11));

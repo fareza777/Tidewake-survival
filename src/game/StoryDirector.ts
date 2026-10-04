@@ -4,8 +4,9 @@ import { browserStorage } from '@/core/storage';
 import { services } from '@/core/services';
 import type { CreatureId } from '@/data/creatures';
 import { ENDING_A, ENDING_B, LIGHTHOUSE_SECRET } from '@/data/lore';
+import { NPCS, NPC_IDS } from '@/data/npcs';
 import { QUESTS } from '@/data/quests';
-import type { DialogueChoice } from '@/scenes/DialogueScene';
+import type { DialogueChoice, Portrait } from '@/scenes/DialogueScene';
 import type { GameScene } from '@/scenes/GameScene';
 import type { Fx, Step } from '@/sim/session';
 import { chooseEnding, claimOwed, dawn, reached, recordKill } from '@/sim/session';
@@ -52,15 +53,17 @@ export class StoryDirector {
     }
   }
 
-  private open(speaker: string | null, text: readonly string[], choices?: readonly DialogueChoice[]): void {
+  private open(speaker: string | null, text: readonly string[], choices?: readonly DialogueChoice[], portrait?: Portrait): void {
     const g = this.game;
     if (g.scene.isPaused() || g.scene.isActive('Dialogue')) return;
     g.scene.pause('Game');
-    g.scene.launch('Dialogue', { speaker, lines: text, choices });
+    g.scene.launch('Dialogue', { speaker, lines: text, choices, portrait });
   }
 
   private say(fx: Dialog): void {
-    this.open(fx.speaker ? tr(fx.speaker) : null, lines(fx.lines));
+    const npc = NPC_IDS.find((id) => NPCS[id].name === fx.speaker);
+    const portrait = npc ? { atlas: 'actors', frame: `${NPCS[npc].sprite}/walk/down/0` } : undefined;
+    this.open(fx.speaker ? tr(fx.speaker) : null, lines(fx.lines), undefined, portrait);
   }
 
   /** Run something after a dialogue has closed and the island has woken again (a new dialogue may follow it). */

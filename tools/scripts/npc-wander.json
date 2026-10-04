@@ -1,0 +1,74 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "store-1-menu"
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('NewGame'); s.name = 'Ari'; s.render(); return 1; })()"
+ },
+ {
+  "shot": "store-2-new-game"
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const p = g.level.places.find(p => p.id === 'tali'); g.pos = { x: p.x + 0.5, y: p.y + 3.5 }; return 1; })()"
+ },
+ {
+  "wait": 3000
+ },
+ {
+  "eval": "__game.scene.getScene('Game').level.places.map(p => p.id + '@' + p.x + ',' + p.y).join(' ')"
+ },
+ {
+  "shot": "npc-a"
+ },
+ {
+  "wait": 4000
+ },
+ {
+  "eval": "__game.scene.getScene('Game').level.places.map(p => p.id + '@' + p.x + ',' + p.y).join(' ')"
+ },
+ {
+  "wait": 4000
+ },
+ {
+  "eval": "__game.scene.getScene('Game').level.places.map(p => p.id + '@' + p.x + ',' + p.y).join(' ')"
+ },
+ {
+  "shot": "npc-b"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

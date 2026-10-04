@@ -7,6 +7,7 @@ import { Rng, seedToCode } from '@/core/rng';
 import { SLOT_COUNT } from '@/core/save';
 import { services } from '@/core/services';
 import type { Difficulty } from '@/sim/vitals';
+import { nightBackdrop } from '@/ui/backdrop';
 import { COLORS, FONT } from '@/ui/theme';
 import { Button, label, panel, para } from '@/ui/widgets';
 import { confirm } from '@/ui/modal';
@@ -32,6 +33,7 @@ export class NewGameScene extends BaseScene {
     this.seedText = '';
     this.difficulty = 'normal';
     this.cameras.main.setBackgroundColor(COLORS.bg0);
+    nightBackdrop(this);
     this.fadeIn(250);
     this.ui = this.add.container(0, 0);
     this.handleBack(() => {
@@ -67,9 +69,10 @@ export class NewGameScene extends BaseScene {
     this.ui.removeAll(true);
     const { W, H } = this;
     const bw = Math.min(W - 40, 280);
-    this.ui.add(panel(this, 6, 6, W - 12, H - 12, 'ui_panel_dark'));
-    this.ui.add(label(this, W / 2, 24, t('ngTitle'), FONT.head, COLORS.gold, 0.5, 0.5));
-    let y = 48;
+    this.ui.add(panel(this, 6, 6, W - 12, H - 12, 'ui_panel_dark').setAlpha(0.9));
+    this.ui.add(label(this, W / 2, 26, t('ngTitle'), FONT.head, COLORS.gold, 0.5, 0.5));
+    this.ui.add(new Button(this, 44, 26, t('back'), () => this.goTo('Menu'), { w: 64, h: 24, font: FONT.small, style: 'ghost' }));
+    let y = Math.max(52, Math.round((H - 400) / 2));
     this.ui.add(label(this, 18, y, t('ngSlot'), FONT.small, COLORS.textDim));
     y += 14;
     const list = services.saves?.list() ?? [];
@@ -105,7 +108,8 @@ export class NewGameScene extends BaseScene {
     });
     y += 34;
     this.ui.add(para(this, 18, y, t(`diffDesc_${this.difficulty}`), W - 36, FONT.small, COLORS.textDim));
-    this.ui.add(new Button(this, W / 2 + 56, H - 30, t('ngStart'), () => this.start(), { w: 120, h: 30, style: 'primary' }));
-    this.ui.add(new Button(this, W / 2 - 56, H - 30, t('back'), () => this.goTo('Menu'), { w: 100, h: 30 }));
+    // The big Start button sits right under the choices, where the thumb already is, never on the bottom edge of the screen.
+    const startY = Math.min(H - 64, y + 70);
+    this.ui.add(new Button(this, W / 2, startY, t('ngStart'), () => this.start(), { w: bw, h: 40, style: 'primary' }));
   }
 }

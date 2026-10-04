@@ -44,7 +44,7 @@ export function setTextScale(k: number): void {
 export function fontSize(key: string, res: number): number {
   const hi = res > 1;
   const sizes: Record<string, number> = hi
-    ? { body: 16, bodyplain: 16, head: 18, title: 22, small: 12, smallplain: 12 }
+    ? { body: 18, bodyplain: 18, head: 20, title: 22, small: 14, smallplain: 14 }
     : { body: 15, bodyplain: 15, head: 20, title: 20, small: 8, smallplain: 8 };
   const size = sizes[key] ?? sizes.body;
   const scalable = key === 'body' || key === 'bodyplain' || key === 'small' || key === 'smallplain';
@@ -121,7 +121,7 @@ const ornatePainter: Painter = (ctx, w, h) => {
 };
 
 /** Soft gradients are filtered linearly so they stay smooth when stretched (pixel art stays NEAREST). */
-const SMOOTH_TEXTURES = ['fx_light', 'fx_edge', 'fx_vignette'];
+const SMOOTH_TEXTURES = ['fx_light', 'fx_edge', 'fx_vignette', 'fx_shadow_soft'];
 
 export function createUiTextures(scene: Phaser.Scene): void {
   makeTexture(scene, 'ui_panel', 16, 16, panelPainter(COLORS.panel, COLORS.border, COLORS.borderLight));
@@ -183,6 +183,21 @@ export function createUiTextures(scene: Phaser.Scene): void {
     ctx.beginPath();
     ctx.ellipse(8, 3, 7, 2.5, 0, 0, Math.PI * 2);
     ctx.fill();
+  });
+  // A soft, feathered ground shadow for trees and rocks (smoothly scaled, so it never shows square pixels).
+  makeTexture(scene, 'fx_shadow_soft', 64, 24, (ctx, w) => {
+    ctx.save();
+    ctx.translate(w / 2, 12);
+    ctx.scale(1, 12 / 30);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 30);
+    g.addColorStop(0, 'rgba(8,10,20,0.5)');
+    g.addColorStop(0.6, 'rgba(8,10,20,0.28)');
+    g.addColorStop(1, 'rgba(8,10,20,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(0, 0, 30, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   });
   // White screen-edge glow: tint it (e.g. red when hurt). fx_vignette is black and would stay black when tinted.
   makeTexture(scene, 'fx_edge', 64, 64, (ctx, w) => {

@@ -1,0 +1,66 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Settings', {back:'Menu'}), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Settings')",
+  "timeout": 10000
+ },
+ {
+  "wait": 700
+ },
+ {
+  "shot": "more-settings"
+ },
+ {
+  "eval": "__game.scene.getScene('Settings').goTo('Menu'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Menu')",
+  "timeout": 10000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot:0, seed:1234}), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "eval": "__game.scene.getScene('Hud').openMenu(), 1"
+ },
+ {
+  "wait": 600
+ },
+ {
+  "shot": "more-pause"
+ },
+ {
+  "eval": "__game.scene.getScene('Hud').scene.get('Hud'); 1"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

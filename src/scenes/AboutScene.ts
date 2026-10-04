@@ -3,6 +3,7 @@ import { GAME_VERSION } from './MenuScene';
 import { t } from '@/core/i18n';
 import { CONTACT_EMAIL, PRIVACY_URL } from '@/core/config';
 import { services } from '@/core/services';
+import { nightBackdrop } from '@/ui/backdrop';
 import { COLORS, FONT } from '@/ui/theme';
 import { Button, label, panel, para } from '@/ui/widgets';
 
@@ -17,7 +18,8 @@ export class AboutScene extends BaseScene {
     this.cameras.main.setBackgroundColor(COLORS.bg0);
     this.fadeIn(250);
     const { W, H } = this;
-    this.add.existing(panel(this, 6, 6, W - 12, H - 12, 'ui_panel_dark'));
+    nightBackdrop(this);
+    this.add.existing(panel(this, 6, 6, W - 12, H - 12, 'ui_panel_dark').setAlpha(0.9));
     label(this, W / 2, 24, t('aboutTitle'), FONT.head, COLORS.gold, 0.5, 0.5);
     label(this, W / 2, 46, t('version', { v: GAME_VERSION }), FONT.small, COLORS.textDim, 0.5, 0.5);
     para(this, 20, 70, t('aboutCredits'), W - 40, FONT.body, COLORS.text);

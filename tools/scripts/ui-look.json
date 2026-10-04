@@ -1,0 +1,79 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Onboarding')",
+  "timeout": 20000
+ },
+ {
+  "wait": 900
+ },
+ {
+  "shot": "ui-0-onboarding"
+ },
+ {
+  "eval": "__game.scene.getScene('Onboarding').chooseLanguage('en'), __game.scene.getScene('Onboarding').finish(), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Menu')",
+  "timeout": 10000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "ui-1-menu"
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "shot": "ui-2-newgame"
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('NewGame'); s.name='Ari'; s.seedText='1234'; s.begin(); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Intro')",
+  "timeout": 10000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "ui-3-intro"
+ },
+ {
+  "eval": "__game.scene.getScene('Intro').finish(), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "ui-4-game"
+ },
+ {
+  "eval": "__game.scene.getScene('Hud').openPause ? 1 : 0"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

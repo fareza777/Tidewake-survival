@@ -8,12 +8,14 @@ export class InputReader {
   private wasd?: Record<'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
   private actionKeys: Phaser.Input.Keyboard.Key[] = [];
   private digitKeys: Phaser.Input.Keyboard.Key[] = [];
+  private shift?: Phaser.Input.Keyboard.Key;
 
   constructor(scene: Phaser.Scene) {
     const kb = scene.input.keyboard;
     if (!kb) return;
     this.cursors = kb.createCursorKeys();
     this.wasd = kb.addKeys({ w: 'W', a: 'A', s: 'S', d: 'D' }) as Record<'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
+    this.shift = kb.addKey('SHIFT');
     this.actionKeys = [kb.addKey('SPACE'), kb.addKey('E')];
     this.digitKeys = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT'].map((k) => kb.addKey(k));
   }
@@ -30,6 +32,11 @@ export class InputReader {
     }
     const len = Math.hypot(x, y);
     return len > 1 ? { x: x / len, y: y / len } : { x, y };
+  }
+
+  /** Run is wanted: the on-screen toggle is on, or Shift is held. */
+  running(): boolean {
+    return controls.run || this.shift?.isDown === true;
   }
 
   /** True once per press of ACTION (the key or the on-screen button). */

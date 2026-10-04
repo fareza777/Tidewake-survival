@@ -23,6 +23,10 @@ export const REGEN_RATE = 0.4;
 export const REGEN_THRESHOLD = 40;
 export const STAMINA_REGEN = 10;
 export const STAMINA_REGEN_BUSY = 2;
+/** Stamina a second that running costs (nothing recovers meanwhile), how much is needed to break into a run, and how fast it is. */
+export const RUN_DRAIN = 9;
+export const RUN_START = 12;
+export const RUN_SPEED = 1.6;
 /** Thirst multiplier in the desert. */
 export const DESERT_THIRST = 1.6;
 
@@ -34,6 +38,8 @@ export interface VitalsContext {
   biome: Biome;
   /** True when the hero acted (swung a tool, etc.) in the last moment, which slows stamina recovery. */
   busy: boolean;
+  /** True while the hero runs: stamina drains instead of recovering. */
+  running?: boolean;
 }
 
 const clamp = (v: number): number => Math.min(VITAL_MAX, Math.max(0, v));
@@ -47,7 +53,7 @@ export function tickVitals(v: Vitals, dt: number, ctx: VitalsContext): Vitals {
   const empty = (hunger <= 0 ? 1 : 0) + (thirst <= 0 ? 1 : 0);
   if (empty > 0) hp -= STARVE_DAMAGE * drain * empty * dt;
   else if (hp > 0 && hunger >= REGEN_THRESHOLD && thirst >= REGEN_THRESHOLD) hp += REGEN_RATE * dt;
-  const stamina = v.stamina + (ctx.busy ? STAMINA_REGEN_BUSY : STAMINA_REGEN) * dt;
+  const stamina = v.stamina + (ctx.running ? -RUN_DRAIN : ctx.busy ? STAMINA_REGEN_BUSY : STAMINA_REGEN) * dt;
   return { hp: clamp(hp), hunger, thirst, stamina: clamp(stamina) };
 }
 

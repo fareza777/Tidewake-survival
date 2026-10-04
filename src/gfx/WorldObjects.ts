@@ -2,14 +2,20 @@ import Phaser from 'phaser';
 import { LANDMARK_PROPS } from '@/data/landmarkProps';
 import { resourceFrame } from '@/data/resources';
 import { TILE } from '@/gfx/TerrainLayer';
-import type { World } from '@/sim/world/types';
+import type { ResourceKind, World } from '@/sim/world/types';
 
 /**
  * Sprites for every resource node and landmark prop. Objects are y-sorted by their base line (depth = world y of the
  * feet), so the player walks behind trees that are further south. Phaser culls the ones off screen.
  */
+/** Width (world pixels) of the soft ground shadow under each kind of node. */
+const SHADOW_WIDTH: Record<ResourceKind, number> = {
+  tree: 46, palm: 30, bush: 26, rock: 28, ore: 28, crystal: 24, swamptree: 46, redrock: 26,
+};
+
 export class WorldObjects {
   private sprites = new Map<number, Phaser.GameObjects.Image>();
+  private shadows = new Map<number, Phaser.GameObjects.Image>();
 
   constructor(private scene: Phaser.Scene, world: World) {
     for (const n of world.resources) {
@@ -17,6 +23,8 @@ export class WorldObjects {
       const y = (n.y + 1) * TILE - 1;
       const img = scene.add.image(x, y, 'props', resourceFrame(n.kind, n.variant)).setOrigin(0.5, 1).setDepth(y);
       this.sprites.set(n.id, img);
+      const w = SHADOW_WIDTH[n.kind];
+      this.shadows.set(n.id, scene.add.image(x, y - 1, 'fx_shadow_soft').setDisplaySize(w, w * 0.38).setDepth(-70));
     }
     for (const l of world.landmarks) {
       for (const p of LANDMARK_PROPS[l.id]) {
@@ -32,8 +40,10 @@ export class WorldObjects {
   setAlive(id: number, alive: boolean, animate = true): void {
     const s = this.sprites.get(id);
     if (!s) return;
+    const shadow = this.shadows.get(id);
     this.scene.tweens.killTweensOf(s);
     s.setAngle(0);
+    shadow?.setVisible(alive);
     if (alive) {
       s.setVisible(true).setAlpha(1).setScale(1);
       return;

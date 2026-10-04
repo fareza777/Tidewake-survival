@@ -22,7 +22,7 @@ export interface NpcPlace {
   y: number;
 }
 
-const GROUND: ReadonlySet<number> = new Set([T.SAND, T.GRASS, T.DIRT, T.STONE, T.DESERT, T.SWAMP]);
+export const GROUND: ReadonlySet<number> = new Set([T.SAND, T.GRASS, T.DIRT, T.STONE, T.DESERT, T.SWAMP]);
 const dist = (ax: number, ay: number, bx: number, by: number): number => Math.hypot(ax - bx, ay - by);
 
 /** Tiles where nothing may be put: scenery, trees and rocks. */

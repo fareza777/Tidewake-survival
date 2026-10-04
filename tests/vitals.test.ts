@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DESERT_THIRST, HUNGER_RATE, STARVE_DAMAGE, THIRST_RATE, VITAL_MAX, eat, fullVitals, isDead, sleepRecovery, spendStamina,
+  DESERT_THIRST, HUNGER_RATE, RUN_DRAIN, RUN_SPEED, RUN_START, STARVE_DAMAGE, THIRST_RATE, VITAL_MAX, eat, fullVitals, isDead, sleepRecovery, spendStamina,
   takeDamage, tickVitals, wouldWaste, type VitalsContext, type Vitals,
 } from '@/sim/vitals';
 import { B } from '@/sim/world/types';
@@ -105,5 +105,23 @@ describe('eating, stamina and sleep', () => {
     const out = sleepRecovery(v({ hp: 30, hunger: 60, thirst: 60, stamina: 5 }));
     expect(out).toEqual({ hp: 70, hunger: 45, thirst: 45, stamina: VITAL_MAX });
     expect(sleepRecovery(v({ hunger: 5, thirst: 5 }))).toMatchObject({ hunger: 0, thirst: 0 });
+  });
+});
+
+describe('running', () => {
+  it('drains stamina and recovers none while it lasts, and a hero who stops recovers again', () => {
+    const running = tickVitals(v({ stamina: 50 }), 2, ctx({ running: true }));
+    expect(running.stamina).toBeCloseTo(50 - RUN_DRAIN * 2);
+    expect(tickVitals(v({ stamina: 50 }), 2, ctx()).stamina).toBeGreaterThan(50);
+  });
+
+  it('never takes stamina below zero', () => {
+    expect(tickVitals(v({ stamina: 3 }), 5, ctx({ running: true })).stamina).toBe(0);
+  });
+
+  it('is clearly faster than walking but needs a little breath to start', () => {
+    expect(RUN_SPEED).toBeGreaterThan(1.3);
+    expect(RUN_START).toBeGreaterThan(0);
+    expect(RUN_START).toBeLessThan(VITAL_MAX / 2);
   });
 });

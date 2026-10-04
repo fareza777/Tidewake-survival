@@ -95,12 +95,12 @@ export function sessionToSlot(base: SaveSlot, s: Session, pos: Vec): SaveSlot {
 }
 
 /** Advance time: the clock runs and the vital meters drain or recover. */
-export function tickSession(s: Session, dt: number, biome: Biome, busy: boolean): Session {
+export function tickSession(s: Session, dt: number, biome: Biome, busy: boolean, running = false): Session {
   return {
     ...s,
     clock: advance(s.clock, dt),
     playTime: s.playTime + dt,
-    vitals: tickVitals(s.vitals, dt, { difficulty: s.difficulty, biome, busy }),
+    vitals: tickVitals(s.vitals, dt, { difficulty: s.difficulty, biome, busy, running }),
   };
 }
 

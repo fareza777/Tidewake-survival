@@ -40,6 +40,7 @@ export class HudScene extends Phaser.Scene {
   private bossName!: Phaser.GameObjects.BitmapText;
   private bossBar!: Bar;
   private tracker!: Phaser.GameObjects.BitmapText;
+  private runButton!: Button;
   private lastQuests: QuestState | null = null;
 
   constructor() {
@@ -74,6 +75,10 @@ export class HudScene extends Phaser.Scene {
     new Button(this, W - 52, H - 100, t('useAction'), () => {
       controls.action = true;
     }, { w: 68, h: 68, style: 'primary' }).setDepth(6);
+    const run = new Button(this, W - 52, H - 148, t('runAction'), () => {
+      controls.run = !controls.run;
+    }, { w: 68, h: 28, font: FONT.small }).setDepth(6);
+    this.runButton = run;
     new Joystick(this, () => services.settings?.joystick ?? 'floating');
     this.slotLayer = this.add.container(0, 0).setDepth(7);
     this.input.on('pointerdown', this.onTap, this);
@@ -205,6 +210,8 @@ export class HudScene extends Phaser.Scene {
   }
 
   update(): void {
+    // The Run button glows green while running is switched on (it switches itself off when the breath runs out).
+    this.runButton.text.setTint(controls.run ? 0x6bd46b : COLORS.text);
     this.updateBoss();
     this.updateTracker();
     const s = this.world.session;

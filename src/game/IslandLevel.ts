@@ -1,6 +1,7 @@
 import type { Station } from '@/data/structures';
 import type { Level, LevelView, Lit } from '@/game/Level';
 import { FarmLayer } from '@/gfx/FarmLayer';
+import { Rng } from '@/core/rng';
 import { StoryLayer } from '@/gfx/StoryLayer';
 import { StructureLayer } from '@/gfx/StructureLayer';
 import { TerrainLayer } from '@/gfx/TerrainLayer';
@@ -17,6 +18,7 @@ import { blocksRegrowth, rollDay, type Fx, type Session } from '@/sim/session';
 import { blockingTiles, nodesByTile, propSolidTiles, type Blocking } from '@/sim/solids';
 import { nearbyStations } from '@/sim/structures';
 import { npcAt, npcPlaces, spotAt, spotsOf, visibleSpots, type NpcPlace, type Spot } from '@/sim/world/spots';
+import { wanderStep } from '@/sim/world/wander';
 import { idx, type ResourceKind, type ResourceNode, type World } from '@/sim/world/types';
 
 /** How far the hero reaches for trees, rocks and bushes, and how close he may stand to a node that would grow back (tiles). */
@@ -35,7 +37,13 @@ export class IslandLevel implements Level {
   private structureLayer: StructureLayer;
   private farmLayer: FarmLayer;
   private storyLayer: StoryLayer;
+  /** Where each islander stands now; they stroll a step or two around `homes`. */
   private places: NpcPlace[];
+  private homes: NpcPlace[];
+  private nextStep: number[];
+  private rng: Rng;
+  private hero: Vec = { x: 0, y: 0 };
+  private session: Session;
   private finds: Spot[];
 
   constructor(scene: GameScene, readonly world: World, session: Session) {
@@ -46,7 +54,11 @@ export class IslandLevel implements Level {
     for (const n of world.resources) if (!isAlive(session.gather, n.id)) this.objects.setAlive(n.id, false, false);
     this.structureLayer = new StructureLayer(scene, session.structures);
     this.farmLayer = new FarmLayer(scene, session.farm);
-    this.places = npcPlaces(world);
+    this.homes = npcPlaces(world);
+    this.places = this.homes.map((p) => ({ ...p }));
+    this.rng = new Rng(world.seed).fork('islanders');
+    this.nextStep = this.places.map(() => this.rng.float(1, 5));
+    this.session = session;
     this.finds = spotsOf(world);
     this.storyLayer = new StoryLayer(scene, this.places, this.finds);
   }
@@ -71,6 +83,8 @@ export class IslandLevel implements Level {
   }
 
   view(session: Session, hero: Vec, front: { x: number; y: number }): LevelView {
+    this.hero = hero;
+    this.session = session;
     this.storyLayer.sync(this.finds, session.quests);
     return {
       npc: npcAt(this.places, front.x, front.y), spot: spotAt(visibleSpots(this.finds, session.quests), front, hero),
@@ -110,8 +124,24 @@ export class IslandLevel implements Level {
     // Nothing on the island reacts to what happens among the creatures.
   }
 
-  update(): void {
-    // The island has no moving parts of its own.
+  /** The islanders stroll about now and then, and glance at the hero when he is near. */
+  update(dt: number): void {
+    this.places.forEach((p, i) => {
+      this.nextStep[i] -= dt;
+      if (this.nextStep[i] > 0) return;
+      this.nextStep[i] = this.rng.float(2.5, 7);
+      const near = Math.hypot(p.x + 0.5 - this.hero.x, p.y + 0.5 - this.hero.y) < 4;
+      if (near && this.rng.chance(0.5)) {
+        this.storyLayer.look(p.id, this.hero.x, this.hero.y);
+        return;
+      }
+      const taken = blockingTiles(this.world, this.propTiles, this.session).occupied;
+      for (const s of this.finds) taken.add(idx(s.x, s.y, this.world.size));
+      const to = wanderStep(this.world, taken, this.places, this.homes, i, this.hero, this.rng);
+      if (!to) return;
+      this.places[i] = { id: p.id, x: to.x, y: to.y };
+      this.storyLayer.walk(p.id, to.x, to.y);
+    });
   }
 
   /** Nodes that were gone may grow back (those next to the hero wait for tomorrow), and watered crops grow. */

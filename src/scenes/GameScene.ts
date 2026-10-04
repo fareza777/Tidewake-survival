@@ -19,7 +19,7 @@ import { HeroCombat } from '@/game/HeroCombat';
 import { IslandLevel } from '@/game/IslandLevel';
 import type { Level } from '@/game/Level';
 import { MusicDirector } from '@/game/MusicDirector';
-import { resetControls } from '@/game/input';
+import { controls, resetControls } from '@/game/input';
 import { frontTile, resolveAction, type Action } from '@/sim/actions';
 import { cueForFx } from '@/sim/cues';
 import { newClock } from '@/sim/daynight';
@@ -33,13 +33,16 @@ import {
   applyAction, collapse, craftRecipe, story, equipArmor, moveInventorySlot, selectSlot, sessionFromSlot, sessionToSlot, takeOffArmor, tickSession,
   transferStack, type Fx, type Session, type Step,
 } from '@/sim/session';
-import { isDead, type Difficulty } from '@/sim/vitals';
+import { RUN_SPEED, RUN_START, isDead, type Difficulty } from '@/sim/vitals';
 import { GENERATOR_VERSION, generateWorld } from '@/sim/world/generate';
 import { idx, type Biome, type World } from '@/sim/world/types';
 import { COLORS } from '@/ui/theme';
 
 /** Walking speed in tiles per second, and the pause between uses (seconds). */
 const PLAYER_SPEED = 3.4;
+/** How quickly the hero gets up to speed and comes to rest (per second): a short ease instead of an instant start and stop. */
+const ACCELERATE = 13;
+const BRAKE = 17;
 const ACTION_COOLDOWN = 0.35;
 const AUTOSAVE_SECONDS = 15;
 const MAX_STEP = 0.05;
@@ -83,11 +86,16 @@ export class GameScene extends BaseScene {
   private lastDay = 1;
   private cooldown = 0;
   private idle = 99;
+  /** Where the hero is heading, in tiles a second: it eases toward the stick instead of jumping. */
+  private vel: Vec = { x: 0, y: 0 };
+  private running = false;
   private saveTimer = 0;
   private wiped = false;
   private occupied = new Set<number>();
   private night!: NightLight;
   private cursor!: Phaser.GameObjects.Rectangle;
+  /** A soft glowing ring on the ground for things you talk to or look at (a square would cut through the character). */
+  private ring!: Phaser.GameObjects.Ellipse;
   private keys!: InputReader;
   private music = new MusicDirector();
 
@@ -130,6 +138,8 @@ export class GameScene extends BaseScene {
     this.music = new MusicDirector();
     this.float = new FloatText(this);
     this.cursor = this.add.rectangle(0, 0, TILE, TILE).setOrigin(0, 0).setStrokeStyle(1, 0xffffff, 0.9).setFillStyle(0xffffff, 0.12).setDepth(80000).setVisible(false);
+    this.ring = this.add.ellipse(0, 0, TILE * 1.05, TILE * 0.6).setStrokeStyle(1, 0xffe9a8, 0.95).setFillStyle(0xffe9a8, 0.18).setDepth(-50).setVisible(false);
+    this.tweens.add({ targets: this.ring, scaleX: 1.18, scaleY: 1.18, alpha: 0.55, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
     this.setupCamera();
     this.night = new NightLight(this, this.cameras.main);
@@ -176,7 +186,14 @@ export class GameScene extends BaseScene {
     }
     const dt = Math.min(delta / 1000, MAX_STEP);
     this.idle += dt;
-    this.session = tickSession(this.session, dt, this.biomeAt(), this.idle < BUSY_SECONDS);
+    const move = this.keys.move();
+    const moving = move.x !== 0 || move.y !== 0;
+    // Running needs a little breath to start and lasts until the breath runs out; the Run button switches itself off then.
+    const wants = this.keys.running() && moving;
+    const stamina = this.session.vitals.stamina;
+    this.running = wants && (this.running ? stamina > 0.5 : stamina >= RUN_START);
+    if (this.keys.running() && !this.running && wants && controls.run) controls.run = false;
+    this.session = tickSession(this.session, dt, this.biomeAt(), this.idle < BUSY_SECONDS, this.running);
     if (this.session.clock.day !== this.lastDay) this.onNewDay();
     if (isDead(this.session.vitals)) {
       this.onCollapse();
@@ -185,12 +202,18 @@ export class GameScene extends BaseScene {
     const slot = this.keys.slotPressed();
     if (slot >= 0) this.select(slot);
 
-    const move = this.keys.move();
-    if (move.x !== 0 || move.y !== 0) {
-      const speed = PLAYER_SPEED * speedFactor(this.world, this.pos.x, this.pos.y);
-      this.pos = moveWithCollision(this.world, this.solids, this.pos, move.x * speed * dt, move.y * speed * dt);
+    const top = PLAYER_SPEED * speedFactor(this.world, this.pos.x, this.pos.y) * (this.running ? RUN_SPEED : 1);
+    const ease = 1 - Math.exp(-dt * (moving ? ACCELERATE : BRAKE));
+    this.vel = { x: this.vel.x + (move.x * top - this.vel.x) * ease, y: this.vel.y + (move.y * top - this.vel.y) * ease };
+    if (!moving && Math.hypot(this.vel.x, this.vel.y) < 0.08) this.vel = { x: 0, y: 0 };
+    if (this.vel.x !== 0 || this.vel.y !== 0) {
+      const before = this.pos;
+      this.pos = moveWithCollision(this.world, this.solids, this.pos, this.vel.x * dt, this.vel.y * dt);
+      // Pressing into a wall must not keep the legs pumping at full pace.
+      if (this.pos.x === before.x) this.vel = { ...this.vel, x: 0 };
+      if (this.pos.y === before.y) this.vel = { ...this.vel, y: 0 };
     }
-    this.player.update(this.pos, move);
+    this.player.update(this.pos, move, { pace: Math.hypot(this.vel.x, this.vel.y) / PLAYER_SPEED, running: this.running }, dt);
     this.combat.tick(dt);
     this.level.update(dt, move, this.combat.snapshot());
     this.story.update(dt);
@@ -229,12 +252,15 @@ export class GameScene extends BaseScene {
   }
 
   private showCursor(a: Action): void {
-    const targeted = ['place', 'till', 'plant', 'water', 'refill', 'harvest', 'open', 'sleep', 'drink', 'pickup', 'enter', 'leave', 'chest', 'door', 'talk', 'inspect', 'dig', 'raft', 'fish'].includes(a.kind);
+    const onGrid = ['place', 'till', 'plant', 'water', 'refill', 'harvest', 'open', 'drink', 'pickup', 'dig', 'fish'].includes(a.kind);
+    const onThing = ['sleep', 'enter', 'leave', 'chest', 'door', 'talk', 'inspect', 'raft'].includes(a.kind);
     const refused = a.kind === 'blocked' && a.reason === 'cannotPlace';
-    this.cursor.setVisible(targeted || refused);
-    if (!targeted && !refused) return;
+    this.cursor.setVisible(onGrid || refused);
+    this.ring.setVisible(onThing);
+    if (!onGrid && !onThing && !refused) return;
     const f = frontTile(this.pos, this.player.facing);
     this.cursor.setPosition(f.x * TILE, f.y * TILE).setStrokeStyle(1, refused ? 0xff5555 : 0xffffff, 0.9);
+    this.ring.setPosition((f.x + 0.5) * TILE, (f.y + 0.85) * TILE);
   }
 
   private perform(action: Action): void {
@@ -349,7 +375,9 @@ export class GameScene extends BaseScene {
       this.goTo('Game', { slot: this.slotData.slot });
       return;
     }
-    this.player.update(this.pos, { x: 0, y: 0 });
+    this.vel = { x: 0, y: 0 };
+    this.running = false;
+    this.player.update(this.pos, { x: 0, y: 0 }, { pace: 0, running: false }, 0);
     this.dead = false;
     this.idle = 99;
     this.combat.reset();

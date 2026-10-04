@@ -148,8 +148,8 @@ export class InventoryScene extends BaseScene {
 
   private drawTabs(): void {
     const w = 62;
-    this.ui.add(new Button(this, 218, 24, t('tabBag'), () => this.switchTab('bag'), { w, h: 24, font: FONT.small, style: this.tab === 'bag' ? 'primary' : 'normal' }));
-    this.ui.add(new Button(this, 286, 24, t('tabCraft'), () => this.switchTab('craft'), { w, h: 24, font: FONT.small, style: this.tab === 'craft' ? 'primary' : 'normal' }));
+    this.ui.add(new Button(this, view.w - 148, 24, t('tabBag'), () => this.switchTab('bag'), { w, h: 24, font: FONT.small, style: this.tab === 'bag' ? 'primary' : 'normal' }));
+    this.ui.add(new Button(this, view.w - 82, 24, t('tabCraft'), () => this.switchTab('craft'), { w, h: 24, font: FONT.small, style: this.tab === 'craft' ? 'primary' : 'normal' }));
   }
 
   private switchTab(tab: Tab): void {

@@ -34,6 +34,7 @@ export const UI_STRINGS: Record<string, L10n> = {
   quitConfirm: { en: 'Quit the game?', id: 'Keluar dari game?' },
   hudDay: { en: 'Day {n}', id: 'Hari {n}' },
   useAction: { en: 'USE', id: 'PAKAI' },
+  runAction: { en: 'Run', id: 'Lari' },
   saved: { en: 'Game saved', id: 'Game tersimpan' },
   paused: { en: 'Paused', id: 'Jeda' },
   resume: { en: 'Resume', id: 'Lanjut' },

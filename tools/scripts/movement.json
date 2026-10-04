@@ -1,0 +1,88 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1000
+ },
+ {
+  "eval": "H.tpTo('SAND','GRASS')"
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "window.__st = () => { const g = __game.scene.getScene('Game'); return JSON.stringify({x: +g.pos.x.toFixed(2), sta: Math.round(g.session.vitals.stamina), run: g.running, vx: +g.vel.x.toFixed(2)}); }; __st()"
+ },
+ {
+  "press": "ArrowRight",
+  "ms": 700
+ },
+ {
+  "eval": "__st()"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__st()"
+ },
+ {
+  "eval": "__game.scene.getScene('Game').keys.running = () => true; 1"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.session = { ...g.session, vitals: { ...g.session.vitals, stamina: 100 } }; return 1; })()"
+ },
+ {
+  "press": "ArrowLeft",
+  "ms": 900
+ },
+ {
+  "eval": "__st()"
+ },
+ {
+  "shot": "move-run"
+ },
+ {
+  "eval": "__st()"
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "__st()"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

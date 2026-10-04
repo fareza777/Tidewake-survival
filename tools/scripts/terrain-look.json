@@ -1,0 +1,107 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1000
+ },
+ {
+  "eval": "window.H = { g: () => __game.scene.getScene('Game'), tpTo(a, b) { const w = this.g().level.world; const n = w.size; const T = {DEEP:0,SHALLOW:1,SAND:2,GRASS:3,SWAMP:4,DIRT:5,STONE:6,DESERT:7,RIVER:8}; for (let y = 4; y < n - 4; y++) for (let x = 4; x < n - 4; x++) { if (w.terrain[y*n+x] !== T[a]) continue; let hit = false; for (let dy = -2; dy <= 2 && !hit; dy++) for (let dx = -2; dx <= 2; dx++) if (w.terrain[(y+dy)*n+x+dx] === T[b]) { hit = true; break; } if (hit) { this.g().pos = { x: x + 0.5, y: y + 0.5 }; return x + ',' + y; } } return 'none'; } }; 'ok'"
+ },
+ {
+  "eval": "H.tpTo('SAND','SHALLOW')"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "shot": "look-0-SAND-SHALLOW"
+ },
+ {
+  "eval": "H.tpTo('SAND','GRASS')"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "shot": "look-1-SAND-GRASS"
+ },
+ {
+  "eval": "H.tpTo('GRASS','SWAMP')"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "shot": "look-2-GRASS-SWAMP"
+ },
+ {
+  "eval": "H.tpTo('GRASS','STONE')"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "shot": "look-3-GRASS-STONE"
+ },
+ {
+  "eval": "H.tpTo('SAND','DESERT')"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "shot": "look-4-SAND-DESERT"
+ },
+ {
+  "eval": "H.tpTo('GRASS','DIRT')"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "shot": "look-5-GRASS-DIRT"
+ },
+ {
+  "eval": "H.tpTo('SHALLOW','DEEP')"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "shot": "look-6-SHALLOW-DEEP"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

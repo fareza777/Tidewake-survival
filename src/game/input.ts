@@ -5,14 +5,17 @@ export interface ControlState {
   moveY: number;
   /** One-shot: the ACTION button was pressed since the last read. */
   action: boolean;
+  /** The Run button is switched on. */
+  run: boolean;
 }
 
-export const controls: ControlState = { moveX: 0, moveY: 0, action: false };
+export const controls: ControlState = { moveX: 0, moveY: 0, action: false, run: false };
 
 export function resetControls(): void {
   controls.moveX = 0;
   controls.moveY = 0;
   controls.action = false;
+  controls.run = false;
 }
 
 /** Consume a one-shot button press. */

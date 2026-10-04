@@ -6,6 +6,9 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   android: { backgroundColor: '#0b0a14', allowMixedContent: false },
   plugins: {
+    // The page has no viewport-fit=cover, so Android pads the web view by the status bar, navigation bar and camera cut-out:
+    // the game never sits under them. DARK = light icons on the dark background.
+    SystemBars: { style: 'DARK' },
     SplashScreen: { launchShowDuration: 600, backgroundColor: '#0b0a14', showSpinner: false, launchFadeOutDuration: 250 },
   },
 };
