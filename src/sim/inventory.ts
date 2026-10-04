@@ -132,12 +132,12 @@ export function takeOne(inv: Inventory, index: number): Inventory {
   return out;
 }
 
-/** Keep a random half of every hotbar stack (rounding the loss up), as a death penalty. */
+/** Keep a random half of every hotbar stack (rounding the loss up), as a death penalty. Keys and story items are never lost. */
 export function loseHalfOfHotbar(inv: Inventory, roll: () => number): Inventory {
   const out = inv.slice();
   for (let i = 0; i < Math.min(HOTBAR_SIZE, out.length); i++) {
     const s = out[i];
-    if (!s) continue;
+    if (!s || ITEMS[s.item].keep) continue;
     if (!stackable(s.item)) {
       if (roll() < 0.5) out[i] = null;
       continue;

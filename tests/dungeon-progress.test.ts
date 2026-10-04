@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { DUNGEON_IDS, DUNGEON_VERSION, addUnique, emptyDungeons, emptyProgress, isDungeonId, parseDungeons } from '@/sim/dungeon/progress';
 
+describe('claimed reward', () => {
+  it('is read back only when it is exactly true, and is absent from a fresh record', () => {
+    expect('claimed' in emptyProgress()).toBe(false);
+    expect(parseDungeons({ grotto: { boss: true, claimed: true } }).grotto.claimed).toBe(true);
+    expect(parseDungeons({ grotto: { boss: true, claimed: 'yes' } }).grotto.claimed).toBeUndefined();
+    expect(parseDungeons({ grotto: { boss: true } }).grotto.claimed).toBeUndefined();
+  });
+});
+
 describe('dungeon progress', () => {
   it('knows the three dungeons and starts each with nothing done', () => {
     expect(DUNGEON_IDS).toEqual(['grotto', 'deepmine', 'ruin']);

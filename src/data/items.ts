@@ -44,6 +44,8 @@ export interface ItemDef {
   weapon?: WeaponStats;
   /** Worn in the armour slot: every blow from a creature is cut by `defense` points. */
   armor?: { defense: number };
+  /** Never lost to the death penalty: keys, story items and the armour bosses leave behind. */
+  keep?: true;
   food?: { hunger: number; thirst: number; hp: number };
   place?: StructureId;
   seed?: CropId;
@@ -65,7 +67,7 @@ const weapon = (id: ItemId, type: 'sword' | 'spear' | 'bow', tier: 1 | 2 | 3, du
 });
 const sword = (damage: number): WeaponStats => ({ kind: 'melee', damage, reach: 1.3, arc: 110, cooldown: 0.42, stamina: 3, knockback: 0.35 });
 const armor = (id: ItemId, defense: number): ItemDef => ({ id, stack: 1, icon: icons(id), armor: { defense } });
-const keepsake = (id: ItemId, stack = 1): ItemDef => ({ id, stack, icon: icons(id) });
+const keepsake = (id: ItemId, stack = 1): ItemDef => ({ id, stack, icon: icons(id), keep: true });
 const placeable = (id: ItemId, place: StructureId, stack = 10): ItemDef => ({ id, stack, icon: icons(`struct_${id}`), place });
 
 export const ITEMS: Record<ItemId, ItemDef> = {
@@ -118,9 +120,9 @@ export const ITEMS: Record<ItemId, ItemDef> = {
 
   armor_bone: armor('armor_bone', 2),
   armor_iron: armor('armor_iron', 4),
-  armor_moss: armor('armor_moss', 3),
-  armor_ironbones: armor('armor_ironbones', 5),
-  armor_mire: armor('armor_mire', 7),
+  armor_moss: { ...armor('armor_moss', 3), keep: true },
+  armor_ironbones: { ...armor('armor_ironbones', 5), keep: true },
+  armor_mire: { ...armor('armor_mire', 7), keep: true },
 
   small_key: keepsake('small_key', 9),
   boss_key: keepsake('boss_key'),

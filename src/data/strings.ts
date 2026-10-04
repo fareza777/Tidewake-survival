@@ -122,6 +122,7 @@ export const UI_STRINGS: Record<string, L10n> = {
   msgNeedsBossKey: { en: 'Sealed. You need the boss key', id: 'Tersegel. Butuh kunci bos' },
   msgNoArrows: { en: 'No arrows. Craft some at a workbench', id: 'Tidak ada anak panah. Buat di meja kerja' },
   msgFull: { en: 'Backpack full', id: 'Ransel penuh' },
+  msgRewardWaits: { en: 'Make room in your backpack: the boss reward is waiting', id: 'Kosongkan ransel: hadiah bos menunggu' },
   msgDrank: { en: 'You drink the cool water', id: 'Kamu minum air sejuk' },
   msgFilled: { en: 'Watering can filled', id: 'Penyiram terisi' },
   msgSleepDay: { en: 'Respawn point set. You can sleep once night falls', id: 'Titik bangun diatur. Kamu bisa tidur saat malam' },

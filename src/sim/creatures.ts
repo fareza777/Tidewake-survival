@@ -5,7 +5,7 @@ import type { BossId } from '@/data/dungeons';
 import { stepBoss, type Shot } from '@/sim/boss';
 import type { Facing } from '@/sim/actions';
 import { facingFromVector } from '@/sim/combat';
-import { PLAYER_HALF, moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
+import { PLAYER_HALF, lineClear, moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import type { World } from '@/sim/world/types';
 
 export type CreatureState = 'idle' | 'wander' | 'chase' | 'windup' | 'recover' | 'flee' | 'charge';
@@ -33,6 +33,8 @@ export interface Creature {
   readonly stun: number;
   /** A boss's place in its list of moves. */
   readonly step: number;
+  /** The phase a boss was in when it began its warning: the move it announced is the move it makes. */
+  readonly plan?: 0 | 1;
 }
 
 export interface StepContext {
@@ -165,7 +167,7 @@ function hunt(c: Creature, def: CreatureDef, ctx: StepContext): StepResult {
   if (c.state === 'windup') {
     const timer = c.timer - ctx.dt;
     if (timer > 0) return { creature: { ...c, timer, facing: face }, strike: false };
-    const hit = dist <= def.reach + def.radius + PLAYER_HALF + STRIKE_SLACK;
+    const hit = dist <= def.reach + def.radius + PLAYER_HALF + STRIKE_SLACK && lineClear(ctx.world, ctx.solids, c, ctx.hero);
     return { creature: { ...c, state: 'recover', timer: def.cooldown, facing: face }, strike: hit };
   }
   if (c.state === 'recover') {

@@ -9,6 +9,7 @@ import { TILE, TerrainLayer } from '@/gfx/TerrainLayer';
 import type { GameScene } from '@/scenes/GameScene';
 import { frontTile } from '@/sim/actions';
 import { isBoss } from '@/sim/boss';
+import { claimReward } from '@/sim/dungeon/rewards';
 import { lightCrystal, newRun, pushBlock, solidTiles, solveRooms, targetAt, trapUnder, type Run } from '@/sim/dungeon/rules';
 import { bossOf, creaturesInRoom, startEncounters } from '@/sim/dungeon/start';
 import type { DungeonProgress } from '@/sim/dungeon/progress';
@@ -28,6 +29,8 @@ const PUSH_AFTER = 0.3;
 const PUSH_REST = 0.45;
 /** How often the rooms are checked for being solved (seconds). */
 const SOLVE_EVERY = 0.4;
+/** How often a boss reward that did not fit the backpack is tried again (seconds). */
+const CLAIM_EVERY = 2;
 /** The dark of a dungeon, the glow of a wall torch (tiles) and of the hero's own light (world pixels). */
 const GLOOM = { color: 0x050a18, alpha: 0.52 };
 const TORCH_GLOW = 4;
@@ -42,6 +45,8 @@ export class DungeonLevel implements Level {
   private clock = 0;
   private lean = 0;
   private sinceSolve = 0;
+  private sinceClaim = 0;
+  private told = false;
   private everyTile: Set<number>;
 
   constructor(private host: GameScene, readonly dungeon: Dungeon) {
@@ -111,6 +116,7 @@ export class DungeonLevel implements Level {
       } else if (ev.t === 'killed' && isBoss(ev.kind)) {
         host.session = updateDungeon(host.session, (p) => ({ ...p, boss: true }));
         services.notify?.(t('msgBossDefeated', { name: t(`boss_${ev.kind}`) }));
+        this.claim();
       }
     }
   }
@@ -122,11 +128,32 @@ export class DungeonLevel implements Level {
     this.layer.updateTraps(this.clock);
     if (trapUnder(this.run, host.pos, this.clock)) host.combat.harm(TRAP_DAMAGE);
     this.pushBlocks(dt, move);
+    this.sinceClaim += dt;
+    if (this.sinceClaim >= CLAIM_EVERY) {
+      this.sinceClaim = 0;
+      this.claim();
+    }
     this.sinceSolve += dt;
     if (this.sinceSolve >= SOLVE_EVERY) {
       this.sinceSolve = 0;
       this.checkRooms(enc);
     }
+  }
+
+  /** Hand the dead boss's reward over, once. When the backpack is full it waits (also across visits) and the hero is told. */
+  private claim(): void {
+    const host = this.host;
+    const p = this.progress(host.session);
+    if (!p.boss || p.claimed) return;
+    const bag = claimReward(host.session.inventory, this.dungeon.boss.kind);
+    if (!bag) {
+      if (!this.told) services.notify?.(t('msgRewardWaits'));
+      this.told = true;
+      return;
+    }
+    this.told = false;
+    host.session = { ...host.session, inventory: bag };
+    host.session = updateDungeon(host.session, (q) => ({ ...q, claimed: true }));
   }
 
   /** Lean on the block in front of the hero; after a moment it slides one tile. */

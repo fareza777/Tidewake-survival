@@ -7,6 +7,9 @@ import { CHARGE_SPEED, HIT_REST, SHOT_RANGE, SHOT_SPEED, isBoss, phaseOf, stepBo
 import { hurtCreature, newCreature, stepCreature, type Creature, type StepContext } from '@/sim/creatures';
 import { T, WORLD_SIZE, idx, type World } from '@/sim/world/types';
 
+/** A wall of solid tiles along x = `x`, from y = 10 to y = 30. */
+const wallAt = (x: number): Set<number> => new Set(Array.from({ length: 21 }, (_, i) => idx(x, 10 + i)));
+
 /** All grass, with a deep-water column at x = 40. */
 function makeWorld(): World {
   const size = WORLD_SIZE;
@@ -87,6 +90,55 @@ describe('a sleeping boss', () => {
     });
     expect(log.c.angry).toBe(true);
     expect(log.c.state).not.toBe('idle');
+  });
+});
+
+describe('walls', () => {
+  it('keep a sleeping boss asleep: it does not wake for a hero it cannot see', () => {
+    const solids = wallAt(24);
+    let c = boss('mossback', 20.5, 20.5);
+    for (let t = 0; t < 2; t += 0.05) c = stepBoss(c, CREATURES.mossback, BOSSES.mossback, ctx({ x: 27.5, y: 20.5 }, { solids })).creature;
+    expect(c).toMatchObject({ state: 'idle', angry: false });
+    const open = stepBoss(boss('mossback', 20.5, 20.5), CREATURES.mossback, BOSSES.mossback, ctx({ x: 27.5, y: 20.5 }));
+    expect(open.creature.angry).toBe(true);
+  });
+
+  it('stop a slam from landing on a hero on the other side', () => {
+    const solids = wallAt(21);
+    const windingUp = boss('mossback', 20.5, 20.5, { angry: true, state: 'windup', timer: 0.01, step: 1, headX: 1, headY: 0 });
+    const through = stepBoss(windingUp, CREATURES.mossback, BOSSES.mossback, ctx({ x: 22.5, y: 20.5 }, { solids }));
+    expect(through.strike).toBe(false);
+    const open = stepBoss(windingUp, CREATURES.mossback, BOSSES.mossback, ctx({ x: 22.0, y: 20.5 }));
+    expect(open.strike).toBe(true);
+  });
+
+  it('stop an ordinary monster from striking through them too', () => {
+    const solids = wallAt(21);
+    const c = { ...newCreature(1, 'skeleton_warrior', 20.5, 20.5, new Rng(1)), angry: true, state: 'windup' as const, timer: 0.01 };
+    const hero = { x: 22.2, y: 20.5 };
+    expect(stepCreature(c, ctx(hero, { solids })).strike).toBe(false);
+    expect(stepCreature(c, ctx(hero)).strike).toBe(true);
+  });
+});
+
+describe('a warning', () => {
+  it('keeps the move it announced when the boss drops into its second phase meanwhile', () => {
+    const def = CREATURES.mossback;
+    // Step 2 is a charge in phase one and a summons in phase two.
+    let c = boss('mossback', 20, 20, { step: 2, angry: true, hp: def.hp / 2 + 1 });
+    c = stepBoss(c, def, BOSSES.mossback, ctx({ x: 25, y: 20 })).creature;
+    expect(c.state).toBe('windup');
+    c = { ...c, hp: def.hp / 2 - 1 };
+    const summons: string[][] = [];
+    const states: string[] = [];
+    for (let t = 0; t < 2; t += 0.05) {
+      const r = stepBoss(c, def, BOSSES.mossback, ctx({ x: 25, y: 20 }));
+      if (r.summons) summons.push(r.summons);
+      if (r.creature.state !== c.state) states.push(r.creature.state);
+      c = r.creature;
+    }
+    expect(summons).toEqual([]);
+    expect(states[0]).toBe('charge');
   });
 });
 

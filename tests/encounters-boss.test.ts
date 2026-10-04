@@ -125,12 +125,38 @@ describe('boss fights in tickEncounters', () => {
     expect(hostilesNear(e, hero, 10)).toBe(1);
   });
 
-  it('drop the boss rewards when it dies', () => {
+  it('leave nothing on the ground when a boss dies, because the level hands the reward over', () => {
     const e = withCreatures(mk('mossback', 81.2, 80.5, 1, { hp: 3 }));
     const r = swing(e, hero, 'right', { damage: 8, reach: 1.3, arc: 110, knockback: 0.35 }, new Rng(1));
     expect(r.events.map((ev) => ev.t)).toEqual(['hit', 'killed']);
-    expect(r.e.pickups.map((p) => p.item).sort()).toEqual(['armor_moss', 'compass']);
-    for (const p of r.e.pickups) expect(ITEMS[p.item]).toBeDefined();
+    // The reward goes straight into the backpack (see claimReward), not onto the ground where it would fade away.
+    expect(r.e.pickups).toEqual([]);
+    for (const d of CREATURES.mossback.drops) expect(ITEMS[d.item]).toBeDefined();
+  });
+});
+
+describe('crystals in a dungeon, which are solid tiles', () => {
+  const shootAt = (crystalY: number, heroY: number, dt: number): string[] => {
+    const solids = new Set([idx(84, Math.floor(crystalY))]);
+    const from = { x: 80.5, y: heroY };
+    let e: Encounters = { ...shoot({ ...emptyEncounters(), targets: [{ id: 3, x: 84.5, y: crystalY }], spawnTimer: 99 }, from, 'right', ITEMS.bow.weapon!) };
+    const seen: string[] = [];
+    for (let i = 0; i < 60; i++) {
+      const r = tickEncounters(e, tctx({ fixed: true, solids, hero: from }), dt);
+      e = r.e;
+      seen.push(...r.events.map((ev) => (ev.t === 'struck' ? `struck:${ev.id}` : ev.t)));
+    }
+    return seen;
+  };
+
+  it('are struck by an arrow that is aimed at them, whatever the frame rate and a small offset', () => {
+    for (const dt of [1 / 60, 1 / 30, 0.05]) {
+      for (const off of [0, 0.3, -0.3]) expect(shootAt(80.5, 80.5 + off, dt), `dt ${dt} offset ${off}`).toEqual(['struck:3']);
+    }
+  });
+
+  it('still stop an arrow that flies into the wall beside them', () => {
+    expect(shootAt(80.5, 82.5, 0.05)).toEqual([]);
   });
 });
 

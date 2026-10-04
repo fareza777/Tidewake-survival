@@ -20,6 +20,18 @@ describe('applyDeath', () => {
     expect(countItem(inv, 'wood')).toBe(10);
   });
 
+  it('never takes keys, story items or boss armour, however the dice fall, so a dungeon can always be finished', () => {
+    let bag = addItem(emptyInventory(), 'wood', 10).inv;
+    for (const item of ['boss_key', 'small_key', 'compass', 'hull_planks', 'lighthouse_key', 'armor_moss', 'armor_ironbones', 'armor_mire'] as const) bag = addItem(bag, item, 1).inv;
+    for (const roll of [0, 0.4, 0.9]) {
+      const r = applyDeath('normal', bag, () => roll);
+      for (const item of ['boss_key', 'small_key', 'compass', 'hull_planks', 'lighthouse_key', 'armor_moss', 'armor_ironbones', 'armor_mire'] as const) {
+        expect(countItem(r.inv, item), `${item} at roll ${roll}`).toBe(1);
+      }
+      expect(countItem(r.inv, 'wood')).toBe(5);
+    }
+  });
+
   it('ends the adventure on Hardcore', () => {
     expect(applyDeath('hardcore', inv, () => 0.9).wipeSave).toBe(true);
   });

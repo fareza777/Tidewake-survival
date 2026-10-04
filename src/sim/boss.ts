@@ -2,7 +2,7 @@ import { BOSSES, type BossDef, type BossMove } from '@/data/bosses';
 import type { CreatureDef, CreatureId } from '@/data/creatures';
 import { facingFromVector } from '@/sim/combat';
 import type { Creature, StepContext, StepResult } from '@/sim/creatures';
-import { PLAYER_HALF, moveWithCollision } from '@/sim/movement';
+import { PLAYER_HALF, lineClear, moveWithCollision } from '@/sim/movement';
 import type { BossId } from '@/data/dungeons';
 
 /** A bolt of the boss's, flying straight. Tile units. */
@@ -61,7 +61,7 @@ function perform(c: Creature, boss: BossDef, move: BossMove, ctx: StepContext): 
   const next = { step: c.step + 1 };
   switch (move.action) {
     case 'slam': {
-      const hit = dist <= move.range[1] + PLAYER_HALF;
+      const hit = dist <= move.range[1] + PLAYER_HALF && lineClear(ctx.world, ctx.solids, c, ctx.hero);
       return { creature: rest(c, move.rest, next), strike: hit, damage: move.damage };
     }
     case 'charge': {
@@ -82,7 +82,7 @@ function charge(c: Creature, def: CreatureDef, boss: BossDef, ctx: StepContext):
   const moved = moveWithCollision(ctx.world, ctx.solids, c, c.headX * step, c.headY * step, def.radius);
   const travelled = Math.hypot(moved.x - c.x, moved.y - c.y);
   const body = { ...c, x: moved.x, y: moved.y, timer };
-  if (Math.hypot(ctx.hero.x - moved.x, ctx.hero.y - moved.y) <= def.reach + def.radius + PLAYER_HALF) {
+  if (Math.hypot(ctx.hero.x - moved.x, ctx.hero.y - moved.y) <= def.reach + def.radius + PLAYER_HALF && lineClear(ctx.world, ctx.solids, moved, ctx.hero)) {
     return { creature: rest(body, HIT_REST), strike: true, damage };
   }
   if (travelled < step * 0.4) return { creature: rest(body, CRASH_REST), strike: false };
@@ -106,7 +106,7 @@ export function stepBoss(c: Creature, def: CreatureDef, boss: BossDef, ctx: Step
   const dy = ctx.hero.y - c.y;
   const dist = Math.hypot(dx, dy);
   if (!ctx.heroAlive) return { creature: c.state === 'idle' ? c : { ...c, state: 'idle', timer: 0, angry: false }, strike: false };
-  if (!c.angry && dist > def.sight) return { creature: c, strike: false };
+  if (!c.angry && (dist > def.sight || !lineClear(ctx.world, ctx.solids, c, ctx.hero))) return { creature: c, strike: false };
   const here: Creature = { ...c, angry: true };
   const face = facingFromVector(dx, dy, c.facing);
   if (c.state === 'charge') return charge(here, def, boss, ctx);
@@ -114,7 +114,7 @@ export function stepBoss(c: Creature, def: CreatureDef, boss: BossDef, ctx: Step
     const timer = c.timer - ctx.dt;
     return { creature: timer > 0 ? { ...here, timer } : { ...here, state: 'chase', timer: 0 }, strike: false };
   }
-  const phase = boss.phases[phaseOf(c, def, boss)];
+  const phase = boss.phases[c.state === 'windup' ? (c.plan ?? phaseOf(c, def, boss)) : phaseOf(c, def, boss)];
   const move = phase.moves[c.step % phase.moves.length];
   if (c.state === 'windup') {
     const timer = c.timer - ctx.dt;
@@ -125,5 +125,5 @@ export function stepBoss(c: Creature, def: CreatureDef, boss: BossDef, ctx: Step
   if (dist > max) return { creature: walkAt(here, def, ctx, def.speed * phase.speed, false), strike: false };
   // The aim is fixed now, so a hero who moves during the warning can get out of the way.
   const len = Math.max(1e-6, dist);
-  return { creature: { ...here, state: 'windup', timer: move.windup, facing: face, headX: dx / len, headY: dy / len }, strike: false };
+  return { creature: { ...here, state: 'windup', timer: move.windup, facing: face, headX: dx / len, headY: dy / len, plan: phaseOf(c, def, boss) }, strike: false };
 }

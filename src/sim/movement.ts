@@ -17,6 +17,16 @@ export function tileBlocked(world: World, solids: ReadonlySet<number>, tx: numbe
   return world.terrain[i] === T.DEEP || world.terrain[i] === T.WALL || solids.has(i);
 }
 
+/** Can one point see the other: no wall, closed door or other solid tile on the straight line between them? */
+export function lineClear(world: World, solids: ReadonlySet<number>, a: Vec, b: Vec): boolean {
+  const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 0.25));
+  for (let i = 0; i <= steps; i++) {
+    const f = i / steps;
+    if (tileBlocked(world, solids, Math.floor(a.x + (b.x - a.x) * f), Math.floor(a.y + (b.y - a.y) * f))) return false;
+  }
+  return true;
+}
+
 /** Does a body of half-width `half` centred on (x, y) touch deep water, the map edge or a solid tile? */
 export function bodyBlocked(world: World, solids: ReadonlySet<number>, x: number, y: number, half: number): boolean {
   const x0 = Math.floor(x - half);

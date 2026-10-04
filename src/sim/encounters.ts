@@ -90,7 +90,8 @@ function damageCreature(e: Encounters, id: number, amount: number, push: Vec, rn
   const hit: EncounterEvent = { t: 'hit', id, kind: target.kind, amount, x: target.x, y: target.y };
   const r = hurtCreature(target, amount, push);
   if (!r.dead) return { e: { ...e, creatures: e.creatures.map((c) => (c.id === id ? r.creature : c)) }, events: [hit] };
-  const loot = scatter(rollLoot(target.kind, rng), target, e.nextId, rng);
+  // A boss's reward is handed over by the level (it must not fade away on the floor); everything else lies where it fell.
+  const loot = CREATURES[target.kind].temper === 'boss' ? [] : scatter(rollLoot(target.kind, rng), target, e.nextId, rng);
   return {
     e: { ...e, creatures: e.creatures.filter((c) => c.id !== id), pickups: [...e.pickups, ...loot], nextId: e.nextId + loot.length },
     events: [hit, { t: 'killed', id, kind: target.kind, x: target.x, y: target.y }],
@@ -137,13 +138,14 @@ function flyArrows(e: Encounters, c: TickContext, dt: number): EncounterStep {
       y += arrow.dy * step;
       travel -= step;
       left -= step;
-      if (tileBlocked(c.world, c.solids, Math.floor(x), Math.floor(y))) {
-        alive = false;
-        break;
-      }
+      // Targets first: crystals stand on solid tiles, so the step that reaches one usually ends inside its tile.
       const target = cur.targets.find((t) => Math.hypot(t.x - x, t.y - y) <= TARGET_RADIUS + ARROW_REACH);
       if (target) {
         events.push({ t: 'struck', id: target.id });
+        alive = false;
+        break;
+      }
+      if (tileBlocked(c.world, c.solids, Math.floor(x), Math.floor(y))) {
         alive = false;
         break;
       }

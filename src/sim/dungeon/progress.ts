@@ -22,6 +22,8 @@ export interface DungeonProgress {
   readonly lit: readonly number[];
   /** The boss is dead. */
   readonly boss: boolean;
+  /** The boss's reward is in the backpack (it waits for room when the backpack is full). Absent until then. */
+  readonly claimed?: boolean;
 }
 
 export type Dungeons = Readonly<Record<DungeonId, DungeonProgress>>;
@@ -54,7 +56,10 @@ export function parseDungeons(raw: unknown): Dungeons {
     const p = d[id];
     if (typeof p !== 'object' || p === null) return emptyProgress();
     const r = p as Record<string, unknown>;
-    return { opened: parseIds(r.opened), looted: parseIds(r.looted), solved: parseIds(r.solved), lit: parseIds(r.lit), boss: r.boss === true };
+    return {
+      opened: parseIds(r.opened), looted: parseIds(r.looted), solved: parseIds(r.solved), lit: parseIds(r.lit), boss: r.boss === true,
+      ...(r.claimed === true ? { claimed: true } : {}),
+    };
   };
   return { grotto: one('grotto'), deepmine: one('deepmine'), ruin: one('ruin') };
 }

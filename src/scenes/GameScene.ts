@@ -160,7 +160,7 @@ export class GameScene extends BaseScene {
   }
 
   update(_time: number, delta: number): void {
-    if (this.dead || this.hitStop > 0) {
+    if (this.dead || this.hitStop > 0 || this.transitioning) {
       this.hitStop = Math.max(0, this.hitStop - delta / 1000);
       this.followCamera();
       return;

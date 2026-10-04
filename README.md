@@ -27,7 +27,7 @@ It needs `numpy`, `scipy` and `imageio-ffmpeg` (or `ffmpeg` on the PATH). The ge
 ## Browser smoke tests
 
 With `npm run dev` running: `node tools/play.mjs tools/scripts/<name>.json tools/.cache/shots`.
-Scenarios: boot, island, harvest, persist, night, pause, corrupt, badsave, survive, build, tools, death, death-back, sleep, migrate, perf, fight, hunt, monster-death, spawn, audio, perf-fight, zoo, dungeon-play, dungeon-death, dungeon-persist, dungeon-perf, armor.
+Scenarios: boot, island, harvest, persist, night, pause, corrupt, badsave, survive, build, tools, death, death-back, sleep, migrate, perf, fight, hunt, monster-death, spawn, audio, perf-fight, zoo, dungeon-play, dungeon-death, dungeon-persist, dungeon-perf, dungeon-leave-moving, armor.
 
 ## Status (phase 4)
 
