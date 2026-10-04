@@ -3,9 +3,12 @@ import { codeToSeed, hashString } from '@/core/rng';
 export const NAME_MAX = 12;
 export const DEFAULT_NAME = 'Castaway';
 
-/** A hero name from whatever was typed: letters, digits, spaces, hyphens and apostrophes only, trimmed and shortened. */
+/** The letters the game's bitmap font can draw besides A to Z, digits, space, hyphen and apostrophe. */
+const DRAWABLE = /[^A-Za-z0-9 '\-\u00e0\u00e1\u00e4\u00e7\u00e8\u00e9\u00ed\u00f1\u00f3\u00f6\u00fa\u00fc]/g;
+
+/** A hero name from whatever was typed: letters the font can draw, digits, spaces, hyphens and apostrophes only, trimmed and shortened. */
 export function cleanName(raw: string | null | undefined): string {
-  const name = (raw ?? '').replace(/[^\p{L}\p{N} '-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX).trim();
+  const name = (raw ?? '').replace(DRAWABLE, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX).trim();
   return name === '' ? DEFAULT_NAME : name;
 }
 

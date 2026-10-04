@@ -17,13 +17,20 @@ describe('the hero name', () => {
   it('keeps letters, digits, spaces, hyphens and apostrophes, trims and shortens', () => {
     expect(cleanName('  Ari  ')).toBe('Ari');
     expect(cleanName("Mary-Ann O'Neil 99")).toBe("Mary-Ann O'N");
-    expect(cleanName('Ö kay')).toBe('Ö kay');
+    expect(cleanName('é kay ñ')).toBe('é kay ñ');
     expect(cleanName('a'.repeat(50))).toHaveLength(NAME_MAX);
     expect(cleanName('Ari    Budi')).toBe('Ari Budi');
   });
 
   it('falls back to the default for nothing usable', () => {
     for (const raw of ['', '   ', null, undefined, '!!!', '<>$%']) expect(cleanName(raw), String(raw)).toBe(DEFAULT_NAME);
+  });
+
+  it('only keeps letters the game font can draw, so a name is never invisible', () => {
+    for (const raw of ['Андрей', '李雷', '😀😀', 'Ö']) expect(cleanName(raw), raw).toBe(DEFAULT_NAME);
+    expect(cleanName('Ari 李')).toBe('Ari');
+    expect(cleanName('😀 Ari')).toBe('Ari');
+    expect(cleanName('Zoë')).toBe('Zo');
   });
 
   it('strips markup so a name can never inject anything', () => {

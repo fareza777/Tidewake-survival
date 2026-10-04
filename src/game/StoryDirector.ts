@@ -107,7 +107,6 @@ export class StoryDirector {
     this.slept = false;
   }
 
-  /** Look around now and then: landmarks the hero has come near, rewards that were waiting for room in the backpack. */
   /** Ask for a rating, once, when no other dialogue is open. */
   private askRate(): void {
     this.rateDue = false;
@@ -118,6 +117,7 @@ export class StoryDirector {
     ]);
   }
 
+  /** Look around now and then: landmarks the hero has come near, rewards that were waiting for room in the backpack. */
   update(dt: number): void {
     if (this.rateDue && !this.game.scene.isActive('Dialogue')) this.askRate();
     this.since += dt;

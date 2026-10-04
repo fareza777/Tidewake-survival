@@ -33,7 +33,8 @@ export class OnboardingScene extends BaseScene {
     this.fadeIn(300);
     this.ui = this.add.container(0, 0);
     this.handleBack(() => {
-      if (this.step > 0) this.go(this.step - 1);
+      if (this.step < 0) return false;
+      this.go(this.step - 1);
       return true;
     });
     this.render();

@@ -33,19 +33,22 @@ export function showModal(
   const bodyText = scene.add.bitmapText(0, 0, FONT.body, body).setMaxWidth(pw - 28).setTint(COLORS.text);
   const titleText = scene.add.bitmapText(0, 0, FONT.head, title).setTint(COLORS.gold).setOrigin(0.5, 0);
   const btnH = 28;
-  const ph = 18 + titleText.height + 10 + bodyText.height + 16 + btnH + 16;
+  // Three buttons side by side are too narrow for the longer captions: stack them.
+  const stacked = buttons.length >= 3;
+  const rows = stacked ? buttons.length : 1;
+  const ph = 18 + titleText.height + 10 + bodyText.height + 16 + rows * btnH + (rows - 1) * 6 + 16;
   const px = Math.round((W - pw) / 2);
   const py = Math.round((H - ph) / 2);
   const bg = panel(scene, px, py, pw, ph, 'ui_panel_ornate');
   titleText.setPosition(W / 2, py + 14);
   bodyText.setPosition(px + 14, py + 18 + titleText.height + 8);
   container.add([dim, bg, titleText, bodyText]);
-  const n = buttons.length;
+  const n = stacked ? 1 : buttons.length;
   const gap = 8;
   const bw = Math.floor((pw - 28 - gap * (n - 1)) / n);
   buttons.forEach((b, i) => {
-    const bx = px + 14 + i * (bw + gap) + bw / 2;
-    const by = py + ph - 16 - btnH / 2;
+    const bx = stacked ? W / 2 : px + 14 + i * (bw + gap) + bw / 2;
+    const by = stacked ? py + ph - 16 - btnH / 2 - (buttons.length - 1 - i) * (btnH + 6) : py + ph - 16 - btnH / 2;
     const btn = new Button(scene, bx, by, b.label, () => {
       close();
       b.onClick?.();

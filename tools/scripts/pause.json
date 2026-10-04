@@ -3,7 +3,7 @@
   "goto": "http://localhost:5199/"
  },
  {
-  "eval": "localStorage.clear()"
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1')"
  },
  {
   "goto": "http://localhost:5199/"

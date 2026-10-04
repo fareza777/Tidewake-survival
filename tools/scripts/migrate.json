@@ -3,7 +3,7 @@
   "goto": "http://localhost:5199/"
  },
  {
-  "eval": "localStorage.clear(); localStorage.setItem('tidewake.slot.0', \"{\\\"version\\\": 1, \\\"slot\\\": 0, \\\"name\\\": \\\"Old Ari\\\", \\\"seed\\\": 1234, \\\"difficulty\\\": \\\"normal\\\", \\\"createdAt\\\": 1, \\\"updatedAt\\\": 2, \\\"playTimeSec\\\": 300, \\\"player\\\": {\\\"x\\\": 80.5, \\\"y\\\": 143.5}, \\\"bag\\\": {\\\"wood\\\": 7, \\\"stone\\\": 3}, \\\"clock\\\": {\\\"day\\\": 2, \\\"t\\\": 50}, \\\"gather\\\": {\\\"hp\\\": {}, \\\"gone\\\": {}}}\"); 'v1 save written'"
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1'); localStorage.setItem('tidewake.slot.0', \"{\\\"version\\\": 1, \\\"slot\\\": 0, \\\"name\\\": \\\"Old Ari\\\", \\\"seed\\\": 1234, \\\"difficulty\\\": \\\"normal\\\", \\\"createdAt\\\": 1, \\\"updatedAt\\\": 2, \\\"playTimeSec\\\": 300, \\\"player\\\": {\\\"x\\\": 80.5, \\\"y\\\": 143.5}, \\\"bag\\\": {\\\"wood\\\": 7, \\\"stone\\\": 3}, \\\"clock\\\": {\\\"day\\\": 2, \\\"t\\\": 50}, \\\"gather\\\": {\\\"hp\\\": {}, \\\"gone\\\": {}}}\"); 'v1 save written'"
  },
  {
   "goto": "http://localhost:5199/"

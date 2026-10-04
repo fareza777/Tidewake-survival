@@ -3,6 +3,12 @@
     "goto": "http://localhost:5199/"
   },
   {
+    "eval": "localStorage.setItem('tidewake.onboarded', '1')"
+  },
+  {
+    "goto": "http://localhost:5199/"
+  },
+  {
     "until": "window.__game && __game.scene.isActive('Menu')",
     "timeout": 20000
   },

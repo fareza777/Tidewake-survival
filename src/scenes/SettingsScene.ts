@@ -6,7 +6,7 @@ import { defaultSettings, type Settings } from '@/core/settings';
 import { commitSettings } from '@/core/settingsApply';
 import { SLOT_COUNT } from '@/core/save';
 import { COLORS, FONT } from '@/ui/theme';
-import { Button, label, panel, toast } from '@/ui/widgets';
+import { Button, label, panel, shrinkToFit, toast } from '@/ui/widgets';
 import { confirm, showModal } from '@/ui/modal';
 
 const VOLUME_STEP = 0.1;
@@ -22,6 +22,7 @@ export interface SettingsInit {
 export class SettingsScene extends BaseScene {
   private cur!: Settings;
   private back: SettingsInit['back'] = 'Menu';
+  private startLang: Settings['lang'] = 'en';
   private ui!: Phaser.GameObjects.Container;
 
   constructor() {
@@ -31,6 +32,7 @@ export class SettingsScene extends BaseScene {
   create(data: SettingsInit): void {
     this.back = data?.back ?? 'Menu';
     this.cur = services.settings ?? defaultSettings();
+    this.startLang = this.cur.lang;
     this.transitioning = false;
     this.cameras.main.setBackgroundColor(COLORS.bg0);
     this.ui = this.add.container(0, 0);
@@ -43,8 +45,11 @@ export class SettingsScene extends BaseScene {
 
   private close(): void {
     if (this.back === 'Game') {
+      const changed = this.cur.lang !== this.startLang;
       this.scene.stop();
       this.scene.resume('Game');
+      // The HUD's own texts were written in the old language.
+      if (changed) this.scene.get('Hud').scene.restart({ game: this.scene.get('Game') });
     } else {
       this.goTo('Menu');
     }
@@ -80,19 +85,20 @@ export class SettingsScene extends BaseScene {
     let row = 0;
     const y = (): number => top + row++ * rowH + rowH / 2;
     const rightX = W - 18;
-    const text = (caption: string, at: number): void => {
-      this.ui.add(label(this, 16, at, caption, FONT.body, COLORS.text, 0, 0.5));
+    // A caption shrinks to leave room for its control, however long the language or the text size.
+    const text = (caption: string, at: number, controlW = 104): void => {
+      this.ui.add(shrinkToFit(label(this, 16, at, caption, FONT.body, COLORS.text, 0, 0.5), W - 16 - controlW - 28, 0.6));
     };
     const stepper = (caption: string, value: number, change: (v: number) => void): void => {
       const at = y();
-      text(caption, at);
+      text(caption, at, 130);
       this.ui.add(new Button(this, rightX - 104, at, '-', () => change(Math.max(0, Math.round((value - VOLUME_STEP) * 10) / 10)), { w: 28, h: 24 }));
       this.ui.add(label(this, rightX - 62, at, `${Math.round(value * 100)}%`, FONT.small, COLORS.text, 0.5, 0.5));
       this.ui.add(new Button(this, rightX - 20, at, '+', () => change(Math.min(1, Math.round((value + VOLUME_STEP) * 10) / 10)), { w: 28, h: 24 }));
     };
     const toggle = (caption: string, on: boolean, change: (v: boolean) => void): void => {
       const at = y();
-      text(caption, at);
+      text(caption, at, 80);
       this.ui.add(new Button(this, rightX - 40, at, on ? t('on') : t('off'), () => change(!on), { w: 80, h: 24, font: FONT.small, style: on ? 'primary' : 'normal' }));
     };
     const choice = (caption: string, shown: string, next: () => void): void => {
@@ -112,9 +118,12 @@ export class SettingsScene extends BaseScene {
     choice(t('setQuality'), qName[s.quality], () => this.set({ quality: QUALITIES[(QUALITIES.indexOf(s.quality) + 1) % QUALITIES.length] }, true));
     const sizeAt = Math.max(0, TEXT_SIZES.indexOf(s.textScale));
     choice(t('setTextSize'), `${Math.round(s.textScale * 100)}%`, () => this.set({ textScale: TEXT_SIZES[(sizeAt + 1) % TEXT_SIZES.length] }, true));
-    const at = y();
-    text(t('setReset'), at);
-    this.ui.add(new Button(this, rightX - 40, at, t('setResetBtn'), () => confirm(this, t('setReset'), t('setResetConfirm'), () => this.resetSaves(), true), { w: 80, h: 24, font: FONT.small, style: 'danger' }));
+    // (not while a game runs: it would write its slot again at the next autosave)
+    if (this.back === 'Menu') {
+      const at = y();
+      text(t('setReset'), at, 118);
+      this.ui.add(new Button(this, rightX - 40, at, t('setResetBtn'), () => confirm(this, t('setReset'), t('setResetConfirm'), () => this.resetSaves(), true), { w: 80, h: 24, font: FONT.small, style: 'danger' }));
+    }
     this.ui.add(new Button(this, W / 2, H - 28, t('back'), () => this.close(), { w: 140, h: 30, style: 'primary' }));
   }
 }

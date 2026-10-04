@@ -1,6 +1,6 @@
 [
  { "goto": "http://localhost:5199/" },
- { "eval": "localStorage.clear()" },
+ { "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1')" },
  { "goto": "http://localhost:5199/" },
  { "until": "window.__game && __game.scene.isActive('Menu')", "timeout": 20000 },
  { "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})" },
