@@ -6,9 +6,6 @@ import type { Difficulty } from '@/sim/vitals';
 /** The part of a weapon that decides what a swing hits and how hard. */
 export type SwingStats = Pick<WeaponStats, 'damage' | 'reach' | 'arc' | 'knockback'>;
 
-/** Armour points the hero wears: every blow is cut by this much. Armour items raise it later. */
-export const HERO_DEFENSE = 0;
-
 /** Seconds after a hit during which the hero cannot be hurt again. */
 export const HERO_IFRAMES = 0.7;
 

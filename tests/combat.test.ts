@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DIFFICULTY_DAMAGE, HERO_DEFENSE, HERO_IFRAMES, enemyDamage, facingFromVector, inSwing, knockbackVec } from '@/sim/combat';
+import { DIFFICULTY_DAMAGE, HERO_IFRAMES, enemyDamage, facingFromVector, inSwing, knockbackVec } from '@/sim/combat';
 
 const hero = { x: 10.5, y: 10.5 };
 
@@ -83,9 +83,8 @@ describe('facingFromVector', () => {
 });
 
 describe('hero constants', () => {
-  it('gives the hero a short moment of safety after a hit, and no armour yet', () => {
+  it('gives the hero a short moment of safety after a hit', () => {
     expect(HERO_IFRAMES).toBeGreaterThan(0.3);
     expect(HERO_IFRAMES).toBeLessThan(1.5);
-    expect(HERO_DEFENSE).toBe(0);
   });
 });

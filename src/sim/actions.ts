@@ -3,6 +3,9 @@ import type { CropId } from '@/data/crops';
 import { STRUCTURES, type StructureId } from '@/data/structures';
 import { STAMINA_TOOL } from '@/data/tools';
 import { canTill, isRipe, plotAt, type Farm } from '@/sim/farm';
+import type { DungeonId } from '@/sim/dungeon/progress';
+import type { Target } from '@/sim/dungeon/rules';
+import type { Chest, Door } from '@/sim/dungeon/types';
 import { countItem, type Inventory } from '@/sim/inventory';
 import { meleeFor, type Melee } from '@/sim/melee';
 import type { Vec } from '@/sim/movement';
@@ -37,6 +40,10 @@ export interface ActionContext {
   node: ResourceNode | null;
   /** A creature stands where a blow with the held item (or bare hands) would land. */
   creature: boolean;
+  /** The dungeon whose entrance is the tile in front of the hero (on the island). */
+  entrance: DungeonId | null;
+  /** What the hero can use on the tile in front of him inside a dungeon: a locked door, a chest, the way out. */
+  target: Target | null;
 }
 
 export type Blocked =
@@ -46,6 +53,8 @@ export type Blocked =
   | { reason: 'canEmpty' }
   | { reason: 'chestNotEmpty' }
   | { reason: 'noArrows' }
+  | { reason: 'needsKey' }
+  | { reason: 'needsBossKey' }
   | { reason: 'cannotPlace'; why: Extract<PlaceResult, { ok: false }>['reason'] };
 
 export type Action =
@@ -53,6 +62,10 @@ export type Action =
   | ({ kind: 'blocked' } & Blocked)
   | { kind: 'hit'; node: ResourceNode; damage: number; stamina: number; wear: boolean }
   | { kind: 'attack'; melee: Melee }
+  | { kind: 'enter'; dungeon: DungeonId }
+  | { kind: 'leave' }
+  | { kind: 'chest'; chest: Chest }
+  | { kind: 'door'; door: Door }
   | { kind: 'shoot'; stats: WeaponStats }
   | { kind: 'place'; type: StructureId; x: number; y: number }
   | { kind: 'till'; x: number; y: number; stamina: number }
@@ -97,6 +110,13 @@ export function resolveAction(c: ActionContext): Action {
   }
   const plot = tile >= 0 ? plotAt(c.farm, tile) : undefined;
   if (plot && isRipe(plot)) return { kind: 'harvest', x, y };
+  if (c.entrance) return { kind: 'enter', dungeon: c.entrance };
+  const use = c.target;
+  if (use) {
+    if (use.kind === 'exit') return { kind: 'leave' };
+    if (use.kind === 'chest') return use.chest.locked && countItem(c.inv, 'small_key') === 0 ? blocked({ reason: 'needsKey' }) : { kind: 'chest', chest: use.chest };
+    return countItem(c.inv, 'boss_key') === 0 ? blocked({ reason: 'needsBossKey' }) : { kind: 'door', door: use.door };
+  }
 
   const terrain = inside ? c.world.terrain[tile] : T.DEEP;
   if (def?.food) return wouldWaste(c.vitals, def.food) ? orFight : { kind: 'eat', food: def.food };

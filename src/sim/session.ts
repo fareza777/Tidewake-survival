@@ -6,6 +6,10 @@ import type { Station } from '@/data/structures';
 import type { Action } from '@/sim/actions';
 import { advance, canSleep, wakeUp, type Clock } from '@/sim/daynight';
 import { applyDeath } from '@/sim/death';
+import type { DungeonId, DungeonProgress, Dungeons } from '@/sim/dungeon/progress';
+import { lootChest, unlockDoor } from '@/sim/dungeon/rules';
+import type { Chest, Door } from '@/sim/dungeon/types';
+import { equipFromSlot, unequipArmor, type Equipment } from '@/sim/equipment';
 import * as farmSim from '@/sim/farm';
 import { hitNode, startNewDay, type GatherState } from '@/sim/gather';
 import {
@@ -31,6 +35,10 @@ export interface Session {
   farm: farmSim.Farm;
   respawn: Vec;
   playTime: number;
+  /** The dungeon the hero is in, or null on the island. */
+  location: DungeonId | null;
+  equipment: Equipment;
+  dungeons: Dungeons;
 }
 
 /** Something the scene should show or do as a result of a rule: floating text, a sprite change, a dialog. */
@@ -47,7 +55,11 @@ export type Fx =
   | { t: 'plot'; tile: number }
   | { t: 'open'; structure: Structure }
   | { t: 'slept' }
-  | { t: 'ate' };
+  | { t: 'ate' }
+  | { t: 'equipped' }
+  | { t: 'travel'; to: DungeonId | null }
+  | { t: 'chestOpened'; id: number }
+  | { t: 'doorOpened'; id: number };
 
 export interface Step {
   session: Session;
@@ -58,7 +70,7 @@ export function sessionFromSlot(slot: SaveSlot): Session {
   return {
     seed: slot.seed, difficulty: slot.difficulty, clock: slot.clock, gather: slot.gather, inventory: slot.inventory,
     selected: slot.selected, vitals: slot.vitals, structures: slot.structures, farm: slot.farm, respawn: slot.respawn,
-    playTime: slot.playTimeSec,
+    playTime: slot.playTimeSec, location: slot.location, equipment: slot.equipment, dungeons: slot.dungeons,
   };
 }
 
@@ -67,6 +79,7 @@ export function sessionToSlot(base: SaveSlot, s: Session, pos: Vec): SaveSlot {
   return {
     ...base, player: { x: pos.x, y: pos.y }, respawn: s.respawn, clock: s.clock, gather: s.gather, inventory: s.inventory,
     selected: s.selected, vitals: s.vitals, structures: s.structures, farm: s.farm, playTimeSec: s.playTime,
+    location: s.location, equipment: s.equipment, dungeons: s.dungeons,
   };
 }
 
@@ -88,6 +101,44 @@ export function rollDay(s: Session, keepGone: (id: number) => boolean): Session 
 /** A chopped node must not regrow on a tile the player has since built on or tilled. */
 export function blocksRegrowth(s: Session, node: ResourceNode, size: number): boolean {
   return structureAt(s.structures, node.x, node.y) !== undefined || idx(node.x, node.y, size) in s.farm.plots;
+}
+
+/** Change the progress of the dungeon the hero is in. The very same session comes back when there is no change. */
+export function updateDungeon(s: Session, change: (p: DungeonProgress) => DungeonProgress): Session {
+  if (!s.location) return s;
+  const before = s.dungeons[s.location];
+  const after = change(before);
+  return after === before ? s : { ...s, dungeons: { ...s.dungeons, [s.location]: after } };
+}
+
+function openChest(s: Session, chest: Chest): Step {
+  if (!s.location || s.dungeons[s.location].looted.includes(chest.id)) return { session: s, fx: [] };
+  const paid = chest.locked ? removeItem(s.inventory, 'small_key', 1) : s.inventory;
+  if (!paid) return { session: s, fx: [] };
+  const given = giveItems(paid, chest.loot.map((l) => ({ item: l.item, qty: l.qty })));
+  if (given.overflow) return { session: s, fx: [say('msgFull')] };
+  const session = updateDungeon({ ...s, inventory: given.inv }, (p) => lootChest(p, chest.id));
+  return { session, fx: [{ t: 'chestOpened', id: chest.id }, ...given.fx] };
+}
+
+function openBossDoor(s: Session, door: Door): Step {
+  const paid = s.location ? removeItem(s.inventory, 'boss_key', 1) : null;
+  if (!paid) return { session: s, fx: [] };
+  return { session: updateDungeon({ ...s, inventory: paid }, (p) => unlockDoor(p, door.id)), fx: [{ t: 'doorOpened', id: door.id }] };
+}
+
+/** Put the armour in a backpack slot on; whatever was worn goes back into that slot. */
+export function equipArmor(s: Session, index: number): Step {
+  const worn = equipFromSlot(s.inventory, s.equipment, index);
+  return worn ? { session: { ...s, inventory: worn.inv, equipment: worn.equipment }, fx: [{ t: 'equipped' }] } : { session: s, fx: [] };
+}
+
+/** Take the armour off into the backpack. */
+export function takeOffArmor(s: Session): Step {
+  if (!s.equipment.armor) return { session: s, fx: [] };
+  const off = unequipArmor(s.inventory, s.equipment);
+  if (!off) return { session: s, fx: [say('msgFull')] };
+  return { session: { ...s, inventory: off.inv, equipment: off.equipment }, fx: [{ t: 'equipped' }] };
 }
 
 /** A blow from a creature: hit points are lost, nothing else. */
@@ -127,6 +178,8 @@ function blockedFx(a: Extract<Action, { kind: 'blocked' }>): Fx[] {
     case 'saltWater': return [say('msgSaltWater')];
     case 'canEmpty': return [say('msgCanEmpty')];
     case 'noArrows': return [say('msgNoArrows')];
+    case 'needsKey': return [say('msgNeedsKey')];
+    case 'needsBossKey': return [say('msgNeedsBossKey')];
     case 'chestNotEmpty': return [say('msgChestNotEmpty')];
     case 'cannotPlace': return [say(`msgPlace_${a.why}`)];
   }
@@ -168,6 +221,10 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
         fx: [{ t: 'swing' }, { t: 'shot', stats: a.stats }, ...brokeFx(slotBefore, worn, s.selected)],
       };
     }
+    case 'enter': return { session: { ...s, location: a.dungeon }, fx: [{ t: 'travel', to: a.dungeon }] };
+    case 'leave': return { session: { ...s, location: null }, fx: [{ t: 'travel', to: null }] };
+    case 'chest': return openChest(s, a.chest);
+    case 'door': return openBossDoor(s, a.door);
     case 'place': {
       const structures = placeStructure(s.structures, a.type, a.x, a.y);
       return {

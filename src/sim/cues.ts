@@ -21,7 +21,8 @@ export function cueForFx(fx: Fx, node?: ResourceKind): Cue | null {
     case 'swing': return 'swing';
     case 'shot': return 'shoot';
     case 'hit': return node ? cueForNode(node) : 'chop';
-    case 'gain': case 'unbuilt': return 'pickup';
+    case 'gain': case 'unbuilt': case 'equipped': case 'chestOpened': return 'pickup';
+    case 'doorOpened': return 'place';
     case 'built': return 'place';
     case 'open': return 'ui_click';
     case 'slept': return 'sleep';
@@ -33,7 +34,7 @@ export function cueForFx(fx: Fx, node?: ResourceKind): Cue | null {
 
 /** The sound of something that happened among the creatures. */
 export function cueForEncounter(ev: EncounterEvent): Cue {
-  return ev.t === 'hit' ? 'hit' : ev.t === 'killed' ? 'kill' : 'hurt';
+  return ev.t === 'hit' || ev.t === 'struck' ? 'hit' : ev.t === 'killed' ? 'kill' : 'hurt';
 }
 
 /** Battle music while monsters are on the hero; otherwise the music of the time of day. */

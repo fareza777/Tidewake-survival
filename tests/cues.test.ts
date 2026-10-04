@@ -15,6 +15,10 @@ describe('cueForFx', () => {
     expect(cue({ t: 'unbuilt', id: 1 })).toBe('pickup');
     expect(cue({ t: 'slept' })).toBe('sleep');
     expect(cue({ t: 'ate' })).toBe('eat');
+    expect(cue({ t: 'equipped' })).toBe('pickup');
+    expect(cue({ t: 'chestOpened', id: 1 })).toBe('pickup');
+    expect(cue({ t: 'doorOpened', id: 1 })).toBe('place');
+    expect(cue({ t: 'travel', to: null })).toBeNull();
     expect(cue({ t: 'shot', stats: { kind: 'bow', damage: 1, reach: 1, arc: 0, cooldown: 1, stamina: 1, knockback: 0 } })).toBe('shoot');
     expect(cue({ t: 'open', structure: { id: 1, type: 'chest', x: 1, y: 1 } })).toBe('ui_click');
   });
@@ -42,6 +46,7 @@ describe('cueForEncounter', () => {
   it('has a sound for a creature being hit or killed and for the hero being hurt', () => {
     expect(cueForEncounter({ t: 'hit', id: 1, kind: 'slime', amount: 2, x: 0, y: 0 })).toBe('hit');
     expect(cueForEncounter({ t: 'killed', id: 1, kind: 'slime', x: 0, y: 0 })).toBe('kill');
+    expect(cueForEncounter({ t: 'struck', id: 2 })).toBe('hit');
     expect(cueForEncounter({ t: 'hurtHero', amount: 3, from: { x: 0, y: 0 }, kind: 'slime' })).toBe('hurt');
   });
 });

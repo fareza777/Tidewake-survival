@@ -26,7 +26,7 @@ function ctx(over: Partial<ActionContext> & { hold?: ItemId; arrows?: number; fa
   if (arrows) inv = addItem(inv, 'arrow', arrows).inv;
   return {
     world: makeWorld(), inv, selected: 0, vitals: fullVitals(), pos: { x: 10.5, y: 10.5 }, facing: 'right',
-    structures: emptyStructures(), farm: emptyFarm(), occupied: new Set(), node: null, creature: false, ...rest,
+    structures: emptyStructures(), farm: emptyFarm(), occupied: new Set(), node: null, creature: false, entrance: null, target: null, ...rest,
   };
 }
 const kind = (a: Action): string => a.kind;
