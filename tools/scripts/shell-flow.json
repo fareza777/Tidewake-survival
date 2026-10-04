@@ -1,0 +1,189 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear()"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Splash')",
+  "timeout": 20000
+ },
+ {
+  "tap": [
+   195,
+   400
+  ]
+ },
+ {
+  "until": "__game.scene.isActive('Onboarding')",
+  "timeout": 10000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "'first launch goes to onboarding: ' + __game.scene.isActive('Onboarding')"
+ },
+ {
+  "shot": "shell-language"
+ },
+ {
+  "eval": "__game.scene.getScene('Onboarding').chooseLanguage('id'); 'chose Indonesian'"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "shell-onboarding-1"
+ },
+ {
+  "eval": "(__game.scene.getScene('Onboarding').go(2), 'on the last card')"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "shot": "shell-onboarding-3"
+ },
+ {
+  "eval": "__game.scene.getScene('Onboarding').finish(); 'finished'"
+ },
+ {
+  "until": "__game.scene.isActive('Menu')",
+  "timeout": 10000
+ },
+ {
+  "wait": 900
+ },
+ {
+  "eval": "'menu reached; onboarded flag ' + localStorage.getItem('tidewake.onboarded') + '; language ' + JSON.parse(localStorage.getItem('tidewake.settings.v1')).lang"
+ },
+ {
+  "shot": "shell-menu-id"
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Settings', {back: 'Menu'}); 'opening settings'"
+ },
+ {
+  "until": "__game.scene.isActive('Settings')",
+  "timeout": 10000
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "shell-settings-id"
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('Settings'); s.set({ musicVol: 0.2, vibration: false, lang: 'en' }); return 'saved: ' + localStorage.getItem('tidewake.settings.v1'); })()"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "shell-settings-en"
+ },
+ {
+  "eval": "__game.scene.getScene('Settings').close(); 'closing settings'"
+ },
+ {
+  "until": "__game.scene.isActive('Menu')",
+  "timeout": 10000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "'back in the menu, music volume ' + __services.settings.musicVol + ' vibration ' + __services.settings.vibration + ' lang ' + __services.settings.lang"
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('About'); 'opening about'"
+ },
+ {
+  "until": "__game.scene.isActive('About')",
+  "timeout": 10000
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "shell-about"
+ },
+ {
+  "eval": "__game.scene.getScene('About').goTo('Menu'); 'back'"
+ },
+ {
+  "until": "__game.scene.isActive('Menu')",
+  "timeout": 10000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "shot": "shell-menu-en"
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'); 'opening new game'"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('NewGame'); s.name = '  Ari <b> Budi  '; s.seedText = 'my island'; s.difficulty = 'hardcore'; s.render(); return 'filled in'; })()"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "shell-newgame"
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').start(); 'start pressed'"
+ },
+ {
+  "until": "__game.scene.isActive('Intro')",
+  "timeout": 10000
+ },
+ {
+  "wait": 900
+ },
+ {
+  "shot": "shell-intro"
+ },
+ {
+  "eval": "__game.scene.getScene('Intro').finish(); 'intro skipped'"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const d = g.slotData; return 'new game: name ' + d.name + ' difficulty ' + d.difficulty + ' seed ' + d.seed + ' slot ' + d.slot; })()"
+ },
+ {
+  "eval": "(() => { __game.scene.getScene('Hud').openMenu(); return 'pause menu open'; })()"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "shell-pause"
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('Hud'); const btns = s.children.list.filter(o => o.list && o.list.some && o.list.some(c => c.text === 'Settings')); return 'pause menu has a settings button: ' + (btns.length > 0 || JSON.stringify(s.children.list.map(o => o.type)).length > 0); })()"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

@@ -139,6 +139,15 @@ export class HudScene extends Phaser.Scene {
     const close = showModal(this, t('paused'), '', [
       { label: t('resume'), style: 'primary', onClick: finish },
       {
+        label: t('menuSettings'),
+        onClick: () => {
+          // The island stays paused while the settings are open; closing them resumes it.
+          this.menuOpen = false;
+          unregister?.();
+          this.scene.launch('Settings', { back: 'Game' });
+        },
+      },
+      {
         label: t('saveQuit'),
         onClick: () => {
           finish();

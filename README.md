@@ -27,9 +27,13 @@ It needs `numpy`, `scipy` and `imageio-ffmpeg` (or `ffmpeg` on the PATH). The ge
 ## Browser smoke tests
 
 With `npm run dev` running: `node tools/play.mjs tools/scripts/<name>.json tools/.cache/shots`.
-Scenarios: boot, island, harvest, persist, night, pause, corrupt, badsave, survive, build, tools, death, death-back, sleep, migrate, perf, fight, hunt, monster-death, spawn, audio, perf-fight, zoo, dungeon-play, dungeon-death, dungeon-persist, dungeon-perf, dungeon-leave-moving, armor, story-play.
+Scenarios: boot, island, harvest, persist, night, pause, corrupt, badsave, survive, build, tools, death, death-back, sleep, migrate, perf, fight, hunt, monster-death, spawn, audio, perf-fight, zoo, dungeon-play, dungeon-death, dungeon-persist, dungeon-perf, dungeon-leave-moving, armor, story-play, shell-flow.
 
-## Status (phase 5)
+## Branding
+
+    python tools/make_branding.py   # branding/ (icon, adaptive icon, splash, Play feature graphic) and public/ favicons
+
+## Status (phase 6)
 
 A survival game on a seed-generated island: hunger, thirst, stamina and health; a 32-slot backpack with a hotbar;
 tools with tiers and durability; 23 recipes at the hand, campfire, workbench and furnace; building (campfire,
@@ -51,6 +55,11 @@ Phase 5 adds the story: five islanders (Marlo, Nia, Brock, Tali, Odo) who talk, 
 wreck to the lighthouse and the Hollow Keeper, ten side quests, a quest log and a tracker on the HUD, bottles, tablets,
 buried treasure, fishing and a lost cat to find, a raft to build, and two endings (sail home, or relight the lighthouse).
 Texts are in English and Indonesian.
+Phase 6 completes the shell: a language choice and three onboarding cards on first launch, a main menu with Continue,
+New Game, Settings, About, Share and Rate, a New Game screen (save slot, hero name, world seed, difficulty) with a short
+intro, a Settings screen (volumes, vibration, screen shake, damage numbers, auto-attack, joystick, language, graphics
+quality, text size, delete saves) that is also reachable from the pause menu, an About screen with credits, and a one-time
+rating prompt after the old sailor's chapter.
 Measured on the dev PC (headless Edge): tap-to-game 415 ms, 60 fps, still 58 fps with 24 creatures chasing.
 
 ## Credits

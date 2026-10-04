@@ -3,6 +3,7 @@ import { BaseScene } from './BaseScene';
 import type { HudScene } from './HudScene';
 import { Player } from '@/entities/Player';
 import { newSlot, type SaveSlot } from '@/core/save';
+import { cleanName } from '@/core/newGame';
 import { services } from '@/core/services';
 import { t } from '@/core/i18n';
 import { worldZoom } from '@/core/viewport';
@@ -32,7 +33,7 @@ import {
   applyAction, collapse, craftRecipe, story, equipArmor, moveInventorySlot, selectSlot, sessionFromSlot, sessionToSlot, takeOffArmor, tickSession,
   transferStack, type Fx, type Session, type Step,
 } from '@/sim/session';
-import { isDead } from '@/sim/vitals';
+import { isDead, type Difficulty } from '@/sim/vitals';
 import { GENERATOR_VERSION, generateWorld } from '@/sim/world/generate';
 import { idx, type Biome, type World } from '@/sim/world/types';
 import { COLORS } from '@/ui/theme';
@@ -49,6 +50,9 @@ export interface GameInit {
   slot: number;
   /** Present for a New Game; absent when continuing a saved slot. */
   seed?: number;
+  /** The hero's name and the difficulty chosen in New Game. */
+  name?: string;
+  difficulty?: Difficulty;
 }
 
 export interface OpenOptions {
@@ -103,7 +107,7 @@ export class GameScene extends BaseScene {
     }
     const seed = data.seed ?? loaded!.seed;
     const island = loaded?.location && loaded.dungeonVersion === DUNGEON_VERSION ? null : generateWorld(seed);
-    this.slotData = loaded ?? newSlot(data.slot, 'Castaway', seed, 'normal', island!.start, newClock());
+    this.slotData = loaded ?? newSlot(data.slot, cleanName(data.name), seed, data.difficulty ?? 'normal', island!.start, newClock());
     if (!loaded) services.saves?.write(this.slotData);
 
     const where = island ? null : this.slotData.location;
@@ -196,7 +200,9 @@ export class GameScene extends BaseScene {
     const pressed = this.keys.actionPressed();
     const action = this.computeAction();
     this.showCursor(action);
-    if (pressed && this.cooldown === 0) this.perform(action);
+    // With auto-attack on, a blow follows by itself whenever one would land on something.
+    const auto = services.settings?.autoAttack === true && action.kind === 'attack';
+    if ((pressed || auto) && this.cooldown === 0) this.perform(action);
 
     this.followCamera();
     const lit = this.level.lit(this.session);

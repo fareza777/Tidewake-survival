@@ -3,20 +3,13 @@ import { Preferences } from '@capacitor/preferences';
 import { AudioManager } from '@/core/audio';
 import { detectLang, setLang } from '@/core/i18n';
 import { Platform } from '@/core/platform';
-import { SaveStore, type StorageLike } from '@/core/save';
+import { SaveStore } from '@/core/save';
+import { browserStorage } from '@/core/storage';
 import { services } from '@/core/services';
 import { loadSettings } from '@/core/settings';
 import { view } from '@/core/viewport';
 import { createHiResSkin } from '@/ui/skin';
 import { createUiTextures, FONT, fontSuffix } from '@/ui/theme';
-
-function browserStorage(): StorageLike | null {
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
-}
 
 /** Loads the fonts, wires up the services (settings, saves, platform, audio) and hands over to Preload. */
 export class BootScene extends Phaser.Scene {

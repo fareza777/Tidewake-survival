@@ -1,4 +1,6 @@
 import { t, tr } from '@/core/i18n';
+import { FLAG_RATE_ASKED, readFlag, setFlag } from '@/core/flags';
+import { browserStorage } from '@/core/storage';
 import { services } from '@/core/services';
 import type { CreatureId } from '@/data/creatures';
 import { ENDING_A, ENDING_B, LIGHTHOUSE_SECRET } from '@/data/lore';
@@ -23,6 +25,7 @@ type Dialog = Extract<Fx, { t: 'dialog' }>;
 export class StoryDirector {
   private since = 0;
   private slept = false;
+  private rateDue = false;
 
   constructor(private game: GameScene) {}
 
@@ -42,7 +45,11 @@ export class StoryDirector {
     if (!def) return;
     if (ev.t === 'started') services.notify?.(t('questStarted', { name: tr(def.title) }));
     else if (ev.t === 'step') services.notify?.(tr(def.steps[ev.step].text));
-    else services.notify?.(t('questComplete', { name: tr(def.title) }));
+    else {
+      services.notify?.(t('questComplete', { name: tr(def.title) }));
+      // After the old sailor's chapter the player has met the story: a good moment to ask for a rating, once.
+      if (ev.id === 'c3' && !readFlag(browserStorage(), FLAG_RATE_ASKED)) this.rateDue = true;
+    }
   }
 
   private open(speaker: string | null, text: readonly string[], choices?: readonly DialogueChoice[]): void {
@@ -101,7 +108,18 @@ export class StoryDirector {
   }
 
   /** Look around now and then: landmarks the hero has come near, rewards that were waiting for room in the backpack. */
+  /** Ask for a rating, once, when no other dialogue is open. */
+  private askRate(): void {
+    this.rateDue = false;
+    setFlag(browserStorage(), FLAG_RATE_ASKED);
+    this.open(t('rateTitle'), [t('rateBody')], [
+      { label: t('rateNow'), style: 'primary', onPick: this.afterClose(() => void services.platform?.rate()) },
+      { label: t('later'), onPick: () => undefined },
+    ]);
+  }
+
   update(dt: number): void {
+    if (this.rateDue && !this.game.scene.isActive('Dialogue')) this.askRate();
     this.since += dt;
     if (this.since < LOOK_EVERY) return;
     this.since = 0;
