@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SAVE_VERSION, newSlot, parseSlot } from '@/core/saveData';
 import { newClock } from '@/sim/daynight';
+import { DUNGEON_VERSION } from '@/sim/dungeon/progress';
 import { GENERATOR_VERSION } from '@/sim/world/generate';
 
 const make = (slot = 0, name = 'Ari') => newSlot(slot, name, 4242, 'normal', { x: 77, y: 147 }, newClock(), 1000);
@@ -18,6 +19,52 @@ describe('newSlot', () => {
     expect(s.inventory.every((slot) => slot === null)).toBe(true);
     expect(s.structures).toEqual({ next: 1, list: [] });
     expect(s.farm).toEqual({ plots: {} });
+  });
+});
+
+describe('save format 3', () => {
+  it('starts a new game on the island with nothing worn and no dungeon progress', () => {
+    const s = make(0);
+    expect(s.location).toBeNull();
+    expect(s.equipment).toEqual({ armor: null });
+    expect(s.dungeons.grotto).toEqual({ opened: [], looted: [], solved: [], lit: [], boss: false });
+  });
+
+  it('records which dungeon generator the progress belongs to, and assumes the current one for saves that have none', () => {
+    expect(make(0).dungeonVersion).toBe(DUNGEON_VERSION);
+    const old = JSON.parse(JSON.stringify(make(1)));
+    delete old.dungeonVersion;
+    expect(parseSlot(old, 1)!.dungeonVersion).toBe(DUNGEON_VERSION);
+    expect(parseSlot({ ...old, dungeonVersion: 0 }, 1)!.dungeonVersion).toBe(0);
+    expect(parseSlot({ ...old, dungeonVersion: 'x' }, 1)!.dungeonVersion).toBe(DUNGEON_VERSION);
+  });
+
+  it('upgrades a version 2 save without losing anything', () => {
+    const old = JSON.parse(JSON.stringify(make(2)));
+    delete old.location;
+    delete old.equipment;
+    delete old.dungeons;
+    old.version = 2;
+    old.inventory[0] = { item: 'wood', qty: 7 };
+    const up = parseSlot(old, 2)!;
+    expect(up.version).toBe(SAVE_VERSION);
+    expect(up.inventory[0]).toEqual({ item: 'wood', qty: 7 });
+    expect(up.location).toBeNull();
+    expect(up.equipment).toEqual({ armor: null });
+    expect(up.dungeons.ruin.boss).toBe(false);
+  });
+
+  it('keeps worn armour, a dungeon location and progress, and drops what is not real', () => {
+    const raw = JSON.parse(JSON.stringify(make(0)));
+    raw.location = 'deepmine';
+    raw.equipment = { armor: 'armor_iron' };
+    raw.dungeons = { deepmine: { opened: [1, 4], looted: [2], solved: [0], lit: [], boss: true } };
+    const s = parseSlot(raw, 0)!;
+    expect(s.location).toBe('deepmine');
+    expect(s.equipment).toEqual({ armor: 'armor_iron' });
+    expect(s.dungeons.deepmine).toEqual({ opened: [1, 4], looted: [2], solved: [0], lit: [], boss: true });
+    expect(parseSlot({ ...raw, location: 'atlantis' }, 0)!.location).toBeNull();
+    expect(parseSlot({ ...raw, equipment: { armor: 'wood' } }, 0)!.equipment).toEqual({ armor: null });
   });
 });
 
@@ -45,7 +92,7 @@ describe('parseSlot', () => {
   });
 
   it('rejects saves whose version is not one this game understands', () => {
-    for (const version of [0, -5, 3, 1.5, '2', null]) expect(parseSlot({ ...valid(), version }, 0), String(version)).toBeNull();
+    for (const version of [0, -5, 4, 1.5, '2', null]) expect(parseSlot({ ...valid(), version }, 0), String(version)).toBeNull();
   });
 
   it('drops unreadable inventory slots instead of failing the whole save', () => {
@@ -101,7 +148,7 @@ describe('parseSlot', () => {
   it('upgrades a phase 1 save: loose materials become inventory items, the rest gets defaults', () => {
     const old = { version: 1, slot: 0, name: 'Ari', seed: 7, difficulty: 'normal', player: { x: 5, y: 6 }, clock: { day: 3, t: 10 }, gather: { hp: {}, gone: { 4: 1 } }, bag: { wood: 7, stone: 2, mystery: 4 } };
     const s = parseSlot(old, 1)!;
-    expect(s.version).toBe(2);
+    expect(s.version).toBe(SAVE_VERSION);
     expect(s.inventory[0]).toEqual({ item: 'wood', qty: 7 });
     expect(s.inventory[1]).toEqual({ item: 'stone', qty: 2 });
     expect(s.inventory.filter(Boolean)).toHaveLength(2);
@@ -132,4 +179,3 @@ describe('parseSlot', () => {
     expect(parseSlot({ ...valid(), name: 'x'.repeat(100) }, 0)!.name).toHaveLength(16);
   });
 });
-

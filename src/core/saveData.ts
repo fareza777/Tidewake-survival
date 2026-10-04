@@ -2,6 +2,8 @@ import { CROPS, type CropId } from '@/data/crops';
 import { ITEMS, isItemId } from '@/data/items';
 import { CHEST_SLOTS, STRUCTURES, type StructureId } from '@/data/structures';
 import { DAY_SECONDS, type Clock } from '@/sim/daynight';
+import { DUNGEON_VERSION, emptyDungeons, isDungeonId, parseDungeons, type DungeonId, type Dungeons } from '@/sim/dungeon/progress';
+import { noEquipment, parseEquipment, type Equipment } from '@/sim/equipment';
 import { emptyFarm, type Farm, type Plot } from '@/sim/farm';
 import { emptyGather, type GatherState } from '@/sim/gather';
 import { HOTBAR_SIZE, INVENTORY_SIZE, addItem, emptyInventory, type Inventory, type Slot } from '@/sim/inventory';
@@ -10,7 +12,7 @@ import { VITAL_MAX, fullVitals, type Difficulty, type Vitals } from '@/sim/vital
 import { GENERATOR_VERSION } from '@/sim/world/generate';
 import { WORLD_SIZE } from '@/sim/world/types';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 /** A save claiming more days than this is corrupt (real games last far fewer). */
 const MAX_DAY = 1_000_000;
 
@@ -40,6 +42,12 @@ export interface SaveSlot {
   vitals: Vitals;
   structures: Structures;
   farm: Farm;
+  /** The dungeon the hero is in, or null on the island. `player` is in that dungeon's coordinates. */
+  location: DungeonId | null;
+  equipment: Equipment;
+  dungeons: Dungeons;
+  /** DUNGEON_VERSION the dungeon progress was made under. */
+  dungeonVersion: number;
 }
 
 export interface SlotSummary {
@@ -59,7 +67,8 @@ export function newSlot(
   return {
     version: SAVE_VERSION, slot, name, seed, worldVersion: GENERATOR_VERSION, difficulty, createdAt: now, updatedAt: now,
     playTimeSec: 0, player: spawn, respawn: { ...spawn }, clock, gather: emptyGather(), inventory: emptyInventory(), selected: 0,
-    vitals: fullVitals(), structures: { next: 1, list: [] }, farm: emptyFarm(),
+    vitals: fullVitals(), structures: { next: 1, list: [] }, farm: emptyFarm(), location: null, equipment: noEquipment(),
+    dungeons: emptyDungeons(), dungeonVersion: DUNGEON_VERSION,
   };
 }
 
@@ -140,7 +149,7 @@ function inventoryFromBag(bag: unknown): Inventory {
 export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
   if (!isRecord(raw)) return null;
   const d = raw;
-  if (d.version !== 1 && d.version !== 2) return null;
+  if (d.version !== 1 && d.version !== 2 && d.version !== 3) return null;
   if (!isNum(d.seed)) return null;
   const player = d.player;
   const clock = d.clock;
@@ -173,5 +182,9 @@ export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
     vitals: parseVitals(d.vitals),
     structures: parseStructures(d.structures),
     farm: parseFarm(d.farm),
+    location: isDungeonId(d.location) ? d.location : null,
+    equipment: parseEquipment(d.equipment),
+    dungeons: parseDungeons(d.dungeons),
+    dungeonVersion: isInt(d.dungeonVersion) ? d.dungeonVersion : DUNGEON_VERSION,
   };
 }

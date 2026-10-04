@@ -8,7 +8,9 @@ export type ItemId =
   | 'axe_wood' | 'axe_stone' | 'axe_iron' | 'pickaxe_wood' | 'pickaxe_stone' | 'pickaxe_iron' | 'hoe' | 'watering_can'
   | 'campfire' | 'workbench' | 'furnace' | 'bed' | 'chest' | 'torch' | 'fence'
   | 'sword_wood' | 'sword_stone' | 'sword_iron' | 'spear_bone' | 'bow' | 'arrow'
-  | 'raw_meat' | 'cooked_meat' | 'honey' | 'bandage' | 'gel' | 'bone';
+  | 'raw_meat' | 'cooked_meat' | 'honey' | 'bandage' | 'gel' | 'bone'
+  | 'armor_bone' | 'armor_iron' | 'armor_moss' | 'armor_ironbones' | 'armor_mire'
+  | 'small_key' | 'boss_key' | 'compass' | 'hull_planks' | 'lighthouse_key';
 
 export type ToolType = 'axe' | 'pickaxe' | 'hoe' | 'can' | 'sword' | 'spear' | 'bow';
 
@@ -40,6 +42,8 @@ export interface ItemDef {
   /** Tools wear out: `durability` uses. A watering can instead holds `durability` charges of water. */
   tool?: { type: ToolType; tier: 1 | 2 | 3; durability: number };
   weapon?: WeaponStats;
+  /** Worn in the armour slot: every blow from a creature is cut by `defense` points. */
+  armor?: { defense: number };
   food?: { hunger: number; thirst: number; hp: number };
   place?: StructureId;
   seed?: CropId;
@@ -60,6 +64,8 @@ const weapon = (id: ItemId, type: 'sword' | 'spear' | 'bow', tier: 1 | 2 | 3, du
   ...tool(id, type, tier, durability), weapon: stats,
 });
 const sword = (damage: number): WeaponStats => ({ kind: 'melee', damage, reach: 1.3, arc: 110, cooldown: 0.42, stamina: 3, knockback: 0.35 });
+const armor = (id: ItemId, defense: number): ItemDef => ({ id, stack: 1, icon: icons(id), armor: { defense } });
+const keepsake = (id: ItemId, stack = 1): ItemDef => ({ id, stack, icon: icons(id) });
 const placeable = (id: ItemId, place: StructureId, stack = 10): ItemDef => ({ id, stack, icon: icons(`struct_${id}`), place });
 
 export const ITEMS: Record<ItemId, ItemDef> = {
@@ -109,6 +115,18 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   bandage: food('bandage', icons('bandage'), 0, 0, 30),
   gel: material('gel', 'gel'),
   bone: material('bone', 'bone'),
+
+  armor_bone: armor('armor_bone', 2),
+  armor_iron: armor('armor_iron', 4),
+  armor_moss: armor('armor_moss', 3),
+  armor_ironbones: armor('armor_ironbones', 5),
+  armor_mire: armor('armor_mire', 7),
+
+  small_key: keepsake('small_key', 9),
+  boss_key: keepsake('boss_key'),
+  compass: keepsake('compass'),
+  hull_planks: keepsake('hull_planks'),
+  lighthouse_key: keepsake('lighthouse_key'),
 
   campfire: placeable('campfire', 'campfire'),
   workbench: placeable('workbench', 'workbench'),

@@ -39,6 +39,8 @@ export const RECIPES: readonly Recipe[] = [
   r('sword_iron', 1, [['plank', 1], ['iron_ingot', 3], ['rope', 1]], 'workbench'),
   r('spear_bone', 1, [['plank', 1], ['bone', 2], ['rope', 1]], 'workbench'),
   r('bow', 1, [['plank', 3], ['rope', 2]], 'workbench'),
+  r('armor_bone', 1, [['bone', 8], ['rope', 2]], 'workbench'),
+  r('armor_iron', 1, [['iron_ingot', 8], ['rope', 2]], 'workbench'),
   r('arrow', 4, [['wood', 1], ['stone', 1], ['fiber', 1]], 'workbench'),
   // Furnace
   r('iron_ingot', 1, [['iron_ore', 2], ['wood', 1]], 'furnace'),

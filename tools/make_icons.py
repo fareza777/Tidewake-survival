@@ -13,7 +13,9 @@ from PIL import Image, ImageDraw
 
 from icon_kit import *  # noqa: F401,F403  (palette, canvas, outlined, handle)
 from icon_kit import S
+from make_armor_icons import armor_icons
 from make_combat_icons import combat_icons
+from make_dungeon_icons import dungeon_icons
 
 ROOT = Path(__file__).resolve().parent.parent
 PACK = ROOT / "public" / "assets" / "pack"
@@ -317,6 +319,8 @@ def build():
         "baked_pumpkin": tinted("farmicon1/50", (0.82, 0.58, 0.36)),
     }
     icons.update(combat_icons())
+    icons.update(armor_icons())
+    icons.update(dungeon_icons())
     return icons
 
 
