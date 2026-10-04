@@ -43,7 +43,9 @@ export const LANDMARK_PROPS: Record<LandmarkId, readonly PropSpec[]> = {
     { frame: 'p/column_05', dx: 2, dy: 1, blocks: [[2, 1]] },
   ],
   lighthouse: [
-    { frame: 'p/statue_02', dx: 0, dy: 0, blocks: [[0, 0]] },
+    { frame: 'door/door_dungeon_11_h/0', dx: 0, dy: 0, blocks: [[0, 0]] },
+    { frame: 'p/statue_02', dx: 0, dy: -1 },
+    { frame: 'p/lamp_04', dx: -2, dy: 0, blocks: [[-2, 0]] },
     { frame: 'p/lamp_04', dx: 2, dy: 0, blocks: [[2, 0]] },
   ],
   tablets: [{ frame: 'p/statue_03', dx: 0, dy: 0, blocks: [[0, 0]] }],

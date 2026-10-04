@@ -19,6 +19,11 @@ import type { Melee } from '@/sim/melee';
 import { craft } from '@/sim/crafting';
 import type { Vec } from '@/sim/movement';
 import { placeStructure, removeStructure, setStructureInventory, structureAt, type Structure, type Structures } from '@/sim/structures';
+import { COOKED_FOODS } from '@/data/items';
+import type { Text } from '@/sim/quests';
+import type { QuestEvent, QuestState } from '@/sim/quests';
+import { giveItems, say } from '@/sim/sessionKit';
+import { chooseEnding, claimOwed, dawn, dig, fish, inspect, reached, recordKill, story, talk, useRaft, withStory } from '@/sim/storySession';
 import { eat, sleepRecovery, spendStamina, takeDamage, tickVitals, type Difficulty, type Vitals } from '@/sim/vitals';
 import { idx, type Biome, type ResourceNode } from '@/sim/world/types';
 
@@ -39,6 +44,8 @@ export interface Session {
   location: DungeonId | null;
   equipment: Equipment;
   dungeons: Dungeons;
+  /** Quest progress: the chapters, the side quests, what has happened and what has been found. */
+  quests: QuestState;
 }
 
 /** Something the scene should show or do as a result of a rule: floating text, a sprite change, a dialog. */
@@ -59,7 +66,11 @@ export type Fx =
   | { t: 'equipped' }
   | { t: 'travel'; to: DungeonId | null }
   | { t: 'chestOpened'; id: number }
-  | { t: 'doorOpened'; id: number };
+  | { t: 'doorOpened'; id: number }
+  | { t: 'quest'; ev: QuestEvent }
+  | { t: 'dialog'; speaker: Text | null; lines: readonly Text[] }
+  | { t: 'ending' }
+  | { t: 'theEnd'; which: 'A' | 'B' };
 
 export interface Step {
   session: Session;
@@ -70,7 +81,7 @@ export function sessionFromSlot(slot: SaveSlot): Session {
   return {
     seed: slot.seed, difficulty: slot.difficulty, clock: slot.clock, gather: slot.gather, inventory: slot.inventory,
     selected: slot.selected, vitals: slot.vitals, structures: slot.structures, farm: slot.farm, respawn: slot.respawn,
-    playTime: slot.playTimeSec, location: slot.location, equipment: slot.equipment, dungeons: slot.dungeons,
+    playTime: slot.playTimeSec, location: slot.location, equipment: slot.equipment, dungeons: slot.dungeons, quests: slot.quests,
   };
 }
 
@@ -79,7 +90,7 @@ export function sessionToSlot(base: SaveSlot, s: Session, pos: Vec): SaveSlot {
   return {
     ...base, player: { x: pos.x, y: pos.y }, respawn: s.respawn, clock: s.clock, gather: s.gather, inventory: s.inventory,
     selected: s.selected, vitals: s.vitals, structures: s.structures, farm: s.farm, playTimeSec: s.playTime,
-    location: s.location, equipment: s.equipment, dungeons: s.dungeons,
+    location: s.location, equipment: s.equipment, dungeons: s.dungeons, quests: s.quests,
   };
 }
 
@@ -150,22 +161,6 @@ export function selectSlot(s: Session, index: number): Session {
   return index >= 0 && index < 8 ? { ...s, selected: index } : s;
 }
 
-const say = (key: string, vars?: Record<string, string | number>, translate?: string[]): Fx => ({ t: 'say', key, vars, translate });
-
-function giveItems(inv: Inventory, items: { item: ItemId; qty: number }[]): { inv: Inventory; fx: Fx[]; overflow: boolean } {
-  const fx: Fx[] = [];
-  let cur = inv;
-  let overflow = false;
-  for (const it of items) {
-    const { inv: next, left } = addItem(cur, it.item, it.qty);
-    cur = next;
-    if (it.qty - left > 0) fx.push({ t: 'gain', item: it.item, qty: it.qty - left });
-    if (left > 0) overflow = true;
-  }
-  if (overflow) fx.push(say('msgFull'));
-  return { inv: cur, fx, overflow };
-}
-
 /** The "your tool broke" message when the held slot emptied by wear. */
 function brokeFx(before: Slot | null | undefined, after: Inventory, index: number): Fx[] {
   return before && !after[index] ? [say('msgToolBroke', { item: `item_${before.item}` }, ['item'])] : [];
@@ -180,6 +175,7 @@ function blockedFx(a: Extract<Action, { kind: 'blocked' }>): Fx[] {
     case 'noArrows': return [say('msgNoArrows')];
     case 'needsKey': return [say('msgNeedsKey')];
     case 'needsBossKey': return [say('msgNeedsBossKey')];
+    case 'needsLighthouseKey': return [say('msgNeedsLighthouseKey')];
     case 'chestNotEmpty': return [say('msgChestNotEmpty')];
     case 'cannotPlace': return [say(`msgPlace_${a.why}`)];
   }
@@ -225,12 +221,17 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
     case 'leave': return { session: { ...s, location: null }, fx: [{ t: 'travel', to: null }] };
     case 'chest': return openChest(s, a.chest);
     case 'door': return openBossDoor(s, a.door);
+    case 'talk': return talk(s, a.npc);
+    case 'inspect': return inspect(s, a.spot);
+    case 'dig': return dig(s, a.spot, a.stamina);
+    case 'fish': return fish(s, a.stamina);
+    case 'raft': return useRaft(s);
     case 'place': {
       const structures = placeStructure(s.structures, a.type, a.x, a.y);
-      return {
+      return withStory({
         session: { ...s, structures, inventory: takeOne(s.inventory, s.selected) },
         fx: [{ t: 'built', structure: structures.list[structures.list.length - 1] }],
-      };
+      }, [`build:${a.type}`]);
     }
     case 'pickup': {
       const { inv, left } = addItem(s.inventory, a.structure.type, 1);
@@ -262,7 +263,10 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       return { session: { ...s, inventory: setDurability(s.inventory, s.selected, cap) }, fx: [say('msgFilled')] };
     }
     case 'eat':
-      return { session: { ...s, inventory: takeOne(s.inventory, s.selected), vitals: eat(s.vitals, a.food) }, fx: [{ t: 'ate' }] };
+      return withStory(
+        { session: { ...s, inventory: takeOne(s.inventory, s.selected), vitals: eat(s.vitals, a.food) }, fx: [{ t: 'ate' }] },
+        slotBefore && COOKED_FOODS.includes(slotBefore.item) ? ['eat:cooked'] : [],
+      );
     case 'harvest': {
       const tile = idx(a.x, a.y);
       const rng = new Rng(hashString(`${s.seed}:farm:${tile}:${s.clock.day}`));
@@ -270,7 +274,7 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       if (!result) return { session: s, fx: [] };
       const given = giveItems(s.inventory, result.items);
       if (given.overflow) return { session: s, fx: [say('msgFull')] };
-      return { session: { ...s, farm: result.farm, inventory: given.inv }, fx: [{ t: 'plot', tile }, ...given.fx] };
+      return withStory({ session: { ...s, farm: result.farm, inventory: given.inv }, fx: [{ t: 'plot', tile }, ...given.fx] }, ['harvest']);
     }
     case 'drink':
       return { session: { ...s, vitals: eat(s.vitals, { hunger: 0, thirst: 25, hp: 0 }) }, fx: [say('msgDrank')] };
@@ -291,8 +295,11 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
 export function craftRecipe(s: Session, recipe: Recipe, near: ReadonlySet<Station>): Step {
   const inv = craft(s.inventory, recipe, near);
   if (!inv) return { session: s, fx: [] };
-  return { session: { ...s, inventory: inv }, fx: [{ t: 'gain', item: recipe.out, qty: recipe.qty }] };
+  const cooked = recipe.station === 'campfire' && ITEMS[recipe.out].food !== undefined;
+  return withStory({ session: { ...s, inventory: inv }, fx: [{ t: 'gain', item: recipe.out, qty: recipe.qty }] }, [`craft:${recipe.out}`, ...(cooked ? ['cook'] : [])]);
 }
+
+export { chooseEnding, claimOwed, dawn, reached, recordKill, story };
 
 export function moveInventorySlot(s: Session, from: number, to: number): Session {
   return { ...s, inventory: moveSlot(s.inventory, from, to) };

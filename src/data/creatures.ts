@@ -71,6 +71,11 @@ export const CREATURES: Record<CreatureId, CreatureDef> = {
   mossback: boss('mossback', 140, 1.6, 12, 'm04_2', [{ item: 'compass', min: 1, max: 1 }, { item: 'armor_moss', min: 1, max: 1 }]),
   ironbones: boss('ironbones', 160, 1.7, 14, 'm04_3', [{ item: 'hull_planks', min: 1, max: 1 }, { item: 'armor_ironbones', min: 1, max: 1 }]),
   mirelord: boss('mirelord', 180, 1.5, 9, 'm04_0', [{ item: 'lighthouse_key', min: 1, max: 1 }, { item: 'armor_mire', min: 1, max: 1 }]),
+  hollowkeeper: {
+    ...boss('hollowkeeper', 260, 1.6, 16, 'bonus_5', [{ item: 'beacon_core', min: 1, max: 1 }, { item: 'armor_hollow', min: 1, max: 1 }]),
+    sprite: { ...monster('bonus_5', 'down'), scale: 1.8 },
+    radius: 0.8,
+  },
 
   rabbit: { id: 'rabbit', temper: 'flee', hp: 3, speed: 3, damage: 0, sight: 4, reach: 0, windup: 0, cooldown: 0, radius: 0.2, sprite: critter('bunny1/walk'), drops: [{ item: 'raw_meat', min: 1, max: 1 }], spawn: { biomes: [FOREST], weight: 10, when: 'any' } },
   fox: { id: 'fox', temper: 'flee', hp: 6, speed: 2.9, damage: 0, sight: 5, reach: 0, windup: 0, cooldown: 0, radius: 0.22, sprite: critter('fox1/walk'), drops: [{ item: 'raw_meat', min: 1, max: 2 }], spawn: { biomes: [FOREST, MOUNTAIN, DESERT], weight: 5, when: 'any' } },

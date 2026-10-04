@@ -1,4 +1,5 @@
 import { ITEMS, type ToolType, type WeaponStats } from '@/data/items';
+import type { NpcId } from '@/data/npcs';
 import type { CropId } from '@/data/crops';
 import { STRUCTURES, type StructureId } from '@/data/structures';
 import { STAMINA_TOOL } from '@/data/tools';
@@ -12,6 +13,7 @@ import type { Vec } from '@/sim/movement';
 import { canPlace, structureAt, type PlaceResult, type Structure, type Structures } from '@/sim/structures';
 import { checkHit } from '@/sim/tools';
 import { wouldWaste, type FoodValue, type Vitals } from '@/sim/vitals';
+import type { Spot } from '@/sim/world/spots';
 import { T, idx, inBounds, type ResourceNode, type World } from '@/sim/world/types';
 
 export type Facing = 'down' | 'left' | 'right' | 'up';
@@ -44,6 +46,10 @@ export interface ActionContext {
   entrance: DungeonId | null;
   /** What the hero can use on the tile in front of him inside a dungeon: a locked door, a chest, the way out. */
   target: Target | null;
+  /** The islander standing on the tile in front of the hero. */
+  npc?: NpcId | null;
+  /** The find (bottle, tablet, cat, treasure) in front of the hero or under his feet. */
+  spot?: Spot | null;
 }
 
 export type Blocked =
@@ -55,6 +61,7 @@ export type Blocked =
   | { reason: 'noArrows' }
   | { reason: 'needsKey' }
   | { reason: 'needsBossKey' }
+  | { reason: 'needsLighthouseKey' }
   | { reason: 'cannotPlace'; why: Extract<PlaceResult, { ok: false }>['reason'] };
 
 export type Action =
@@ -66,6 +73,11 @@ export type Action =
   | { kind: 'leave' }
   | { kind: 'chest'; chest: Chest }
   | { kind: 'door'; door: Door }
+  | { kind: 'talk'; npc: NpcId }
+  | { kind: 'inspect'; spot: Spot }
+  | { kind: 'dig'; spot: Spot; stamina: number }
+  | { kind: 'fish'; x: number; y: number; stamina: number }
+  | { kind: 'raft'; structure: Structure }
   | { kind: 'shoot'; stats: WeaponStats }
   | { kind: 'place'; type: StructureId; x: number; y: number }
   | { kind: 'till'; x: number; y: number; stamina: number }
@@ -106,11 +118,18 @@ export function resolveAction(c: ActionContext): Action {
       return structure.inv?.some(Boolean) ? blocked({ reason: 'chestNotEmpty' }) : { kind: 'pickup', structure };
     }
     if (structure.type === 'bed') return { kind: 'sleep', structure };
+    if (structure.type === 'raft') return { kind: 'raft', structure };
     if (structure.type === 'chest' || STRUCTURES[structure.type].station) return { kind: 'open', structure };
   }
   const plot = tile >= 0 ? plotAt(c.farm, tile) : undefined;
   if (plot && isRipe(plot)) return { kind: 'harvest', x, y };
+  if (c.npc) return { kind: 'talk', npc: c.npc };
+  if (c.entrance === 'lighthouse' && countItem(c.inv, 'lighthouse_key') === 0) return blocked({ reason: 'needsLighthouseKey' });
   if (c.entrance) return { kind: 'enter', dungeon: c.entrance };
+  if (c.spot && c.spot.kind !== 'treasure') return { kind: 'inspect', spot: c.spot };
+  if (c.spot && def?.tool?.type === 'shovel') {
+    return c.vitals.stamina < STAMINA_TOOL ? blocked({ reason: 'tired' }) : { kind: 'dig', spot: c.spot, stamina: STAMINA_TOOL };
+  }
   const use = c.target;
   if (use) {
     if (use.kind === 'exit') return { kind: 'leave' };
@@ -134,6 +153,10 @@ export function resolveAction(c: ActionContext): Action {
     if (terrain === T.SHALLOW) return blocked({ reason: 'saltWater' });
     if (!plot || !plot.crop || plot.watered) return orFight;
     return (slot?.dur ?? 0) > 0 ? { kind: 'water', x, y } : blocked({ reason: 'canEmpty' });
+  }
+
+  if (def?.tool?.type === 'rod' && (terrain === T.SHALLOW || terrain === T.DEEP || terrain === T.RIVER)) {
+    return c.vitals.stamina < STAMINA_TOOL ? blocked({ reason: 'tired' }) : { kind: 'fish', x, y, stamina: STAMINA_TOOL };
   }
 
   if (def?.weapon?.kind === 'bow') {

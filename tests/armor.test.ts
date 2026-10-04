@@ -5,7 +5,7 @@ import { UI_STRINGS } from '@/data/strings';
 import { defenseOf, equipFromSlot, noEquipment, parseEquipment, unequipArmor } from '@/sim/equipment';
 import { addItem, emptyInventory } from '@/sim/inventory';
 
-const ARMORS: ItemId[] = ['armor_bone', 'armor_iron', 'armor_moss', 'armor_ironbones', 'armor_mire'];
+const ARMORS: ItemId[] = ['armor_bone', 'armor_iron', 'armor_moss', 'armor_ironbones', 'armor_mire', 'armor_hollow'];
 
 describe('armour items', () => {
   it('are the five pieces, never stack, never wear out, and name a positive defence', () => {
@@ -29,7 +29,7 @@ describe('armour items', () => {
     const make = (out: ItemId) => RECIPES.find((r) => r.out === out);
     expect(make('armor_bone')).toMatchObject({ station: 'workbench', cost: [['bone', 8], ['rope', 2]] });
     expect(make('armor_iron')).toMatchObject({ station: 'workbench', cost: [['iron_ingot', 8], ['rope', 2]] });
-    for (const id of ['armor_moss', 'armor_ironbones', 'armor_mire'] as const) expect(make(id), id).toBeUndefined();
+    for (const id of ['armor_moss', 'armor_ironbones', 'armor_mire', 'armor_hollow'] as const) expect(make(id), id).toBeUndefined();
   });
 });
 

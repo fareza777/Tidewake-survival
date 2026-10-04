@@ -197,11 +197,11 @@ describe('what ACTION can reach', () => {
 });
 
 describe('dungeon entrances on the island', () => {
-  it('are the landmark tiles of the grotto, the deep mine and the ruin, and nothing else', () => {
+  it('are the landmark tiles of the grotto, the deep mine, the ruin and the lighthouse, and nothing else', () => {
     const world = generateWorld(1234);
     for (const l of world.landmarks) {
       const found = entranceAt(world, l.x, l.y);
-      expect(found, l.id).toBe(l.id === 'grotto' || l.id === 'deepmine' || l.id === 'ruin' ? l.id : null);
+      expect(found, l.id).toBe(l.id === 'grotto' || l.id === 'deepmine' || l.id === 'ruin' || l.id === 'lighthouse' ? l.id : null);
       expect(entranceAt(world, l.x + 1, l.y), l.id).toBeNull();
     }
     expect(entranceAt(world, -1, 5)).toBeNull();
@@ -213,7 +213,7 @@ describe('coming back out', () => {
     for (const seed of [1, 2, 3, 1234, 99991]) {
       const world = generateWorld(seed);
       const blocked = new Set(propSolidTiles(world));
-      for (const id of ['grotto', 'deepmine', 'ruin'] as const) {
+      for (const id of ['grotto', 'deepmine', 'ruin', 'lighthouse'] as const) {
         const door = world.landmarks.find((l) => l.id === id)!;
         const out = doorwayOutside(world, id);
         expect(out, `${seed}/${id}`).toEqual({ x: door.x + 0.5, y: door.y + 1.5 });

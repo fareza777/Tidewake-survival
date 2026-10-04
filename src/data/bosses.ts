@@ -52,6 +52,13 @@ export const BOSSES: Record<BossId, BossDef> = {
       { speed: 1.25, moves: [move('slam', 0.45, 0.8, [0, 2.4], 16), move('fan', 0.55, 1, [3, 10], 10, 5), move('ring', 0.9, 1.2, [0, 12], 9, 8), move('summon', 0.8, 1.5, [0, 99], 0, 2)] },
     ],
   },
+  hollowkeeper: {
+    id: 'hollowkeeper', summon: 'ghost', phase2Below: 0.5,
+    phases: [
+      { speed: 1.05, moves: [move('slam', 0.55, 0.9, [0, 2.3], 16), move('fan', 0.65, 1, [3, 11], 10, 5), move('charge', 0.8, 1.2, [3, 9], 16)] },
+      { speed: 1.35, moves: [move('slam', 0.4, 0.7, [0, 2.5], 18), move('ring', 0.8, 1, [0, 12], 10, 12), move('fan', 0.5, 0.8, [3, 11], 11, 7), move('summon', 0.7, 1.2, [0, 99], 0, 3)] },
+    ],
+  },
   mirelord: {
     id: 'mirelord', summon: 'ghost', phase2Below: 0.5,
     phases: [

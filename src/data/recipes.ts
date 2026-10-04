@@ -42,6 +42,10 @@ export const RECIPES: readonly Recipe[] = [
   r('armor_bone', 1, [['bone', 8], ['rope', 2]], 'workbench'),
   r('armor_iron', 1, [['iron_ingot', 8], ['rope', 2]], 'workbench'),
   r('arrow', 4, [['wood', 1], ['stone', 1], ['fiber', 1]], 'workbench'),
+  r('shovel', 1, [['plank', 2], ['stone', 2], ['rope', 1]], 'workbench'),
+  r('fishing_rod', 1, [['wood', 3], ['rope', 2]], 'workbench'),
+  r('sailcloth', 1, [['fiber', 10], ['rope', 2]], 'workbench'),
+  r('raft', 1, [['plank', 8], ['rope', 3], ['sailcloth', 1], ['hull_planks', 1], ['compass', 1]], 'workbench'),
   // Furnace
   r('iron_ingot', 1, [['iron_ore', 2], ['wood', 1]], 'furnace'),
   // Campfire
@@ -49,4 +53,6 @@ export const RECIPES: readonly Recipe[] = [
   r('roasted_corn', 1, [['corn', 1]], 'campfire'),
   r('baked_pumpkin', 1, [['pumpkin', 1]], 'campfire'),
   r('cooked_meat', 1, [['raw_meat', 1]], 'campfire'),
+  r('cooked_fish', 1, [['raw_fish', 1]], 'campfire'),
+  r('antidote', 1, [['gel', 2], ['fiber', 3], ['berries', 2]], 'campfire'),
 ];

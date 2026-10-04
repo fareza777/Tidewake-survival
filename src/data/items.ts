@@ -10,9 +10,11 @@ export type ItemId =
   | 'sword_wood' | 'sword_stone' | 'sword_iron' | 'spear_bone' | 'bow' | 'arrow'
   | 'raw_meat' | 'cooked_meat' | 'honey' | 'bandage' | 'gel' | 'bone'
   | 'armor_bone' | 'armor_iron' | 'armor_moss' | 'armor_ironbones' | 'armor_mire'
-  | 'small_key' | 'boss_key' | 'compass' | 'hull_planks' | 'lighthouse_key';
+  | 'small_key' | 'boss_key' | 'compass' | 'hull_planks' | 'lighthouse_key'
+  | 'shovel' | 'fishing_rod' | 'raw_fish' | 'cooked_fish' | 'big_fish' | 'sailcloth' | 'antidote' | 'lost_pickaxe'
+  | 'beacon_core' | 'armor_hollow' | 'raft';
 
-export type ToolType = 'axe' | 'pickaxe' | 'hoe' | 'can' | 'sword' | 'spear' | 'bow';
+export type ToolType = 'axe' | 'pickaxe' | 'hoe' | 'can' | 'sword' | 'spear' | 'bow' | 'shovel' | 'rod';
 
 /** How a weapon behaves. Melee weapons sweep an arc in front of the hero; the bow shoots an arrow that flies `reach` tiles. */
 export interface WeaponStats {
@@ -129,6 +131,17 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   compass: keepsake('compass'),
   hull_planks: keepsake('hull_planks'),
   lighthouse_key: keepsake('lighthouse_key'),
+  beacon_core: keepsake('beacon_core'),
+  lost_pickaxe: keepsake('lost_pickaxe'),
+  armor_hollow: { ...armor('armor_hollow', 9), keep: true },
+
+  shovel: tool('shovel', 'shovel', 1, 60),
+  fishing_rod: tool('fishing_rod', 'rod', 1, 60),
+  raw_fish: food('raw_fish', icons('raw_fish'), 9, 0, 0),
+  cooked_fish: food('cooked_fish', icons('cooked_fish'), 32, 0, 4),
+  big_fish: material('big_fish', 'big_fish'),
+  sailcloth: material('sailcloth', 'sailcloth'),
+  antidote: food('antidote', icons('antidote'), 0, 8, 30),
 
   campfire: placeable('campfire', 'campfire'),
   workbench: placeable('workbench', 'workbench'),
@@ -137,7 +150,11 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   chest: placeable('chest', 'chest'),
   torch: placeable('torch', 'torch', 20),
   fence: placeable('fence', 'fence', 50),
+  raft: placeable('raft', 'raft', 1),
 };
+
+/** Foods that count as a cooked meal for the story. */
+export const COOKED_FOODS: readonly ItemId[] = ['cooked_meat', 'roasted_carrot', 'roasted_corn', 'baked_pumpkin', 'cooked_fish'];
 
 export const ITEM_IDS = Object.keys(ITEMS) as ItemId[];
 

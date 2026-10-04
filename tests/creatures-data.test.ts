@@ -15,7 +15,7 @@ const LAND_BIOMES = [B.FOREST, B.MOUNTAIN, B.SWAMP, B.DESERT];
 
 describe('creature catalog', () => {
   it('keys every entry by its own id and gives it sane stats', () => {
-    expect(CREATURE_IDS).toHaveLength(16);
+    expect(CREATURE_IDS).toHaveLength(17);
     for (const id of CREATURE_IDS) {
       const c = CREATURES[id];
       expect(c.id).toBe(id);
@@ -49,9 +49,9 @@ describe('creature catalog', () => {
     expect(isHostileKind('boar')).toBe(false);
   });
 
-  it('has three bosses that never appear by themselves, count as hostile, and drop their dungeon rewards', () => {
+  it('has four bosses that never appear by themselves, count as hostile, and drop their dungeon rewards', () => {
     const bosses = CREATURE_IDS.filter((id) => CREATURES[id].temper === 'boss');
-    expect(bosses.sort()).toEqual(['ironbones', 'mirelord', 'mossback']);
+    expect(bosses.sort()).toEqual(['hollowkeeper', 'ironbones', 'mirelord', 'mossback']);
     for (const id of bosses) {
       expect(isHostileKind(id), id).toBe(true);
       expect(CREATURES[id].hp, id).toBeGreaterThanOrEqual(100);

@@ -92,7 +92,7 @@ describe('parseSlot', () => {
   });
 
   it('rejects saves whose version is not one this game understands', () => {
-    for (const version of [0, -5, 4, 1.5, '2', null]) expect(parseSlot({ ...valid(), version }, 0), String(version)).toBeNull();
+    for (const version of [0, -5, 5, 1.5, '2', null]) expect(parseSlot({ ...valid(), version }, 0), String(version)).toBeNull();
   });
 
   it('drops unreadable inventory slots instead of failing the whole save', () => {

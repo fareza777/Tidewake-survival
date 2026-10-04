@@ -16,6 +16,7 @@ from icon_kit import S
 from make_armor_icons import armor_icons
 from make_combat_icons import combat_icons
 from make_dungeon_icons import dungeon_icons
+from make_story_icons import story_icons
 
 ROOT = Path(__file__).resolve().parent.parent
 PACK = ROOT / "public" / "assets" / "pack"
@@ -321,6 +322,7 @@ def build():
     icons.update(combat_icons())
     icons.update(armor_icons())
     icons.update(dungeon_icons())
+    icons.update(story_icons())
     return icons
 
 

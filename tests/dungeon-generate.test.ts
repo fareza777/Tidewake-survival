@@ -14,7 +14,7 @@ const all = (): [string, Dungeon][] => DUNGEON_IDS.flatMap((id) => SEEDS.map((se
 
 describe('dungeon definitions', () => {
   it('names a theme, a roster of real creatures, a boss, a story item and an armour reward for each dungeon', () => {
-    expect(DUNGEON_IDS).toEqual(['grotto', 'deepmine', 'ruin']);
+    expect(DUNGEON_IDS).toEqual(['grotto', 'deepmine', 'ruin', 'lighthouse']);
     expect(DUNGEONS.grotto.theme).toBe('moss');
     expect(DUNGEONS.deepmine.theme).toBe('mine');
     expect(DUNGEONS.ruin.theme).toBe('ruin');
@@ -25,7 +25,7 @@ describe('dungeon definitions', () => {
       expect(ITEMS[def.story].stack, id).toBe(1);
       expect(ITEMS[def.armor].armor, id).toBeDefined();
     }
-    expect(new Set(DUNGEON_IDS.map((id) => DUNGEONS[id].boss)).size).toBe(3);
+    expect(new Set(DUNGEON_IDS.map((id) => DUNGEONS[id].boss)).size).toBe(4);
   });
 });
 
