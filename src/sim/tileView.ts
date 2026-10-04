@@ -1,6 +1,6 @@
-import { GROUND_TILES } from '@/data/terrainTiles';
+import { GROUND_TILES, themeTiles, type DungeonTheme } from '@/data/terrainTiles';
 import { TILE_FRAMES } from '@/data/tileIndex';
-import { idx, inBounds, isWater, type Terrain, type World } from '@/sim/world/types';
+import { T, idx, inBounds, isWater, type Terrain, type World } from '@/sim/world/types';
 
 /** Stable pseudo-random number in [0, 1) for a tile, so the same tile always looks the same. */
 export function tileHash(x: number, y: number, seed = 0): number {
@@ -12,6 +12,23 @@ export function tileHash(x: number, y: number, seed = 0): number {
 /** Frame index (in tiles.png) of the ground tile to draw at (x, y). */
 export function groundFrame(terrain: number, x: number, y: number): number {
   const list = GROUND_TILES[terrain as Terrain];
+  const total = list.reduce((s, [, w]) => s + w, 0);
+  let roll = tileHash(x, y) * total;
+  for (const [name, w] of list) {
+    roll -= w;
+    if (roll < 0) return TILE_FRAMES[name];
+  }
+  return TILE_FRAMES[list[list.length - 1][0]];
+}
+
+/** Frame of the dungeon tile at (x, y): a themed floor variant, the lit face of a wall that has floor to its south, or a wall top. */
+export function dungeonFrame(world: World, x: number, y: number, theme: DungeonTheme): number {
+  const here = world.terrain[idx(x, y, world.size)];
+  if (here === T.WALL) {
+    const below = inBounds(x, y + 1, world.size) ? world.terrain[idx(x, y + 1, world.size)] : T.WALL;
+    return TILE_FRAMES[below === T.FLOOR ? (`wallface.${theme}` as const) : (`walltop.${theme}` as const)];
+  }
+  const list = themeTiles(theme)[T.FLOOR];
   const total = list.reduce((s, [, w]) => s + w, 0);
   let roll = tileHash(x, y) * total;
   for (const [name, w] of list) {

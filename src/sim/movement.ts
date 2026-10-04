@@ -14,7 +14,7 @@ export const WADE_SPEED = 0.6;
 export function tileBlocked(world: World, solids: ReadonlySet<number>, tx: number, ty: number): boolean {
   if (!inBounds(tx, ty, world.size)) return true;
   const i = idx(tx, ty, world.size);
-  return world.terrain[i] === T.DEEP || solids.has(i);
+  return world.terrain[i] === T.DEEP || world.terrain[i] === T.WALL || solids.has(i);
 }
 
 /** Does a body of half-width `half` centred on (x, y) touch deep water, the map edge or a solid tile? */

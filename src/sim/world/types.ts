@@ -1,14 +1,15 @@
 export const WORLD_SIZE = 160;
 
-export const T = { DEEP: 0, SHALLOW: 1, SAND: 2, GRASS: 3, SWAMP: 4, DIRT: 5, STONE: 6, DESERT: 7, RIVER: 8 } as const;
+/** Island terrain, plus the floor and walls of dungeon interiors (FLOOR and WALL only occur in dungeons). */
+export const T = { DEEP: 0, SHALLOW: 1, SAND: 2, GRASS: 3, SWAMP: 4, DIRT: 5, STONE: 6, DESERT: 7, RIVER: 8, FLOOR: 9, WALL: 10 } as const;
 export type Terrain = (typeof T)[keyof typeof T];
 
 export const B = { SEA: 0, FOREST: 1, MOUNTAIN: 2, SWAMP: 3, DESERT: 4 } as const;
 export type Biome = (typeof B)[keyof typeof B];
 
 export const isWater = (t: number): boolean => t === T.DEEP || t === T.SHALLOW || t === T.RIVER;
-/** The player can wade through shallow water and rivers; only deep water blocks. */
-export const isWalkable = (t: number): boolean => t !== T.DEEP;
+/** The player can wade through shallow water and rivers; only deep water and dungeon walls block. */
+export const isWalkable = (t: number): boolean => t !== T.DEEP && t !== T.WALL;
 
 export type LandmarkId =
   | 'start' | 'camp' | 'sailor' | 'herbalist' | 'miner' | 'grotto' | 'deepmine' | 'ruin'
