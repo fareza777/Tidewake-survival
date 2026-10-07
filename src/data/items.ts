@@ -104,7 +104,7 @@ const tool = (id: ItemId, type: ToolType, tier: Tier, durability: number): ItemD
 const weapon = (id: ItemId, type: 'sword' | 'spear' | 'bow', tier: Tier, durability: number, stats: WeaponStats): ItemDef => ({
   ...tool(id, type, tier, durability), weapon: stats,
 });
-const sword = (damage: number): WeaponStats => ({ kind: 'melee', damage, reach: 1.3, arc: 110, cooldown: 0.42, stamina: 3, knockback: 0.35 });
+const sword = (damage: number): WeaponStats => ({ kind: 'melee', damage, reach: 1.7, arc: 130, cooldown: 0.42, stamina: 3, knockback: 0.35 });
 const armor = (id: ItemId, defense: number): ItemDef => ({ id, stack: 1, icon: icons(id), armor: { defense } });
 const gear = (id: ItemId, slot: GearSlot, defense: number, extra: Omit<NonNullable<ItemDef['armor']>, 'defense' | 'slot'> = {}): ItemDef => ({
   id, stack: 1, icon: icons(id), armor: { defense, slot, ...extra },

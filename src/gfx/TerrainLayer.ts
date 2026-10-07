@@ -28,7 +28,8 @@ export class TerrainLayer {
     const groundMap = scene.make.tilemap({ data: groundData, tileWidth: TILE, tileHeight: TILE });
     const groundTiles = groundMap.addTilesetImage('ground', TILES_KEY, TILE, TILE, 0, 0);
     if (!groundTiles) throw new Error('TerrainLayer: tileset textures are not loaded');
-    groundMap.createLayer(0, groundTiles, 0, 0)?.setDepth(-100);
+    // Extra tiles are kept drawn beyond the screen edge, so a camera shake never uncovers a strip of bare background.
+    groundMap.createLayer(0, groundTiles, 0, 0)?.setDepth(-100).setCullPadding(4, 4);
   }
 
   private buildIsland(scene: Phaser.Scene, world: World): void {
@@ -52,7 +53,7 @@ export class TerrainLayer {
       const map = scene.make.tilemap({ data: layer, tileWidth: TILE, tileHeight: TILE });
       const tiles = map.addTilesetImage(blendKey(k), blendKey(k), TILE, TILE, 0, 0);
       if (!tiles) throw new Error('TerrainLayer: blend atlas is missing');
-      map.createLayer(0, tiles, -TILE / 2, -TILE / 2)?.setDepth(-100 + k * 0.1);
+      map.createLayer(0, tiles, -TILE / 2, -TILE / 2)?.setDepth(-100 + k * 0.1).setCullPadding(4, 4);
     });
     this.addDecor(scene, world);
     this.addSparkles(scene, world);
