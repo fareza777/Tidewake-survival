@@ -1,0 +1,100 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1'); localStorage.setItem('tidewake.tutorial', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "u-menu1"
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "shot": "u-menu2"
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice(); inv[0]={item:'wood',qty:40}; inv[1]={item:'stone',qty:30}; inv[2]={item:'fiber',qty:30}; g.session = {...g.session, inventory: inv, vitals: {...g.session.vitals, thirst: 8, hp: 60}}; return 1; })()"
+ },
+ {
+  "wait": 900
+ },
+ {
+  "shot": "u-urgent"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.session = {...g.session, vitals: {...g.session.vitals, thirst: 90, hp: 100}}; g.openQuests(); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Quests')",
+  "timeout": 5000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "shot": "u-quest-main"
+ },
+ {
+  "eval": "(() => { const q = __game.scene.getScene('Quests'); q.tab='side'; q.render(); return 1; })()"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "u-quest-side"
+ },
+ {
+  "eval": "(() => { __game.scene.stop('Quests'); __game.scene.resume('Game'); __game.scene.getScene('Game').openInventory({mode:'craft'}); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Inventory')",
+  "timeout": 5000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "shot": "u-craft"
+ },
+ {
+  "eval": "(() => { const i = __game.scene.getScene('Inventory'); i.tab='bag'; i.render(); return 1; })()"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "u-bag"
+ }
+]

@@ -22,7 +22,10 @@ import { maxDurability } from '@/sim/upgrade';
 import { IconButton } from '@/ui/icons';
 import { Bar, Button, panel } from '@/ui/widgets';
 
-const SLOT = 34;
+/** Size of a hotbar box: as big as the width allows (40 on a normal phone), set when the scene starts. */
+let SLOT = 34;
+/** A need under this much starts to pulse on the screen edge. */
+const URGENT_BELOW = 25;
 const GAP = 3;
 const BAR_W = 78;
 const BARS = [
@@ -51,6 +54,8 @@ export class HudScene extends Phaser.Scene {
   private lastDay = '';
   private seasonText!: Phaser.GameObjects.BitmapText;
   private goldIcon!: Phaser.GameObjects.Image;
+  /** The pulsing glow round the screen edge when a need is urgent (red for health, orange for hunger, blue for thirst, ice for cold). */
+  private urgentGlow!: Phaser.GameObjects.Image;
   private goldText!: Phaser.GameObjects.BitmapText;
   private weatherFx!: WeatherFx;
   private buffLayer!: Phaser.GameObjects.Container;
@@ -73,6 +78,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   create(data: { game: GameScene }): void {
+    SLOT = Math.max(34, Math.min(48, Math.floor((view.w - 10 - (HOTBAR_SIZE - 1) * GAP) / HOTBAR_SIZE)));
     this.world = data.game;
     this.menuOpen = false;
     this.lastInventory = null;
@@ -87,6 +93,7 @@ export class HudScene extends Phaser.Scene {
     this.goldText = this.add.bitmapText(121, 9, FONT.small, '').setTint(COLORS.gold).setDepth(5).setVisible(false);
     this.buffLayer = this.add.container(0, 0).setDepth(5);
     this.weatherFx = new WeatherFx(this);
+    this.urgentGlow = this.add.image(W / 2, H / 2, 'fx_edge').setDisplaySize(W * 1.08, H * 1.08).setAlpha(0).setDepth(3);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.weatherFx.destroy());
     // The boss's health, across the top of the screen, only while a boss fight is on.
     const bossW = Math.min(180, W - 120);
@@ -162,7 +169,7 @@ export class HudScene extends Phaser.Scene {
       this.slotLayer.add(nine(this, x, y, selected ? 'ui_tab_on' : 'ui_slot', SLOT, SLOT).setOrigin(0, 0));
       const slot = inv[i];
       if (!slot) continue;
-      this.slotLayer.add(itemIcon(this, x + SLOT / 2, y + SLOT / 2 - 1, slot.item, 24));
+      this.slotLayer.add(itemIcon(this, x + SLOT / 2, y + SLOT / 2 - 1, slot.item, SLOT - 10));
       if (slot.qty > 1) {
         this.slotLayer.add(this.add.bitmapText(x + SLOT - 3, y + SLOT - 3, FONT.small, String(slot.qty)).setOrigin(1, 1).setTint(COLORS.white));
       }
@@ -283,6 +290,22 @@ export class HudScene extends Phaser.Scene {
     ], 20000, false);
   }
 
+  /** When health, food, water or warmth run low the screen edge pulses in that need's colour, faster the worse it is. */
+  private updateUrgent(): void {
+    const v = this.world.session.vitals;
+    const needs: { value: number; tint: number }[] = [
+      { value: v.hp, tint: 0xff3030 }, { value: v.thirst, tint: 0x2f7dff }, { value: v.hunger, tint: 0xff9a2a }, { value: v.warmth, tint: 0x9fe8ff },
+    ];
+    const worst = needs.filter((n) => n.value < URGENT_BELOW).sort((a, b) => a.value - b.value)[0];
+    if (!worst) {
+      this.urgentGlow.setAlpha(Math.max(0, this.urgentGlow.alpha - 0.04));
+      return;
+    }
+    const danger = 1 - worst.value / URGENT_BELOW;
+    const beat = 0.5 + 0.5 * Math.sin((this.time.now / 1000) * (3 + danger * 6));
+    this.urgentGlow.setTint(worst.tint).setAlpha(Math.min(1, 0.3 + danger * 0.3 + beat * (0.2 + danger * 0.3)));
+  }
+
   /** Show or hide the boss's name and health. */
   private updateBoss(): void {
     const boss = this.world.bossBar();
@@ -315,6 +338,7 @@ export class HudScene extends Phaser.Scene {
     this.pickUpCaption.setVisible(this.world.canDismantle);
     this.updateBoss();
     this.updateTracker();
+    this.updateUrgent();
     const s = this.world.session;
     const day = `${t('hudDay', { n: s.clock.day })}  ${clockLabel(s.clock)}`;
     if (day !== this.lastDay) {

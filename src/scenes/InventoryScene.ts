@@ -18,7 +18,8 @@ import { COLORS, FONT } from '@/ui/theme';
 import { Button, label, panel, para } from '@/ui/widgets';
 
 const COLS = 8;
-const SLOT = 36;
+/** Size of an item box: as big as the width allows (about 40 on a normal phone), set when the screen opens. */
+let SLOT = 36;
 const GAP = 2;
 const ROWS_PER_PAGE = 5;
 const ROW_H = 56;
@@ -46,6 +47,7 @@ export class InventoryScene extends BaseScene {
   }
 
   create(data: OpenOptions & { game: GameScene }): void {
+    SLOT = Math.max(36, Math.min(48, Math.floor((view.w - 12 - (COLS - 1) * GAP) / COLS)));
     this.world = data.game;
     this.mode = data.mode;
     this.chestId = data.chestId ?? 0;
@@ -185,7 +187,7 @@ export class InventoryScene extends BaseScene {
       this.ui.add(nine(this, x, y, mark(i) ? 'ui_tab_on' : 'ui_slot', SLOT, SLOT).setOrigin(0, 0));
       const slot = inv[i];
       if (!slot) continue;
-      this.ui.add(itemIcon(this, x + SLOT / 2, y + SLOT / 2 - 1, slot.item, 26));
+      this.ui.add(itemIcon(this, x + SLOT / 2, y + SLOT / 2 - 1, slot.item, SLOT - 10));
       if (slot.qty > 1) this.ui.add(this.add.bitmapText(x + SLOT - 3, y + SLOT - 3, FONT.small, String(slot.qty)).setOrigin(1, 1).setTint(COLORS.white));
       if (slot.plus) this.ui.add(this.add.bitmapText(x + 3, y + 2, FONT.small, t('itemPlus', { n: slot.plus })).setTint(COLORS.gold));
     }
@@ -199,6 +201,8 @@ export class InventoryScene extends BaseScene {
       this.ui.add(label(this, this.gridX(), this.bagTop() - 14, t('invTitle'), FONT.small, COLORS.textDim));
     }
     const top = this.bagTop();
+    // The first row is the tools column (and the hotbar): crafted tools land there first.
+    if (this.mode === 'bag') this.ui.add(this.add.rectangle(this.gridX() - 3, top - 3, COLS * (SLOT + GAP) + 4, SLOT + 6, 0xe8b64a, 0.22).setOrigin(0, 0).setStrokeStyle(1, 0xe8b64a, 0.6));
     this.drawGrid(inv, INVENTORY_SIZE, top, (i) => i === this.picked || (this.mode === 'bag' && i < HOTBAR_SIZE && i === this.world.session.selected));
     if (this.mode === 'chest') {
       this.ui.add(label(this, this.gridX(), top + 4 * (SLOT + GAP) + 6, t('chestHint'), FONT.small, COLORS.textDim));

@@ -201,9 +201,9 @@ export function createUiTextures(scene: Phaser.Scene): void {
   });
   // White screen-edge glow: tint it (e.g. red when hurt). fx_vignette is black and would stay black when tinted.
   makeTexture(scene, 'fx_edge', 64, 64, (ctx, w) => {
-    const g = ctx.createRadialGradient(w / 2, w / 2, w * 0.3, w / 2, w / 2, w * 0.72);
+    const g = ctx.createRadialGradient(w / 2, w / 2, w * 0.16, w / 2, w / 2, w * 0.6);
     g.addColorStop(0, 'rgba(255,255,255,0)');
-    g.addColorStop(1, 'rgba(255,255,255,0.9)');
+    g.addColorStop(1, 'rgba(255,255,255,1)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, w);
   });

@@ -1,0 +1,65 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1'); localStorage.setItem('tidewake.tutorial', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "u-menu1"
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "shot": "u-menu2"
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice(); inv[0]={item:'wood',qty:40}; inv[1]={item:'stone',qty:30}; inv[2]={item:'fiber',qty:30}; g.session = {...g.session, inventory: inv, vitals: {...g.session.vitals, thirst: 8, hp: 60}}; return 1; })()"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.session = {...g.session, vitals: {...g.session.vitals, thirst: 8, hp: 60}}; return 1; })()"
+ },
+ {
+  "wait": 700
+ },
+ {
+  "wait": 100
+ },
+ {
+  "wait": 150
+ },
+ {
+  "shot": "u-urgent"
+ }
+]
