@@ -1,4 +1,5 @@
 import { LANDMARK_PROPS } from '@/data/landmarkProps';
+import { STRUCTURES } from '@/data/structures';
 import type { Farm } from '@/sim/farm';
 import { isAlive, type GatherState } from '@/sim/gather';
 import { structureSolids, type Structures } from '@/sim/structures';
@@ -29,6 +30,8 @@ export interface Blocking {
   solids: Set<number>;
   /** Tiles nothing can be built or tilled on: all of the above, plus torches and soil. */
   occupied: Set<number>;
+  /** Gates: the hero walks through them, creatures do not. */
+  gates?: Set<number>;
 }
 
 /** Living nodes, landmark scenery and solid buildings block walking; every building and every plot blocks building. */
@@ -39,5 +42,7 @@ export function blockingTiles(world: World, props: readonly number[], s: { gathe
   const occupied = new Set<number>(solids);
   for (const p of s.structures.list) occupied.add(idx(p.x, p.y, world.size));
   for (const key of Object.keys(s.farm.plots)) occupied.add(Number(key));
-  return { solids, occupied };
+  const gates = new Set<number>();
+  for (const p of s.structures.list) if (STRUCTURES[p.type].gate) gates.add(idx(p.x, p.y, world.size));
+  return { solids, occupied, gates };
 }

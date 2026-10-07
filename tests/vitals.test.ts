@@ -103,7 +103,7 @@ describe('eating, stamina and sleep', () => {
 
   it('sleeping heals and rests but costs food and water', () => {
     const out = sleepRecovery(v({ hp: 30, hunger: 60, thirst: 60, stamina: 5 }));
-    expect(out).toEqual({ hp: 70, hunger: 45, thirst: 45, stamina: VITAL_MAX });
+    expect(out).toEqual({ hp: 70, hunger: 45, thirst: 45, stamina: VITAL_MAX, warmth: VITAL_MAX });
     expect(sleepRecovery(v({ hunger: 5, thirst: 5 }))).toMatchObject({ hunger: 0, thirst: 0 });
   });
 });

@@ -25,6 +25,8 @@ import type { Level } from '@/game/Level';
 import { MusicDirector } from '@/game/MusicDirector';
 import { controls, resetControls } from '@/game/input';
 import { dismantleAt, frontTile, resolveAction, type Action } from '@/sim/actions';
+import { phaseOf } from '@/sim/daynight';
+import { campSize, raidFor } from '@/sim/raids';
 import { cueForFx } from '@/sim/cues';
 import { newClock } from '@/sim/daynight';
 import { generateDungeon } from '@/sim/dungeon/generate';
@@ -34,7 +36,8 @@ import { emptyGather, sanitizeGather } from '@/sim/gather';
 import { meleeFor } from '@/sim/melee';
 import { moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import {
-  applyAction, collapse, craftRecipe, story, equipArmor, moveInventorySlot, selectSlot, sessionFromSlot, sessionMods, sessionToSlot, takeOffGear, tickSession,
+  applyAction, collapse, craftRecipe, story, equipArmor, markRaid, moveInventorySlot, selectSlot, sessionFromSlot, sessionMods, sessionToSlot, takeOffGear, tickSession,
+  turretFired,
   upgradeItem, repairItem,
   transferStack, type Fx, type Session, type Step,
 } from '@/sim/session';
@@ -82,6 +85,8 @@ export class GameScene extends BaseScene {
   float!: FloatText;
   /** Tiles the hero cannot walk through: living nodes, scenery, buildings, closed doors, blocks. */
   solids = new Set<number>();
+  /** Tiles creatures cannot enter: the solid ones, and the gates the hero walks through. */
+  monsterSolids = new Set<number>();
   /** Seconds the scene stands still after a good hit, to give blows some weight. */
   hitStop = 0;
   /** True while the collapse dialog is up. */
@@ -96,6 +101,7 @@ export class GameScene extends BaseScene {
   /** Where the camera looks (world pixels): it glides after the hero and leans a little the way he runs. */
   private look = { x: 0, y: 0, ready: false };
   private lastDt = 0.016;
+  private coldHush = 0;
   private running = false;
   /** True while the hero faces something he built that can be taken down (a chest, a bench, a bed...). */
   canDismantle = false;
@@ -210,8 +216,10 @@ export class GameScene extends BaseScene {
     const stamina = this.session.vitals.stamina;
     this.running = wants && (this.running ? stamina > 0.5 : stamina >= RUN_START);
     if (this.keys.running() && !this.running && wants && controls.run) controls.run = false;
-    this.session = tickSession(this.session, dt, this.biomeAt(), this.idle < BUSY_SECONDS, this.running);
+    this.session = tickSession(this.session, dt, this.biomeAt(), this.idle < BUSY_SECONDS, this.running, this.pos);
     if (this.session.clock.day !== this.lastDay) this.onNewDay();
+    this.checkRaid();
+    this.warnCold(dt);
     if (isDead(this.session.vitals)) {
       this.onCollapse();
       return;
@@ -258,6 +266,30 @@ export class GameScene extends BaseScene {
     return this.world.biome[idx(Math.floor(this.pos.x), Math.floor(this.pos.y), this.world.size)] as Biome;
   }
 
+  /** At dusk, once a day: a camp that has grown big enough may be raided in the night. */
+  private checkRaid(): void {
+    this.combat.checkRaidOver();
+    const c = this.session.clock;
+    if (this.level.dungeon || this.level.fixed || phaseOf(c) !== 'dusk' || this.session.raidDay === c.day) return;
+    this.session = markRaid(this.session, c.day);
+    const kinds = raidFor(this.session.seed, c.day, this.session.difficulty, campSize(this.session.structures), this.biomeAt());
+    if (kinds) this.combat.startRaid(kinds);
+  }
+
+  /** A word of warning when the cold is getting to the hero (not more than every so often). */
+  private warnCold(dt: number): void {
+    this.coldHush = Math.max(0, this.coldHush - dt);
+    const w = this.session.vitals.warmth;
+    if (this.coldHush > 0 || w > 40) return;
+    this.coldHush = w <= 15 ? 18 : 40;
+    services.notify?.(t(w <= 15 ? 'msgFreezing' : 'msgShivering'));
+  }
+
+  /** A turret loosed an arrow. */
+  turretFired(id: number): void {
+    this.session = turretFired(this.session, id);
+  }
+
   /** What ACTION would do right now. */
   private computeAction(): Action {
     const s = this.session;
@@ -278,7 +310,7 @@ export class GameScene extends BaseScene {
 
   private showCursor(a: Action): void {
     const onGrid = ['place', 'till', 'plant', 'water', 'refill', 'harvest', 'open', 'drink', 'pickup', 'dig', 'fish'].includes(a.kind);
-    const onThing = ['sleep', 'enter', 'leave', 'chest', 'door', 'talk', 'inspect', 'raft'].includes(a.kind);
+    const onThing = ['sleep', 'enter', 'leave', 'chest', 'door', 'talk', 'inspect', 'raft', 'reload'].includes(a.kind);
     const refused = a.kind === 'blocked' && a.reason === 'cannotPlace';
     this.cursor.setVisible(onGrid || refused);
     this.ring.setVisible(onThing);
@@ -396,8 +428,9 @@ export class GameScene extends BaseScene {
 
   /** Walk-blocking tiles and the tiles nothing can be built or tilled on, as the level has them now. */
   rebuildBlocking(): void {
-    const { solids, occupied } = this.level.blocking(this.session);
+    const { solids, occupied, gates } = this.level.blocking(this.session);
     this.solids = solids;
+    this.monsterSolids = gates && gates.size > 0 ? new Set([...solids, ...gates]) : solids;
     this.occupied = occupied;
   }
 

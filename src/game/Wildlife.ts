@@ -1,6 +1,9 @@
 import type Phaser from 'phaser';
 import { Rng } from '@/core/rng';
+import type { CreatureId } from '@/data/creatures';
 import { CreatureLayer } from '@/gfx/CreatureLayer';
+import { spawnRaid } from '@/sim/raids';
+import type { World } from '@/sim/world/types';
 import type { Facing } from '@/sim/actions';
 import type { SwingStats } from '@/sim/combat';
 import {
@@ -47,6 +50,11 @@ export class Wildlife {
     this.lastBlow = hero;
     const r = swing(this.state, hero, facing, stats, this.rng);
     return this.apply(r.e, r.events);
+  }
+
+  /** A raid: monsters appear in a ring around the camp and come for it. */
+  raid(kinds: readonly CreatureId[], world: World, solids: ReadonlySet<number>, center: Vec): void {
+    this.apply(spawnRaid(this.state, kinds, world, solids, center, this.rng), []);
   }
 
   /** The hero looses an arrow. */

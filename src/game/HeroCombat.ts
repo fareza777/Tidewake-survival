@@ -11,7 +11,8 @@ import { cueForEncounter } from '@/sim/cues';
 import { defenseOf } from '@/sim/equipment';
 import { hostilesNear, type Encounters, type EncounterEvent } from '@/sim/encounters';
 import type { Melee } from '@/sim/melee';
-import { hurtHero, type Fx } from '@/sim/session';
+import { hurtHero, raidSurvived, sessionMods, type Fx } from '@/sim/session';
+import type { CreatureId } from '@/data/creatures';
 import { emptyStructures } from '@/sim/structures';
 import { COLORS } from '@/ui/theme';
 
@@ -32,6 +33,7 @@ export class HeroCombat {
   private calm = FIGHT_LINGER;
   /** The blow being resolved is a critical one (its numbers are gold). */
   private critNow = false;
+  private raiding = false;
 
   constructor(private host: GameScene) {
     this.wildlife = new Wildlife(host);
@@ -78,8 +80,9 @@ export class HeroCombat {
     const s = host.session;
     const level = host.level;
     this.react(this.wildlife.tick(dt, {
-      world: host.world, solids: host.solids, structures: level.dungeon ? emptyStructures() : s.structures, hero: host.pos, heroAlive: !host.dead,
-      night: level.isNight(s), difficulty: s.difficulty, defense: defenseOf(s.equipment), fixed: level.fixed,
+      world: host.world, solids: host.monsterSolids, structures: level.dungeon ? emptyStructures() : s.structures, hero: host.pos, heroAlive: !host.dead,
+      turrets: level.dungeon ? [] : s.structures.list.filter((p) => p.type === 'turret').map((p) => ({ id: p.id, x: p.x, y: p.y, ammo: p.ammo ?? 0 })),
+      night: level.isNight(s), difficulty: s.difficulty, defense: defenseOf(s.equipment) + sessionMods(s).defense, fixed: level.fixed,
     }));
     const loot = this.wildlife.take(host.session.inventory, host.pos);
     if (loot.taken.length > 0) {
@@ -98,6 +101,10 @@ export class HeroCombat {
     const { host } = this;
     for (const ev of events) {
       if (ev.t !== 'hurtHero' || host.player.vulnerable) services.audio?.sfx(cueForEncounter(ev));
+      if (ev.t === 'turretShot') {
+        host.turretFired(ev.id);
+        continue;
+      }
       if (ev.t === 'killed') {
         host.hitStop = KILL_STOP;
         host.story.kill(ev.kind);
@@ -128,7 +135,24 @@ export class HeroCombat {
   harm(raw: number): void {
     const s = this.host.session;
     if (this.host.player.vulnerable) services.audio?.sfx('hurt');
-    this.hurt(enemyDamage(raw, s.difficulty, defenseOf(s.equipment)));
+    this.hurt(enemyDamage(raw, s.difficulty, defenseOf(s.equipment) + sessionMods(s).defense));
+  }
+
+  /** Monsters gather around the camp: a warning, a shake of the ground, and then the raiders appear. */
+  startRaid(kinds: readonly CreatureId[]): void {
+    const { host } = this;
+    this.wildlife.raid(kinds, host.world, host.monsterSolids, host.pos);
+    this.raiding = true;
+    services.notify?.(t('msgRaid'));
+    services.audio?.sfx('hurt');
+    if (services.settings?.screenShake !== false) shakeCamera(host.cameras.main, 400, 0.004);
+  }
+
+  /** When the last hunter of a raid is gone, the camp has held. */
+  checkRaidOver(): void {
+    if (!this.raiding || hostilesNear(this.wildlife.snapshot(), this.host.pos, 40) > 0) return;
+    this.raiding = false;
+    this.host.commitStory(raidSurvived(this.host.session));
   }
 
   /** The hero woke up somewhere else: everything that was chasing him is gone. */

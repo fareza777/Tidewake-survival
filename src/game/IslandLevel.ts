@@ -2,6 +2,7 @@ import type { Station } from '@/data/structures';
 import type { Level, LevelView, Lit } from '@/game/Level';
 import { FarmLayer } from '@/gfx/FarmLayer';
 import { Rng } from '@/core/rng';
+import { WEATHER_DARKNESS, weatherAt } from '@/sim/weather';
 import { StoryLayer } from '@/gfx/StoryLayer';
 import { StructureLayer } from '@/gfx/StructureLayer';
 import { TerrainLayer } from '@/gfx/TerrainLayer';
@@ -95,7 +96,9 @@ export class IslandLevel implements Level {
 
   lit(session: Session): Lit {
     const light = lighting(session.clock);
-    return { color: light.color, alpha: light.alpha, sources: this.structureLayer.lights(session.structures), hero: HERO_LIGHT };
+    // Grey weather dims the day.
+    const gloom = WEATHER_DARKNESS[weatherAt(session.seed, session.clock.day, session.clock.t)];
+    return { color: light.color, alpha: Math.min(0.92, light.alpha + gloom), sources: this.structureLayer.lights(session.structures), hero: HERO_LIGHT };
   }
 
   stations(session: Session, hero: Vec): Set<Station> {

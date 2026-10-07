@@ -7,7 +7,7 @@ import type { FlyingShot } from '@/sim/boss';
 import { flyShots, launch, placeSummons } from '@/sim/bossFight';
 import { hurtCreature, stepCreature, type Creature } from '@/sim/creatures';
 import type { Inventory } from '@/sim/inventory';
-import { moveWithCollision, tileBlocked, type Vec } from '@/sim/movement';
+import { lineClear, moveWithCollision, tileBlocked, type Vec } from '@/sim/movement';
 import { ageOut, collect, drift, rollLoot, scatter, type Pickup, type Stack } from '@/sim/pickups';
 import { SPAWN_INTERVAL, cull, trySpawn } from '@/sim/spawner';
 import type { Structures } from '@/sim/structures';
@@ -44,13 +44,16 @@ export interface Encounters {
   /** Shared counter for creature, pickup and arrow ids. */
   readonly nextId: number;
   readonly spawnTimer: number;
+  /** Seconds until each turret (by structure id) can fire again. */
+  readonly turretCd?: Readonly<Record<number, number>>;
 }
 
 export type EncounterEvent =
   | { t: 'hurtHero'; amount: number; from: Vec; kind: CreatureId }
   | { t: 'hit'; id: number; kind: CreatureId; amount: number; x: number; y: number }
   | { t: 'killed'; id: number; kind: CreatureId; x: number; y: number }
-  | { t: 'struck'; id: number };
+  | { t: 'struck'; id: number }
+  | { t: 'turretShot'; id: number };
 
 export interface EncounterStep {
   e: Encounters;
@@ -70,7 +73,20 @@ export interface TickContext {
   rng: Rng;
   /** No creatures appear or fade by themselves (dungeons: the rooms hold what they hold). */
   fixed?: boolean;
+  /** Crossbow turrets standing guard: where they are and how many arrows they hold. */
+  turrets?: readonly TurretView[];
 }
+
+export interface TurretView {
+  id: number;
+  x: number;
+  y: number;
+  ammo: number;
+}
+
+export const TURRET_RANGE = 7;
+const TURRET_COOLDOWN = 1.1;
+const TURRET_DAMAGE = 6;
 
 export const ARROW_SPEED = 9;
 const ARROW_REACH = 0.18;
@@ -124,6 +140,39 @@ export function shoot(e: Encounters, hero: Vec, facing: Facing, stats: Pick<Weap
     id: e.nextId, x: hero.x + dx * 0.4, y: hero.y + dy * 0.4, dx, dy, left: stats.reach, damage: stats.damage, knockback: stats.knockback,
   };
   return { ...e, arrows: [...e.arrows, arrow], nextId: e.nextId + 1 };
+}
+
+/** Turrets with arrows loose one at the nearest monster they can see. */
+function fireTurrets(e: Encounters, c: TickContext, dt: number): EncounterStep {
+  const turrets = c.turrets ?? [];
+  if (turrets.length === 0) return { e, events: [] };
+  const cooldowns: Record<number, number> = { ...(e.turretCd ?? {}) };
+  const events: EncounterEvent[] = [];
+  let arrows = e.arrows;
+  let nextId = e.nextId;
+  for (const t of turrets) {
+    cooldowns[t.id] = Math.max(0, (cooldowns[t.id] ?? 0) - dt);
+    if (t.ammo <= 0 || cooldowns[t.id] > 0) continue;
+    const from = { x: t.x + 0.5, y: t.y + 0.5 };
+    let best: Creature | null = null;
+    let bestD = TURRET_RANGE;
+    for (const cr of e.creatures) {
+      if (!isHostileKind(cr.kind)) continue;
+      const d = Math.hypot(cr.x - from.x, cr.y - from.y);
+      if (d < bestD && lineClear(c.world, c.solids, from, cr, t.x, t.y)) {
+        best = cr;
+        bestD = d;
+      }
+    }
+    if (!best) continue;
+    const dx = (best.x - from.x) / bestD;
+    const dy = (best.y - from.y) / bestD;
+    arrows = [...arrows, { id: nextId, x: from.x + dx * 0.8, y: from.y + dy * 0.8, dx, dy, left: TURRET_RANGE + 1, damage: TURRET_DAMAGE, knockback: 0.2 }];
+    nextId += 1;
+    cooldowns[t.id] = TURRET_COOLDOWN;
+    events.push({ t: 'turretShot', id: t.id });
+  }
+  return { e: { ...e, arrows, nextId, turretCd: cooldowns }, events };
 }
 
 function flyArrows(e: Encounters, c: TickContext, dt: number): EncounterStep {
@@ -201,9 +250,10 @@ export function tickEncounters(e: Encounters, c: TickContext, dt: number): Encou
   let cur: Encounters = { ...e, creatures: separate(stepped, c) };
   for (const f of fired) cur = launch(cur, f.kind, f.shots);
   for (const s of called) cur = placeSummons(cur, s.boss, s.kinds, c);
-  const arrows = flyArrows(cur, c, dt);
+  const guarded = fireTurrets(cur, c, dt);
+  const arrows = flyArrows(guarded.e, c, dt);
   const bolts = flyShots(arrows.e, c, dt);
-  events.push(...arrows.events, ...bolts.events);
+  events.push(...guarded.events, ...arrows.events, ...bolts.events);
   cur = { ...bolts.e, pickups: ageOut(drift(bolts.e.pickups, c.hero, dt), dt) };
   if (c.fixed) return { e: cur, events };
   const timer = cur.spawnTimer - dt;

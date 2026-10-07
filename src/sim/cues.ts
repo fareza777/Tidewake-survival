@@ -34,7 +34,7 @@ export function cueForFx(fx: Fx, node?: ResourceKind): Cue | null {
 
 /** The sound of something that happened among the creatures. */
 export function cueForEncounter(ev: EncounterEvent): Cue {
-  return ev.t === 'hit' || ev.t === 'struck' ? 'hit' : ev.t === 'killed' ? 'kill' : 'hurt';
+  return ev.t === 'hit' || ev.t === 'struck' ? 'hit' : ev.t === 'killed' ? 'kill' : ev.t === 'turretShot' ? 'shoot' : 'hurt';
 }
 
 /** Battle music while monsters are on the hero; otherwise the music of the time of day. */

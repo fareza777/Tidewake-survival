@@ -18,11 +18,15 @@ export function tileBlocked(world: World, solids: ReadonlySet<number>, tx: numbe
 }
 
 /** Can one point see the other: no wall, closed door or other solid tile on the straight line between them? */
-export function lineClear(world: World, solids: ReadonlySet<number>, a: Vec, b: Vec): boolean {
+export function lineClear(world: World, solids: ReadonlySet<number>, a: Vec, b: Vec, ignoreX?: number, ignoreY?: number): boolean {
   const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 0.25));
   for (let i = 0; i <= steps; i++) {
     const f = i / steps;
-    if (tileBlocked(world, solids, Math.floor(a.x + (b.x - a.x) * f), Math.floor(a.y + (b.y - a.y) * f))) return false;
+    const tx = Math.floor(a.x + (b.x - a.x) * f);
+    const ty = Math.floor(a.y + (b.y - a.y) * f);
+    // The tile the sight starts in (a turret's own) does not block it.
+    if (tx === ignoreX && ty === ignoreY) continue;
+    if (tileBlocked(world, solids, tx, ty)) return false;
   }
   return true;
 }

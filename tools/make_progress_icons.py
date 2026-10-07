@@ -4,6 +4,7 @@ Steel and mithril tools, weapons and armour are the iron icons with the metal re
 """
 from PIL import Image
 
+from make_extra_icons import bowl, potion
 from icon_kit import (
     BROWN, BROWN_D, CRYSTAL, CRYSTAL_D, CRYSTAL_L, GOLD, IRON, IRON_D, IRON_L, RED, WHITE, WOOD, WOOD_D, WOOD_L, canvas, outlined,
 )
@@ -116,6 +117,73 @@ def amulet(gem, chain=GOLD):
     return outlined(img)
 
 
+def wall(body, dark, light, brick=False):
+    img, d = canvas()
+    d.rectangle([2, 3, 13, 14], fill=body)
+    if brick:
+        for y, off in ((3, 0), (7, 3), (11, 0)):
+            d.line([(2, y + 3), (13, y + 3)], fill=dark)
+            for x in range(2 + off, 14, 6):
+                d.line([(x, y), (x, y + 3)], fill=dark)
+        d.line([(2, 3), (13, 3)], fill=light)
+    else:
+        for x in (5, 8, 11):
+            d.line([(x, 3), (x, 14)], fill=dark)
+        d.line([(2, 3), (13, 3)], fill=light)
+        d.line([(2, 14), (13, 14)], fill=dark)
+    return outlined(img)
+
+
+def door():
+    img, d = canvas()
+    d.rectangle([3, 2, 12, 14], fill=WOOD_D)
+    d.rectangle([4, 3, 11, 14], fill=WOOD)
+    d.line([(7, 3), (7, 14)], fill=WOOD_D)
+    d.line([(4, 7), (11, 7)], fill=WOOD_D)
+    d.point([10, 9], fill=GOLD)
+    d.line([(4, 3), (11, 3)], fill=WOOD_L)
+    return outlined(img)
+
+
+def floor_tiles():
+    img, d = canvas()
+    d.polygon([(8, 4), (14, 8), (8, 12), (2, 8)], fill=WOOD_L)
+    d.line([(4, 7), (9, 10)], fill=WOOD)
+    d.line([(7, 6), (11, 9)], fill=WOOD)
+    d.line([(2, 8), (8, 12)], fill=WOOD_D)
+    d.line([(8, 12), (14, 8)], fill=WOOD_D)
+    return outlined(img)
+
+
+def tent():
+    img, d = canvas()
+    d.polygon([(1, 14), (8, 2), (15, 14)], fill=(214, 190, 140, 255))
+    d.polygon([(8, 2), (15, 14), (9, 14)], fill=(176, 150, 104, 255))
+    d.polygon([(6, 14), (8, 8), (10, 14)], fill=(70, 50, 40, 255))
+    d.line([(8, 1), (8, 3)], fill=WOOD_D)
+    return outlined(img)
+
+
+def turret():
+    img, d = canvas()
+    d.rectangle([6, 8, 9, 14], fill=WOOD)
+    d.rectangle([4, 13, 11, 14], fill=WOOD_D)
+    d.rectangle([2, 6, 13, 8], fill=WOOD_L)
+    d.arc([0, 1, 7, 12], 270, 90, fill=IRON_L, width=1)
+    d.arc([8, 1, 15, 12], 90, 270, fill=IRON_L, width=1)
+    d.line([(2, 3), (13, 3)], fill=IRON_D)
+    d.polygon([(7, 1), (9, 1), (8, 5)], fill=RED)
+    return outlined(img)
+
+
+def flame_icon():
+    img, d = canvas()
+    d.polygon([(8, 1), (12, 7), (13, 11), (10, 14), (6, 14), (3, 11), (4, 7), (7, 5)], fill=(236, 120, 40, 255))
+    d.polygon([(8, 6), (11, 10), (10, 13), (6, 13), (5, 10)], fill=(255, 196, 70, 255))
+    d.polygon([(8, 9), (9, 12), (7, 12)], fill=(255, 240, 160, 255))
+    return outlined(img)
+
+
 def progress_icons(base):
     out = {
         "coal": coal(), "hide": hide(), "mithril_ore": mithril_ore(), "struct_anvil": anvil(),
@@ -140,5 +208,13 @@ def progress_icons(base):
         "amulet_vigor": amulet((120, 220, 120, 255)),
         "amulet_fortune": amulet(GOLD, (200, 200, 220, 255)),
         "amulet_warmth": amulet((255, 150, 60, 255)),
+        "struct_wood_wall": wall(WOOD, WOOD_D, WOOD_L), "struct_stone_wall": wall((146, 148, 160, 255), (96, 98, 112, 255), (196, 198, 208, 255), brick=True),
+        "struct_wood_door": door(), "struct_wood_floor": floor_tiles(), "struct_tent": tent(), "struct_turret": turret(),
+        "warm_stew": bowl((200, 90, 50, 255), (240, 140, 80, 255), [(6, 5, (255, 220, 120, 255)), (9, 6, (130, 190, 90, 255)), (8, 4, (255, 255, 255, 120))]),
+        "potion_strength": potion((226, 90, 70, 255), (255, 170, 150, 255)),
+        "potion_swift": potion((90, 210, 230, 255), (190, 245, 255, 255)),
+        "potion_ward": potion((240, 200, 80, 255), (255, 240, 170, 255)),
+        "potion_warmth": potion((240, 130, 50, 255), (255, 200, 140, 255)),
+        "ui_warm": flame_icon(),
     }
     return out

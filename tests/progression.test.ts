@@ -180,8 +180,8 @@ describe('progress in play', () => {
 
   it('makes a seasoned cook feed the hero better', () => {
     const food = ITEMS.cooked_meat.food!;
-    const plain = applyAction({ ...base(), vitals: { hp: 50, hunger: 10, thirst: 100, stamina: 100 }, inventory: addItem(base().inventory, 'cooked_meat', 1).inv }, { kind: 'eat', food }, { x: 1, y: 1 });
-    const cook = applyAction({ ...base(), skills: { ...noSkills(), cooking: xpToReach(8) }, vitals: { hp: 50, hunger: 10, thirst: 100, stamina: 100 }, inventory: addItem(base().inventory, 'cooked_meat', 1).inv }, { kind: 'eat', food }, { x: 1, y: 1 });
+    const plain = applyAction({ ...base(), vitals: { hp: 50, hunger: 10, thirst: 100, stamina: 100, warmth: 100 }, inventory: addItem(base().inventory, 'cooked_meat', 1).inv }, { kind: 'eat', food }, { x: 1, y: 1 });
+    const cook = applyAction({ ...base(), skills: { ...noSkills(), cooking: xpToReach(8) }, vitals: { hp: 50, hunger: 10, thirst: 100, stamina: 100, warmth: 100 }, inventory: addItem(base().inventory, 'cooked_meat', 1).inv }, { kind: 'eat', food }, { x: 1, y: 1 });
     expect(cook.session.vitals.hunger).toBeGreaterThan(plain.session.vitals.hunger);
   });
 });

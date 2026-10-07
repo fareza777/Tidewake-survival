@@ -69,6 +69,20 @@ export function advanceDay(farm: Farm): Farm {
   return { plots };
 }
 
+/** Rain waters every crop. */
+export function waterAll(farm: Farm): Farm {
+  const plots: Record<number, Plot> = {};
+  for (const [key, p] of Object.entries(farm.plots)) plots[Number(key)] = p.watered ? p : { ...p, watered: true };
+  return { plots };
+}
+
+/** A day in the frost: nothing grows, and the soil dries out. */
+export function dryOut(farm: Farm): Farm {
+  const plots: Record<number, Plot> = {};
+  for (const [key, p] of Object.entries(farm.plots)) plots[Number(key)] = p.watered ? { ...p, watered: false } : p;
+  return { plots };
+}
+
 export interface Harvest {
   farm: Farm;
   items: { item: ItemId; qty: number }[];

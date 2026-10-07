@@ -2,7 +2,7 @@ import { loseHalfOfHotbar, type Inventory } from '@/sim/inventory';
 import type { Difficulty, Vitals } from '@/sim/vitals';
 
 /** How the hero wakes up after collapsing: hurt, hungry and thirsty, but alive. */
-export const RESPAWN_VITALS: Vitals = { hp: 60, hunger: 60, thirst: 60, stamina: 100 };
+export const RESPAWN_VITALS: Vitals = { hp: 60, hunger: 60, thirst: 60, stamina: 100, warmth: 80 };
 
 export interface DeathResult {
   inv: Inventory;

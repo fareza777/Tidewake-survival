@@ -20,6 +20,11 @@ export class StructureLayer {
 
   add(s: Structure): void {
     const def = STRUCTURES[s.type];
+    if (def.floor) {
+      // Laid flat: it fills its tile and lies under everything else.
+      this.sprites.set(s.id, this.scene.add.image(s.x * TILE, s.y * TILE, 'icons', def.frame).setOrigin(0, 0).setDepth(-79));
+      return;
+    }
     const x = (s.x + 0.5) * TILE;
     const y = (s.y + 1) * TILE - 1;
     const obj = def.world

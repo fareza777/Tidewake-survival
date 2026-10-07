@@ -1,5 +1,6 @@
 /** Things the player can build. `station` is the crafting station a structure provides, if any. */
-export type StructureId = 'campfire' | 'workbench' | 'furnace' | 'bed' | 'chest' | 'torch' | 'fence' | 'raft' | 'alchemy' | 'sign' | 'table' | 'stool' | 'lamp_post' | 'barrel' | 'anvil';
+export type StructureId = 'campfire' | 'workbench' | 'furnace' | 'bed' | 'chest' | 'torch' | 'fence' | 'raft' | 'alchemy' | 'sign' | 'table' | 'stool' | 'lamp_post' | 'barrel' | 'anvil'
+  | 'wood_wall' | 'stone_wall' | 'wood_door' | 'wood_floor' | 'tent' | 'turret';
 
 /** Where a recipe can be crafted. `hand` is always available. */
 export type Station = 'hand' | 'campfire' | 'workbench' | 'furnace' | 'alchemy' | 'anvil';
@@ -20,15 +21,22 @@ export interface StructureDef {
    * (stations, chests and beds, which ACTION otherwise uses). Nothing the player builds can trap them.
    */
   pickup: 'always' | 'tool';
+  /** Radius (tiles) in which it warms the hero, and in which it shelters him from rain and wind. */
+  heat?: number;
+  shelter?: number;
+  /** A gate: the hero walks through it, creatures cannot. */
+  gate?: true;
+  /** Laid flat on the ground: nothing to walk around, drawn under everything. */
+  floor?: true;
 }
 
 export const STRUCTURES: Record<StructureId, StructureDef> = {
-  campfire: { id: 'campfire', station: 'campfire', solid: true, frame: 'struct_campfire', world: { frame: 'fire/campfire_burning/0', anim: 'fire_campfire_burning' }, light: 5, pickup: 'tool' },
+  campfire: { id: 'campfire', station: 'campfire', solid: true, frame: 'struct_campfire', world: { frame: 'fire/campfire_burning/0', anim: 'fire_campfire_burning' }, light: 5, pickup: 'tool', heat: 4.5 },
   workbench: { id: 'workbench', station: 'workbench', solid: true, frame: 'struct_workbench', light: 0, pickup: 'tool' },
-  furnace: { id: 'furnace', station: 'furnace', solid: true, frame: 'struct_furnace', light: 2, pickup: 'tool' },
-  bed: { id: 'bed', solid: true, frame: 'struct_bed', light: 0, pickup: 'tool' },
+  furnace: { id: 'furnace', station: 'furnace', solid: true, frame: 'struct_furnace', light: 2, pickup: 'tool', heat: 3.5 },
+  bed: { id: 'bed', solid: true, frame: 'struct_bed', light: 0, pickup: 'tool', shelter: 3 },
   chest: { id: 'chest', solid: true, frame: 'struct_chest', light: 0, pickup: 'tool' },
-  torch: { id: 'torch', solid: false, frame: 'struct_torch', world: { frame: 'torch/torch_03/0', anim: 'torch_torch_03' }, light: 3, pickup: 'always' },
+  torch: { id: 'torch', solid: false, frame: 'struct_torch', world: { frame: 'torch/torch_03/0', anim: 'torch_torch_03' }, light: 3, pickup: 'always', heat: 1.6 },
   fence: { id: 'fence', solid: true, frame: 'struct_fence', light: 0, pickup: 'always' },
   raft: { id: 'raft', solid: true, frame: 'struct_raft', light: 0, pickup: 'tool' },
   anvil: { id: 'anvil', station: 'anvil', solid: true, frame: 'struct_anvil', light: 0, pickup: 'tool' },
@@ -36,8 +44,14 @@ export const STRUCTURES: Record<StructureId, StructureDef> = {
   sign: { id: 'sign', solid: false, frame: 'struct_sign', light: 0, pickup: 'always' },
   table: { id: 'table', solid: true, frame: 'struct_table', light: 0, pickup: 'always' },
   stool: { id: 'stool', solid: false, frame: 'struct_stool', light: 0, pickup: 'always' },
-  lamp_post: { id: 'lamp_post', solid: true, frame: 'struct_lamp_post', light: 5, pickup: 'always' },
+  lamp_post: { id: 'lamp_post', solid: true, frame: 'struct_lamp_post', light: 5, pickup: 'always', heat: 2 },
   barrel: { id: 'barrel', solid: true, frame: 'struct_barrel', light: 0, pickup: 'always' },
+  wood_wall: { id: 'wood_wall', solid: true, frame: 'struct_wood_wall', light: 0, pickup: 'always' },
+  stone_wall: { id: 'stone_wall', solid: true, frame: 'struct_stone_wall', light: 0, pickup: 'always' },
+  wood_door: { id: 'wood_door', solid: false, frame: 'struct_wood_door', light: 0, pickup: 'always', gate: true },
+  wood_floor: { id: 'wood_floor', solid: false, frame: 'struct_wood_floor', light: 0, pickup: 'always', floor: true },
+  tent: { id: 'tent', solid: true, frame: 'struct_tent', light: 0, pickup: 'tool', shelter: 3.5 },
+  turret: { id: 'turret', solid: true, frame: 'struct_turret', light: 0, pickup: 'tool' },
 };
 
 /** Number of slots in a chest. */

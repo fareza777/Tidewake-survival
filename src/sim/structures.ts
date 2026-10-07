@@ -10,6 +10,8 @@ export interface Structure {
   readonly y: number;
   /** Contents of a chest. */
   readonly inv?: Inventory;
+  /** Arrows a turret holds. */
+  readonly ammo?: number;
 }
 
 export interface Structures {
@@ -48,7 +50,8 @@ function overlapsHero(x: number, y: number, hero: Vec): boolean {
 }
 
 export function placeStructure(s: Structures, type: StructureId, x: number, y: number): Structures {
-  const built: Structure = type === 'chest' ? { id: s.next, type, x, y, inv: emptyInventory(CHEST_SLOTS) } : { id: s.next, type, x, y };
+  const built: Structure = type === 'chest' ? { id: s.next, type, x, y, inv: emptyInventory(CHEST_SLOTS) }
+    : type === 'turret' ? { id: s.next, type, x, y, ammo: 0 } : { id: s.next, type, x, y };
   return { next: s.next + 1, list: [...s.list, built] };
 }
 

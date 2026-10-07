@@ -14,7 +14,7 @@ describe('newSlot', () => {
     expect(s.player).toEqual({ x: 77.5, y: 147.5 });
     expect(s.respawn).toEqual(s.player);
     expect(s.respawn).not.toBe(s.player);
-    expect(s.vitals).toEqual({ hp: 100, hunger: 100, thirst: 100, stamina: 100 });
+    expect(s.vitals).toEqual({ hp: 100, hunger: 100, thirst: 100, stamina: 100, warmth: 100 });
     expect(s.inventory).toHaveLength(32);
     expect(s.inventory.every((slot) => slot === null)).toBe(true);
     expect(s.structures).toEqual({ next: 1, list: [] });
@@ -117,7 +117,7 @@ describe('parseSlot', () => {
 
   it('clamps vitals and the hotbar selection', () => {
     const s = parseSlot({ ...valid(), vitals: { hp: 500, hunger: -3, thirst: 'x' }, selected: 99 }, 0)!;
-    expect(s.vitals).toEqual({ hp: 100, hunger: 0, thirst: 100, stamina: 100 });
+    expect(s.vitals).toEqual({ hp: 100, hunger: 0, thirst: 100, stamina: 100, warmth: 100 });
     expect(s.selected).toBe(0);
   });
 
@@ -152,7 +152,7 @@ describe('parseSlot', () => {
     expect(s.inventory[0]).toEqual({ item: 'wood', qty: 7 });
     expect(s.inventory[1]).toEqual({ item: 'stone', qty: 2 });
     expect(s.inventory.filter(Boolean)).toHaveLength(2);
-    expect(s.vitals).toEqual({ hp: 100, hunger: 100, thirst: 100, stamina: 100 });
+    expect(s.vitals).toEqual({ hp: 100, hunger: 100, thirst: 100, stamina: 100, warmth: 100 });
     expect(s.respawn).toEqual({ x: 5, y: 6 });
     expect(s.worldVersion).toBe(1);
     expect(s.gather.gone).toEqual({ 4: 1 });

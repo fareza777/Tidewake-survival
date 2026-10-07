@@ -11,6 +11,7 @@ import { emptyGather, type GatherState } from '@/sim/gather';
 import { HOTBAR_SIZE, INVENTORY_SIZE, addItem, emptyInventory, type Inventory, type Slot } from '@/sim/inventory';
 import { emptyQuests, parseQuests, settle, type QuestState } from '@/sim/quests';
 import { migrateQuests } from '@/sim/questMigration';
+import { parseBuffs, type Buff } from '@/sim/buffs';
 import { noSkills, parseSkills, type Skills } from '@/sim/skills';
 import type { Structure, Structures } from '@/sim/structures';
 import { VITAL_MAX, fullVitals, type Difficulty, type Vitals } from '@/sim/vitals';
@@ -56,6 +57,10 @@ export interface SaveSlot {
   quests: QuestState;
   /** Experience in each skill. */
   skills: Skills;
+  /** Lasting effects (food, potions, poison). */
+  buffs: Buff[];
+  /** The last day a night raid was rolled for (so a reload does not roll twice). */
+  raidDay: number;
 }
 
 export interface SlotSummary {
@@ -77,7 +82,7 @@ export function newSlot(
     playTimeSec: 0, player: spawn, respawn: { ...spawn }, clock, gather: emptyGather(), inventory: emptyInventory(), selected: 0,
     vitals: fullVitals(), structures: { next: 1, list: [] }, farm: emptyFarm(), location: null, equipment: noEquipment(),
     dungeons: emptyDungeons(), dungeonVersion: DUNGEON_VERSION, quests: settle(emptyQuests(), emptyInventory(), QUESTS).q,
-    skills: noSkills(),
+    skills: noSkills(), buffs: [], raidDay: 0,
   };
 }
 
@@ -110,7 +115,10 @@ function parseInventory(raw: unknown, size: number): Inventory {
 
 function parseVitals(raw: unknown): Vitals {
   const d = isRecord(raw) ? raw : {};
-  return { hp: clampVital(d.hp, VITAL_MAX), hunger: clampVital(d.hunger, VITAL_MAX), thirst: clampVital(d.thirst, VITAL_MAX), stamina: clampVital(d.stamina, VITAL_MAX) };
+  return {
+    hp: clampVital(d.hp, VITAL_MAX), hunger: clampVital(d.hunger, VITAL_MAX), thirst: clampVital(d.thirst, VITAL_MAX),
+    stamina: clampVital(d.stamina, VITAL_MAX), warmth: clampVital(d.warmth, VITAL_MAX),
+  };
 }
 
 function parseStructures(raw: unknown): Structures {
@@ -127,7 +135,11 @@ function parseStructures(raw: unknown): Structures {
     seenTiles.add(tile);
     seenIds.add(e.id);
     const type = e.type as StructureId;
-    list.push(type === 'chest' ? { id: e.id, type, x: e.x, y: e.y, inv: parseInventory(e.inv, CHEST_SLOTS) } : { id: e.id, type, x: e.x, y: e.y });
+    list.push(
+      type === 'chest' ? { id: e.id, type, x: e.x, y: e.y, inv: parseInventory(e.inv, CHEST_SLOTS) }
+        : type === 'turret' ? { id: e.id, type, x: e.x, y: e.y, ammo: isInt(e.ammo) ? Math.min(99, Math.max(0, e.ammo)) : 0 }
+          : { id: e.id, type, x: e.x, y: e.y },
+    );
   }
   const next = Math.max(isInt(d.next) ? d.next : 1, ...list.map((s) => s.id + 1), 1);
   return { next, list };
@@ -200,5 +212,7 @@ export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
     dungeonVersion: isInt(d.dungeonVersion) ? d.dungeonVersion : DUNGEON_VERSION,
     quests: d.version >= 4 ? parseQuests(d.quests, QUESTS) : migrateQuests(parseQuests(d.quests, QUESTS), dungeons, d.seed >>> 0),
     skills: parseSkills(d.skills),
+    buffs: parseBuffs(d.buffs),
+    raidDay: isInt(d.raidDay) && d.raidDay >= 0 && d.raidDay <= MAX_DAY ? d.raidDay : 0,
   };
 }

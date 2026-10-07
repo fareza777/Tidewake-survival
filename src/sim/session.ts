@@ -11,14 +11,17 @@ import { lootChest, unlockDoor } from '@/sim/dungeon/rules';
 import type { Chest, Door } from '@/sim/dungeon/types';
 import { equipFromSlot, unequipSlot, type Equipment } from '@/sim/equipment';
 import type { GearSlot } from '@/data/items';
+import { addBuff, pruneBuffs, removeBuff, type Buff } from '@/sim/buffs';
+import { climateAt, shelteredAt } from '@/sim/climate';
 import { CRIT_DAMAGE, modsOf, type Mods } from '@/sim/mods';
+import { isWet, seasonOf, weatherAt } from '@/sim/weather';
 import { gainXp, levelOf, type SkillId, type Skills } from '@/sim/skills';
 import { repairSlot, upgradeSlot } from '@/sim/upgrade';
 import { CREATURES, type CreatureId } from '@/data/creatures';
 import * as farmSim from '@/sim/farm';
 import { hitNode, startNewDay, type GatherState } from '@/sim/gather';
 import {
-  addItem, moveSlot, removeItem, setDurability, takeOne, wearTool, type Inventory, type Slot,
+  addItem, countItem, moveSlot, removeItem, setDurability, takeOne, wearTool, type Inventory, type Slot,
 } from '@/sim/inventory';
 import type { Melee } from '@/sim/melee';
 import { craft } from '@/sim/crafting';
@@ -53,6 +56,10 @@ export interface Session {
   quests: QuestState;
   /** Experience in each skill. */
   skills: Skills;
+  /** Lasting effects: food, potions, poison. */
+  buffs: readonly Buff[];
+  /** The last day a night raid was rolled for. */
+  raidDay: number;
 }
 
 /** Something the scene should show or do as a result of a rule: floating text, a sprite change, a dialog. */
@@ -91,7 +98,7 @@ export function sessionFromSlot(slot: SaveSlot): Session {
     seed: slot.seed, difficulty: slot.difficulty, clock: slot.clock, gather: slot.gather, inventory: slot.inventory,
     selected: slot.selected, vitals: slot.vitals, structures: slot.structures, farm: slot.farm, respawn: slot.respawn,
     playTime: slot.playTimeSec, location: slot.location, equipment: slot.equipment, dungeons: slot.dungeons, quests: slot.quests,
-    skills: slot.skills,
+    skills: slot.skills, buffs: slot.buffs, raidDay: slot.raidDay,
   };
 }
 
@@ -100,16 +107,16 @@ export function sessionToSlot(base: SaveSlot, s: Session, pos: Vec): SaveSlot {
   return {
     ...base, player: { x: pos.x, y: pos.y }, respawn: s.respawn, clock: s.clock, gather: s.gather, inventory: s.inventory,
     selected: s.selected, vitals: s.vitals, structures: s.structures, farm: s.farm, playTimeSec: s.playTime,
-    location: s.location, equipment: s.equipment, dungeons: s.dungeons, quests: s.quests, skills: s.skills,
+    location: s.location, equipment: s.equipment, dungeons: s.dungeons, quests: s.quests, skills: s.skills, buffs: [...s.buffs], raidDay: s.raidDay,
   };
 }
 
 /** What his skills and gear add to what he does. */
-let modsMemo: { skills: Skills; equipment: Equipment; mods: Mods } | null = null;
+let modsMemo: { skills: Skills; equipment: Equipment; buffs: readonly Buff[]; mods: Mods } | null = null;
 export function sessionMods(s: Session): Mods {
-  if (modsMemo && modsMemo.skills === s.skills && modsMemo.equipment === s.equipment) return modsMemo.mods;
-  const mods = modsOf(s.skills, s.equipment);
-  modsMemo = { skills: s.skills, equipment: s.equipment, mods };
+  if (modsMemo && modsMemo.skills === s.skills && modsMemo.equipment === s.equipment && modsMemo.buffs === s.buffs) return modsMemo.mods;
+  const mods = modsOf(s.skills, s.equipment, s.buffs);
+  modsMemo = { skills: s.skills, equipment: s.equipment, buffs: s.buffs, mods };
   return mods;
 }
 
@@ -133,18 +140,30 @@ export function rewardKill(s: Session, kind: CreatureId): Step {
 }
 
 /** Advance time: the clock runs and the vital meters drain or recover. */
-export function tickSession(s: Session, dt: number, biome: Biome, busy: boolean, running = false): Session {
+export function tickSession(s: Session, dt: number, biome: Biome, busy: boolean, running = false, pos?: Vec): Session {
+  const playTime = s.playTime + dt;
+  const buffs = pruneBuffs(s.buffs, playTime);
+  const live = buffs === s.buffs ? s : { ...s, buffs };
+  const m = sessionMods(live);
+  // The cold only matters out in the open air (and the hero's position must be known).
+  const climate = pos && s.location === null ? climateAt(s.seed, s.clock, s.structures, pos, biome) : null;
   return {
-    ...s,
+    ...live,
     clock: advance(s.clock, dt),
-    playTime: s.playTime + dt,
-    vitals: tickVitals(s.vitals, dt, { difficulty: s.difficulty, biome, busy, running, regen: sessionMods(s).regen }),
+    playTime,
+    vitals: tickVitals(s.vitals, dt, {
+      difficulty: s.difficulty, biome, busy, running, regen: m.regen, hpRegen: m.hpRegen, hpDrain: m.hpDrain,
+      cold: climate?.cold ?? 0, heated: climate?.heated ?? false, sheltered: climate?.sheltered ?? false, protect: m.warmth,
+    }),
   };
 }
 
 /** A new in-game day: nodes regrow (unless `keepGone` holds them back) and watered crops grow. */
 export function rollDay(s: Session, keepGone: (id: number) => boolean): Session {
-  return { ...s, gather: startNewDay(s.gather, s.clock.day, keepGone), farm: farmSim.advanceDay(s.farm) };
+  // Rain waters the fields; in winter nothing grows.
+  const watered = isWet(weatherAt(s.seed, s.clock.day, 0)) ? farmSim.waterAll(s.farm) : s.farm;
+  const farm = seasonOf(s.clock.day) === 'winter' ? farmSim.dryOut(watered) : farmSim.advanceDay(watered);
+  return { ...s, gather: startNewDay(s.gather, s.clock.day, keepGone), farm };
 }
 
 /** A chopped node must not regrow on a tile the player has since built on or tilled. */
@@ -276,8 +295,10 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       }, [`build:${a.type}`]);
     }
     case 'pickup': {
-      const { inv, left } = addItem(s.inventory, a.structure.type, 1);
+      const { inv: withItem, left } = addItem(s.inventory, a.structure.type, 1);
       if (left > 0) return { session: s, fx: [say('msgFull')] };
+      // A turret gives its arrows back.
+      const inv = a.structure.ammo ? addItem(withItem, 'arrow', a.structure.ammo).inv : withItem;
       return {
         session: { ...s, inventory: inv, structures: removeStructure(s.structures, a.structure.id) },
         fx: [{ t: 'unbuilt', id: a.structure.id }, { t: 'gain', item: a.structure.type, qty: 1 }],
@@ -309,8 +330,18 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       const cooked = slotBefore !== null && slotBefore !== undefined && COOKED_FOODS.includes(slotBefore.item);
       const k = cooked ? sessionMods(s).food : 1;
       const food = k === 1 ? a.food : { ...a.food, hunger: Math.round(a.food.hunger * k), hp: Math.round(a.food.hp * k) };
+      const meal = slotBefore ? ITEMS[slotBefore.item].food : undefined;
+      let buffs = s.buffs;
+      const fx: Fx[] = [{ t: 'ate' }];
+      if (meal?.buff) buffs = addBuff(buffs, meal.buff.id, meal.buff.seconds, s.playTime);
+      if (meal?.cure) buffs = removeBuff(buffs, meal.cure);
+      // Raw food now and then makes the hero sick (cooking it, or an antidote, keeps him well).
+      if (meal?.risky && new Rng(hashString(`${s.seed}:sick:${Math.floor(s.playTime * 10)}`)).chance(0.3)) {
+        buffs = addBuff(buffs, 'poisoned', 25, s.playTime);
+        fx.push(say('msgSick'));
+      }
       return withStory(
-        { session: { ...s, inventory: takeOne(s.inventory, s.selected), vitals: eat(s.vitals, food) }, fx: [{ t: 'ate' }] },
+        { session: { ...s, inventory: takeOne(s.inventory, s.selected), vitals: eat(s.vitals, food), buffs }, fx },
         cooked ? ['eat:cooked'] : [],
       );
     }
@@ -328,11 +359,21 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       return { session: { ...s, vitals: eat(s.vitals, { hunger: 0, thirst: 25, hp: 0 }) }, fx: [say('msgDrank')] };
     case 'open':
       return { session: s, fx: [{ t: 'open', structure: a.structure }] };
+    case 'reload': {
+      const have = a.structure.ammo ?? 0;
+      if (have >= TURRET_CAPACITY) return { session: s, fx: [say('msgTurretFull')] };
+      const held = countItem(s.inventory, 'arrow');
+      if (held === 0) return { session: s, fx: [say('msgNoArrowsToLoad')] };
+      const n = Math.min(TURRET_CAPACITY - have, held);
+      const inv = removeItem(s.inventory, 'arrow', n) ?? s.inventory;
+      const list = s.structures.list.map((p) => (p.id === a.structure.id ? { ...p, ammo: have + n } : p));
+      return { session: { ...s, inventory: inv, structures: { ...s.structures, list } }, fx: [say('msgReloaded', { n: have + n })] };
+    }
     case 'sleep': {
       const respawn = { x: pos.x, y: pos.y };
       if (!canSleep(s.clock)) return { session: { ...s, respawn }, fx: [say('msgSleepDay')] };
       return {
-        session: { ...s, respawn, clock: wakeUp(s.clock), vitals: sleepRecovery(s.vitals) },
+        session: { ...s, respawn, clock: wakeUp(s.clock), vitals: sleepRecovery(s.vitals, shelteredAt(s.structures, pos)) },
         fx: [{ t: 'slept' }, say('msgSleepNight')],
       };
     }
@@ -378,6 +419,23 @@ export function repairItem(s: Session, index: number, near: ReadonlySet<Station>
   if (!near.has('anvil')) return { session: s, fx: [] };
   const inv = repairSlot(s.inventory, index);
   return inv ? { session: { ...s, inventory: inv }, fx: [say('msgRepaired')] } : { session: s, fx: [say('msgCannotUpgrade')] };
+}
+
+/** How many arrows a turret holds. */
+export const TURRET_CAPACITY = 60;
+
+/** A turret loosed an arrow: it holds one fewer. */
+export function turretFired(s: Session, id: number): Session {
+  const list = s.structures.list.map((p) => (p.id === id && (p.ammo ?? 0) > 0 ? { ...p, ammo: (p.ammo ?? 0) - 1 } : p));
+  return { ...s, structures: { ...s.structures, list } };
+}
+
+/** Note that the night's raid has been rolled for. */
+export const markRaid = (s: Session, day: number): Session => (s.raidDay === day ? s : { ...s, raidDay: day });
+
+/** The camp held: experience and a mark for the story. */
+export function raidSurvived(s: Session): Step {
+  return withXp(withStory({ session: s, fx: [say('msgRaidSurvived')] }, ['raid']), [['combat', 30]]);
 }
 
 export { chooseEnding, claimOwed, dawn, reached, recordKill, story };

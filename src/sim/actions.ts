@@ -92,6 +92,7 @@ export type Action =
   | { kind: 'harvest'; x: number; y: number }
   | { kind: 'pickup'; structure: Structure }
   | { kind: 'open'; structure: Structure }
+  | { kind: 'reload'; structure: Structure }
   | { kind: 'sleep'; structure: Structure }
   | { kind: 'drink'; x: number; y: number };
 
@@ -136,6 +137,7 @@ export function resolveAction(c: ActionContext): Action {
     if (plain) return structure.inv?.some(Boolean) ? blocked({ reason: 'chestNotEmpty' }) : { kind: 'pickup', structure };
     if (structure.type === 'bed') return { kind: 'sleep', structure };
     if (structure.type === 'raft') return { kind: 'raft', structure };
+    if (structure.type === 'turret') return { kind: 'reload', structure };
     if (structure.type === 'chest' || STRUCTURES[structure.type].station) return { kind: 'open', structure };
   }
   const plot = tile >= 0 ? plotAt(c.farm, tile) : undefined;

@@ -1,3 +1,4 @@
+import { applyBuffs, type Buff } from '@/sim/buffs';
 import { gearStats, type Equipment } from '@/sim/equipment';
 import { levelsOf, type Skills } from '@/sim/skills';
 
@@ -32,11 +33,15 @@ export interface Mods {
   luck: number;
   /** Warmth against the cold. */
   warmth: number;
+  /** Hit points regained a second on top of normal, and lost a second to poison; extra points of defence from effects. */
+  hpRegen: number;
+  hpDrain: number;
+  defense: number;
 }
 
 export const neutralMods = (): Mods => ({
   chopDamage: 1, mineDamage: 1, meleeDamage: 1, crit: 0, staminaWood: 1, staminaMine: 1, staminaFight: 1,
-  yieldWood: 0, yieldMine: 0, yieldFarm: 0, food: 1, craftSave: 0, speed: 1, regen: 0, luck: 0, warmth: 0,
+  yieldWood: 0, yieldMine: 0, yieldFarm: 0, food: 1, craftSave: 0, speed: 1, regen: 0, luck: 0, warmth: 0, hpRegen: 0, hpDrain: 0, defense: 0,
 });
 
 /** A critical blow's damage multiplier. */
@@ -45,7 +50,7 @@ export const CRIT_DAMAGE = 1.75;
 /** A bonus that every skill level past the first adds in the same way. */
 const perLevel = (level: number, each: number): number => (level - 1) * each;
 
-export function modsOf(skills: Skills, equipment: Equipment, extra: Partial<Mods> = {}): Mods {
+export function modsOf(skills: Skills, equipment: Equipment, buffs: readonly Buff[] = [], extra: Partial<Mods> = {}): Mods {
   const lv = levelsOf(skills);
   const gear = gearStats(equipment);
   const base: Mods = {
@@ -65,6 +70,9 @@ export function modsOf(skills: Skills, equipment: Equipment, extra: Partial<Mods
     regen: gear.regen,
     luck: gear.luck,
     warmth: gear.warmth,
+    hpRegen: 0,
+    hpDrain: 0,
+    defense: 0,
   };
-  return { ...base, ...extra };
+  return { ...applyBuffs(base, buffs), ...extra };
 }

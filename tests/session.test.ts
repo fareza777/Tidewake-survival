@@ -224,10 +224,10 @@ describe('sleeping', () => {
   });
 
   it('skips to dawn at night, healing and costing food and water', () => {
-    const night = base({ clock: { day: 2, t: DAY_SECONDS * 0.9 }, vitals: { hp: 30, hunger: 80, thirst: 80, stamina: 10 } });
+    const night = base({ clock: { day: 2, t: DAY_SECONDS * 0.9 }, vitals: { hp: 30, hunger: 80, thirst: 80, stamina: 10, warmth: 100 } });
     const r = applyAction(night, { kind: 'sleep', structure: bed }, pos);
     expect(r.session.clock).toEqual({ day: 3, t: 0 });
-    expect(r.session.vitals).toEqual({ hp: 70, hunger: 65, thirst: 65, stamina: 100 });
+    expect(r.session.vitals).toEqual({ hp: 70, hunger: 65, thirst: 65, stamina: 100, warmth: 100 });
     expect(r.fx).toContainEqual({ t: 'slept' });
   });
 });

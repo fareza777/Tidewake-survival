@@ -1,0 +1,65 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1'); localStorage.setItem('tidewake.tutorial', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1000
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const p = g.pos; const x0 = Math.floor(p.x), y0 = Math.floor(p.y); const list = []; let id = 1; const add = (type, dx, dy, extra) => list.push({ id: id++, type, x: x0 + dx, y: y0 + dy, ...(extra||{}) }); for (let i = -3; i <= 3; i++) { add('wood_wall', i, -3); add('stone_wall', i, 3); } add('wood_wall', -3, -2); add('wood_wall', -3, -1); add('wood_wall', 3, -2); add('wood_floor', -1, -1); add('wood_floor', 0, -1); add('wood_floor', 1, -1); add('wood_door', 3, 0); add('tent', -2, 1); add('turret', 2, -1, { ammo: 25 }); add('campfire', 0, 1); add('bed', 1, 1); g.session = { ...g.session, structures: { next: id, list }, buffs: [{ id: 'wellfed', until: 9999 }, { id: 'swift', until: 9999 }, { id: 'poisoned', until: 9999 }], clock: { day: 27, t: 150 }, vitals: { ...g.session.vitals, warmth: 62 } }; g.level.structureLayer.add; list.forEach((q) => g.level.structureLayer.add(q)); g.rebuildBlocking(); return 1; })()"
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "w-winter-snow"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.session = { ...g.session, clock: { day: 3, t: 150 } }; return 'spring wx ' + 1; })()"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); let found = 0; for (let d = 9; d < 40 && !found; d++) { for (const t of [10, 250, 450]) { /* find a stormy block */ } } return 1; })()"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.combat.startRaid(['skeleton','skeleton','zombie','skeleton']); g.session = { ...g.session, clock: { day: 12, t: 430 } }; return 'raid started'; })()"
+ },
+ {
+  "wait": 2500
+ },
+ {
+  "shot": "w-raid"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

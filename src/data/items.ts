@@ -1,3 +1,4 @@
+import type { BuffId } from '@/sim/buffs';
 import type { CropId } from './crops';
 import type { StructureId } from './structures';
 
@@ -22,7 +23,9 @@ export type ItemId =
   | 'armor_leather' | 'armor_steel' | 'armor_mithril'
   | 'cap_leather' | 'helm_iron' | 'helm_steel' | 'helm_crystal' | 'helm_mithril'
   | 'boots_leather' | 'boots_iron' | 'boots_steel' | 'boots_mithril'
-  | 'ring_might' | 'ring_swift' | 'amulet_vigor' | 'amulet_fortune' | 'amulet_warmth';
+  | 'ring_might' | 'ring_swift' | 'amulet_vigor' | 'amulet_fortune' | 'amulet_warmth'
+  | 'wood_wall' | 'stone_wall' | 'wood_door' | 'wood_floor' | 'tent' | 'turret'
+  | 'warm_stew' | 'potion_strength' | 'potion_swift' | 'potion_ward' | 'potion_warmth';
 
 /** Where a piece of gear is worn. */
 export type GearSlot = 'armor' | 'helm' | 'boots' | 'charm';
@@ -64,7 +67,17 @@ export interface ItemDef {
   armor?: { defense: number; slot?: GearSlot; speed?: number; damage?: number; warmth?: number; regen?: number; luck?: number };
   /** Never lost to the death penalty: keys, story items and the armour bosses leave behind. */
   keep?: true;
-  food?: { hunger: number; thirst: number; hp: number; stamina?: number };
+  food?: {
+    hunger: number; thirst: number; hp: number; stamina?: number;
+    /** Hot food warms the hero through. */
+    warmth?: number;
+    /** A lasting effect it gives, for this many seconds. */
+    buff?: { id: BuffId; seconds: number };
+    /** An effect it cures. */
+    cure?: BuffId;
+    /** Raw and risky: now and then it makes the hero sick. */
+    risky?: true;
+  };
   place?: StructureId;
   seed?: CropId;
 }
@@ -77,6 +90,11 @@ const pack = (frame: string): IconRef => ({ atlas: 'props', frame });
 const material = (id: ItemId, frame: string): ItemDef => ({ id, stack: 99, icon: icons(frame) });
 const food = (id: ItemId, icon: IconRef, hunger: number, thirst: number, hp: number): ItemDef => ({
   id, stack: 20, icon, food: { hunger, thirst, hp },
+});
+type FoodExtra = Partial<NonNullable<ItemDef['food']>>;
+/** A food with more to it than hunger and thirst: warmth, a lasting effect, a cure. */
+const dish = (id: ItemId, icon: IconRef, hunger: number, thirst: number, hp: number, extra: FoodExtra): ItemDef => ({
+  id, stack: 20, icon, food: { hunger, thirst, hp, ...extra },
 });
 const seed = (id: ItemId, crop: CropId): ItemDef => ({ id, stack: 50, icon: icons(id), seed: crop });
 const tool = (id: ItemId, type: ToolType, tier: Tier, durability: number): ItemDef => ({
@@ -109,9 +127,9 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   turnip: food('turnip', pack('farmicon1/9'), 9, 2, 0),
   pumpkin: food('pumpkin', pack('farmicon1/50'), 14, 3, 0),
   corn: food('corn', pack('farmicon1/58'), 14, 0, 0),
-  roasted_carrot: food('roasted_carrot', icons('roasted_carrot'), 22, 2, 3),
-  roasted_corn: food('roasted_corn', icons('roasted_corn'), 28, 0, 4),
-  baked_pumpkin: food('baked_pumpkin', icons('baked_pumpkin'), 40, 4, 6),
+  roasted_carrot: dish('roasted_carrot', icons('roasted_carrot'), 22, 2, 3, { warmth: 8 }),
+  roasted_corn: dish('roasted_corn', icons('roasted_corn'), 28, 0, 4, { warmth: 8 }),
+  baked_pumpkin: dish('baked_pumpkin', icons('baked_pumpkin'), 40, 4, 6, { warmth: 12 }),
 
   carrot_seed: seed('carrot_seed', 'carrot'),
   turnip_seed: seed('turnip_seed', 'turnip'),
@@ -134,8 +152,8 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   bow: weapon('bow', 'bow', 1, 80, { kind: 'bow', damage: 4, reach: 7, arc: 0, cooldown: 0.7, stamina: 3, knockback: 0.25 }),
   arrow: { id: 'arrow', stack: 50, icon: icons('arrow') },
 
-  raw_meat: food('raw_meat', icons('raw_meat'), 8, 0, 0),
-  cooked_meat: food('cooked_meat', icons('cooked_meat'), 35, 0, 4),
+  raw_meat: dish('raw_meat', icons('raw_meat'), 8, 0, 0, { risky: true }),
+  cooked_meat: dish('cooked_meat', icons('cooked_meat'), 35, 0, 4, { buff: { id: 'wellfed', seconds: 150 } }),
   honey: food('honey', icons('honey'), 12, 0, 6),
   bandage: food('bandage', icons('bandage'), 0, 0, 30),
   gel: material('gel', 'gel'),
@@ -158,11 +176,11 @@ export const ITEMS: Record<ItemId, ItemDef> = {
 
   shovel: tool('shovel', 'shovel', 1, 60),
   fishing_rod: tool('fishing_rod', 'rod', 1, 60),
-  raw_fish: food('raw_fish', icons('raw_fish'), 9, 0, 0),
-  cooked_fish: food('cooked_fish', icons('cooked_fish'), 32, 0, 4),
+  raw_fish: dish('raw_fish', icons('raw_fish'), 9, 0, 0, { risky: true }),
+  cooked_fish: dish('cooked_fish', icons('cooked_fish'), 32, 0, 4, { buff: { id: 'wellfed', seconds: 150 } }),
   big_fish: material('big_fish', 'big_fish'),
   sailcloth: material('sailcloth', 'sailcloth'),
-  antidote: food('antidote', icons('antidote'), 0, 8, 30),
+  antidote: dish('antidote', icons('antidote'), 0, 8, 30, { cure: 'poisoned' }),
 
   campfire: placeable('campfire', 'campfire'),
   workbench: placeable('workbench', 'workbench'),
@@ -173,16 +191,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   fence: placeable('fence', 'fence', 50),
   raft: placeable('raft', 'raft', 1),
 
-  veggie_stew: food('veggie_stew', icons('veggie_stew'), 45, 8, 6),
-  fish_stew: food('fish_stew', icons('fish_stew'), 48, 6, 8),
-  berry_jam: food('berry_jam', icons('berry_jam'), 20, 4, 5),
-  smoked_meat: food('smoked_meat', icons('smoked_meat'), 50, 0, 4),
-  roasted_turnip: food('roasted_turnip', icons('roasted_turnip'), 24, 2, 3),
-  pumpkin_pie: food('pumpkin_pie', icons('pumpkin_pie'), 52, 4, 10),
-  sweet_drink: food('sweet_drink', icons('sweet_drink'), 10, 45, 0),
+  veggie_stew: dish('veggie_stew', icons('veggie_stew'), 45, 8, 6, { warmth: 15, buff: { id: 'wellfed', seconds: 300 } }),
+  fish_stew: dish('fish_stew', icons('fish_stew'), 48, 6, 8, { warmth: 15, buff: { id: 'energized', seconds: 240 } }),
+  berry_jam: dish('berry_jam', icons('berry_jam'), 20, 4, 5, { buff: { id: 'swift', seconds: 180 } }),
+  smoked_meat: dish('smoked_meat', icons('smoked_meat'), 50, 0, 4, { buff: { id: 'fortified', seconds: 300 } }),
+  roasted_turnip: dish('roasted_turnip', icons('roasted_turnip'), 24, 2, 3, { warmth: 8 }),
+  pumpkin_pie: dish('pumpkin_pie', icons('pumpkin_pie'), 52, 4, 10, { buff: { id: 'strong', seconds: 240 } }),
+  sweet_drink: dish('sweet_drink', icons('sweet_drink'), 10, 45, 0, { buff: { id: 'energized', seconds: 120 } }),
   healing_potion: { ...food('healing_potion', icons('healing_potion'), 0, 0, 60), stack: 10 },
   great_healing_potion: { ...food('great_healing_potion', icons('great_healing_potion'), 0, 0, 100), stack: 5 },
-  stamina_tonic: { id: 'stamina_tonic', stack: 10, icon: icons('stamina_tonic'), food: { hunger: 0, thirst: 0, hp: 0, stamina: 100 } },
+  stamina_tonic: { id: 'stamina_tonic', stack: 10, icon: icons('stamina_tonic'), food: { hunger: 0, thirst: 0, hp: 0, stamina: 100, buff: { id: 'energized', seconds: 90 } } },
 
   armor_wood: armor('armor_wood', 1),
   armor_crystal: armor('armor_crystal', 6),
@@ -231,12 +249,25 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   amulet_vigor: gear('amulet_vigor', 'charm', 0, { regen: 4 }),
   amulet_fortune: gear('amulet_fortune', 'charm', 1, { luck: 0.15 }),
   amulet_warmth: gear('amulet_warmth', 'charm', 0, { warmth: 25 }),
+
+  wood_wall: placeable('wood_wall', 'wood_wall', 50),
+  stone_wall: placeable('stone_wall', 'stone_wall', 50),
+  wood_door: placeable('wood_door', 'wood_door', 10),
+  wood_floor: placeable('wood_floor', 'wood_floor', 99),
+  tent: placeable('tent', 'tent', 5),
+  turret: placeable('turret', 'turret', 5),
+
+  warm_stew: dish('warm_stew', icons('warm_stew'), 55, 10, 8, { warmth: 40, buff: { id: 'warm', seconds: 600 } }),
+  potion_strength: { ...dish('potion_strength', icons('potion_strength'), 0, 0, 0, { buff: { id: 'strong', seconds: 300 } }), stack: 10 },
+  potion_swift: { ...dish('potion_swift', icons('potion_swift'), 0, 0, 0, { buff: { id: 'swift', seconds: 300 } }), stack: 10 },
+  potion_ward: { ...dish('potion_ward', icons('potion_ward'), 0, 0, 0, { buff: { id: 'fortified', seconds: 300 } }), stack: 10 },
+  potion_warmth: { ...dish('potion_warmth', icons('potion_warmth'), 0, 0, 0, { warmth: 30, buff: { id: 'warm', seconds: 600 } }), stack: 10 },
 };
 
 /** Foods that count as a cooked meal for the story. */
 export const COOKED_FOODS: readonly ItemId[] = [
   'cooked_meat', 'roasted_carrot', 'roasted_corn', 'baked_pumpkin', 'cooked_fish', 'veggie_stew', 'fish_stew', 'berry_jam', 'smoked_meat',
-  'roasted_turnip', 'pumpkin_pie',
+  'roasted_turnip', 'pumpkin_pie', 'warm_stew',
 ];
 
 export const ITEM_IDS = Object.keys(ITEMS) as ItemId[];

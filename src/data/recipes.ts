@@ -106,6 +106,19 @@ export const RECIPES: readonly Recipe[] = [
   r('helm_mithril', 1, [['mithril_ingot', 6], ['rope', 1]], 'anvil', 8),
   r('boots_mithril', 1, [['mithril_ingot', 5], ['hide', 2]], 'anvil', 8),
   r('armor_mithril', 1, [['mithril_ingot', 12], ['hide', 3], ['rope', 3]], 'anvil', 9),
+  // Building
+  r('wood_wall', 2, [['plank', 2]], 'workbench'),
+  r('stone_wall', 2, [['stone', 4], ['plank', 1]], 'workbench', 2),
+  r('wood_door', 1, [['plank', 4], ['rope', 1]], 'workbench'),
+  r('wood_floor', 4, [['plank', 2]], 'workbench'),
+  r('tent', 1, [['hide', 6], ['plank', 2], ['rope', 3], ['fiber', 6]], 'workbench', 2),
+  r('turret', 1, [['plank', 6], ['iron_ingot', 4], ['rope', 3]], 'workbench', 4),
+  // Warm and strong
+  r('warm_stew', 1, [['raw_meat', 1], ['carrot', 1], ['pumpkin', 1]], 'campfire'),
+  r('potion_strength', 1, [['gel', 2], ['honey', 1], ['crystal', 1]], 'alchemy', 3),
+  r('potion_swift', 1, [['berries', 3], ['honey', 2], ['gel', 1]], 'alchemy', 3),
+  r('potion_ward', 1, [['bone', 3], ['gel', 2], ['honey', 1]], 'alchemy', 4),
+  r('potion_warmth', 1, [['coconut', 1], ['honey', 2], ['berries', 2]], 'alchemy', 2),
   // Charms
   r('ring_might', 1, [['iron_ingot', 2], ['crystal', 2]], 'anvil', 4),
   r('ring_swift', 1, [['steel_ingot', 1], ['crystal', 2], ['fiber', 4]], 'anvil', 5),

@@ -6,7 +6,10 @@ import { view, vx, vy } from '@/core/viewport';
 import { ITEMS } from '@/data/items';
 import { controls } from '@/game/input';
 import { QUESTS } from '@/data/quests';
+import { WeatherFx } from '@/gfx/WeatherFx';
 import { clockLabel } from '@/sim/daynight';
+import { isHarmful, type BuffId } from '@/sim/buffs';
+import { DAYS_PER_SEASON, dayOfSeason, seasonOf, weatherAt, weatherName } from '@/sim/weather';
 import { HOTBAR_SIZE, type Inventory } from '@/sim/inventory';
 import { progressOf, trackedQuest, type QuestState } from '@/sim/quests';
 import type { Difficulty } from '@/sim/vitals';
@@ -27,7 +30,15 @@ const BARS = [
   { key: 'hunger', icon: 'ui_food', color: 0xff9a3c },
   { key: 'thirst', icon: 'ui_drop', color: 0x5fa8ff },
   { key: 'stamina', icon: 'ui_bolt', color: 0x6bd46b },
+  { key: 'warmth', icon: 'ui_warm', color: 0xff7a3c },
 ] as const;
+
+/** The picture shown for each lasting effect. */
+const BUFF_ICON: Record<BuffId, { atlas: string; frame: string }> = {
+  wellfed: { atlas: 'icons', frame: 'cooked_meat' }, energized: { atlas: 'icons', frame: 'ui_bolt' }, warm: { atlas: 'icons', frame: 'ui_warm' },
+  strong: { atlas: 'icons', frame: 'sword_iron' }, swift: { atlas: 'icons', frame: 'boots_leather' }, fortified: { atlas: 'icons', frame: 'armor_iron' },
+  poisoned: { atlas: 'icons', frame: 'antidote' },
+};
 
 /** Heads-up display on top of the island: vitals, time, hotbar, joystick and the USE, bag and pause buttons. */
 export class HudScene extends Phaser.Scene {
@@ -38,6 +49,10 @@ export class HudScene extends Phaser.Scene {
   private lastInventory: Inventory | null = null;
   private lastSelected = -1;
   private lastDay = '';
+  private seasonText!: Phaser.GameObjects.BitmapText;
+  private weatherFx!: WeatherFx;
+  private buffLayer!: Phaser.GameObjects.Container;
+  private lastBuffs: unknown = null;
   private menuOpen = false;
   private bossName!: Phaser.GameObjects.BitmapText;
   private bossBar!: Bar;
@@ -65,6 +80,10 @@ export class HudScene extends Phaser.Scene {
     this.bars = [];
     const { w: W, h: H } = view;
     this.dayText = this.add.bitmapText(8, 8, FONT.body, '').setTint(COLORS.text).setDepth(5);
+    this.seasonText = this.add.bitmapText(8, 124, FONT.small, '').setTint(0xbfe6ff).setDepth(5);
+    this.buffLayer = this.add.container(0, 0).setDepth(5);
+    this.weatherFx = new WeatherFx(this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.weatherFx.destroy());
     // The boss's health, across the top of the screen, only while a boss fight is on.
     const bossW = Math.min(180, W - 120);
     this.bossName = this.add.bitmapText(W / 2, 10, FONT.small, '').setOrigin(0.5, 0).setTint(COLORS.gold).setDepth(5).setVisible(false);
@@ -83,7 +102,7 @@ export class HudScene extends Phaser.Scene {
     this.caption(cx, 100, t('tabBag'));
     new IconButton(this, cx, 170, 'quest', () => this.world.openQuests(), 48).setDepth(6);
     this.caption(cx, 170, t('questShort'));
-    this.tracker = this.add.bitmapText(8, 86, FONT.small, '').setTint(COLORS.gold).setDepth(5).setMaxWidth(W - 100);
+    this.tracker = this.add.bitmapText(8, 144, FONT.small, '').setTint(COLORS.gold).setDepth(5).setMaxWidth(W - 100);
     this.useButton = new Button(this, W - 58, H - 108, t('useAction'), () => {
       controls.action = true;
     }, { w: 80, h: 80, style: 'primary' }).setDepth(6);
@@ -174,6 +193,18 @@ export class HudScene extends Phaser.Scene {
     this.tweens.add({ targets: this.hint, alpha: 1, y: top + 4, duration: 260, ease: 'Sine.easeOut' });
     const target = point === 'bag' ? this.bagButton : point === 'run' ? this.runButton : point === 'use' ? this.useButton : null;
     if (target) this.pulsing = this.tweens.add({ targets: target, scale: 1.14, duration: 480, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
+
+  /** The lasting effects as little pictures under the bars (green for good, red for bad). */
+  private drawBuffs(): void {
+    this.buffLayer.removeAll(true);
+    this.world.session.buffs.forEach((b, i) => {
+      const x = 14 + i * 20;
+      const y = 104;
+      const art = BUFF_ICON[b.id];
+      this.buffLayer.add(this.add.rectangle(x, y, 18, 18, isHarmful(b.id) ? 0x7a1f1f : 0x1f5a2a, 0.85).setStrokeStyle(1, isHarmful(b.id) ? 0xff6b6b : 0x6bd46b));
+      this.buffLayer.add(this.add.image(x, y, art.atlas, art.frame).setDisplaySize(14, 14));
+    });
   }
 
   /** Pause dialog: the island stops while it is open. Also used for the Android back button. */
@@ -268,7 +299,18 @@ export class HudScene extends Phaser.Scene {
       this.lastDay = day;
       this.dayText.setText(day);
     }
-    const values = [s.vitals.hp, s.vitals.hunger, s.vitals.thirst, s.vitals.stamina];
+    const clock = s.clock;
+    const season = seasonOf(clock.day);
+    const weather = weatherAt(s.seed, clock.day, clock.t);
+    const label = `${t(`season_${season}`)} ${dayOfSeason(clock.day)}/${DAYS_PER_SEASON}  ${t(`weather_${weatherName(season, weather)}`)}`;
+    if (this.seasonText.text !== label) this.seasonText.setText(label);
+    this.weatherFx.set(this.world.level.dungeon ? 'clear' : weather, season);
+    this.weatherFx.update(this.game.loop.delta / 1000);
+    if (s.buffs !== this.lastBuffs) {
+      this.lastBuffs = s.buffs;
+      this.drawBuffs();
+    }
+    const values = [s.vitals.hp, s.vitals.hunger, s.vitals.thirst, s.vitals.stamina, s.vitals.warmth];
     this.bars.forEach((b, i) => {
       if (Math.abs(values[i] - b.last) < 0.5) return;
       b.last = values[i];
