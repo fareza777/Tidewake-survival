@@ -60,7 +60,7 @@ const MARLO: NpcDef = {
       when: isNew('treasure'), start: 'treasure',
       lines: [
         L('I once buried three chests on this island, then forgot where. The old map is gone, but the spots are marked with an X.', 'Dulu aku mengubur tiga peti di pulau ini, lalu lupa di mana. Petanya hilang, tapi tempatnya bertanda X.'),
-        L('Take a shovel (a workbench makes one) and dig them up. Hold the shovel and face the X.', 'Bawa sekop (meja kerja bisa membuatnya) dan galilah. Pegang sekop dan hadap tanda X.'),
+        L('The chests stand where the X marks the sand. Walk up, face one and tap USE.', 'Peti-peti itu ada di tempat tanda X di pasir. Datangi, hadap salah satu dan tekan USE.'),
       ],
     },
     {
@@ -75,7 +75,7 @@ const MARLO: NpcDef = {
         L('Want to know the island? Stay awake one night beside a fire or a torch, and watch. The dark teaches.', 'Mau mengenal pulau ini? Tetaplah terjaga semalam di dekat api atau obor, dan perhatikan. Kegelapan mengajar.'),
       ],
     },
-    { when: active('treasure'), lines: [L('Dig where the X marks the sand. Three of them, with a shovel in hand.', 'Galilah di tempat tanda X. Ada tiga, dengan sekop di tangan.')] },
+    { when: active('treasure'), lines: [L('Open the chests where the X marks the sand. Three of them.', 'Bukalah peti di tempat tanda X. Ada tiga.')] },
     { when: active('bottles'), lines: [L('Keep walking the beaches. The tide leaves bottles in quiet corners.', 'Terus susuri pantai. Pasang meninggalkan botol di sudut-sudut sepi.')] },
     { when: active('watch'), lines: [L('Do not sleep. Light a fire or a torch and let the night pass over you.', 'Jangan tidur. Nyalakan api atau obor dan biarkan malam lewat di atasmu.')] },
     {

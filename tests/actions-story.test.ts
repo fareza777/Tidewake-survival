@@ -55,16 +55,12 @@ describe('finds', () => {
     }
   });
 
-  it('digs treasure only with a shovel in hand; otherwise it is as if nothing were there', () => {
+  it('opens a buried treasure chest with a plain USE, whatever is in hand, even when tired', () => {
     const t = spot('treasure', 'treasure:1');
-    expect(resolveAction(ctx({ spot: t, give: [['shovel', 1]] }))).toEqual({ kind: 'dig', spot: t, stamina: 2 });
-    expect(resolveAction(ctx({ spot: t })).kind).toBe('none');
-    expect(resolveAction(ctx({ spot: t, give: [['axe_wood', 1]] })).kind).toBe('none');
-  });
-
-  it('does not dig while too tired', () => {
-    const t = spot('treasure', 'treasure:1');
-    expect(resolveAction(ctx({ spot: t, give: [['shovel', 1]], vitals: { ...fullVitals(), stamina: 0 } }))).toEqual({ kind: 'blocked', reason: 'tired' });
+    const want = { kind: 'dig', spot: t, stamina: 0 };
+    expect(resolveAction(ctx({ spot: t }))).toEqual(want);
+    expect(resolveAction(ctx({ spot: t, give: [['axe_wood', 1]] }))).toEqual(want);
+    expect(resolveAction(ctx({ spot: t, give: [['shovel', 1]], vitals: { ...fullVitals(), stamina: 0 } }))).toEqual(want);
   });
 });
 

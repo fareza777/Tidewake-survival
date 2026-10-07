@@ -152,9 +152,8 @@ export function resolveAction(c: ActionContext): Action {
   if (c.entrance === 'lighthouse' && countItem(c.inv, 'lighthouse_key') === 0) return blocked({ reason: 'needsLighthouseKey' });
   if (c.entrance) return { kind: 'enter', dungeon: c.entrance };
   if (c.spot && c.spot.kind !== 'treasure') return { kind: 'inspect', spot: c.spot };
-  if (c.spot && def?.tool?.type === 'shovel') {
-    return c.vitals.stamina < STAMINA_TOOL ? blocked({ reason: 'tired' }) : { kind: 'dig', spot: c.spot, stamina: STAMINA_TOOL };
-  }
+  // The buried chests of the island open with a plain USE; a shovel is not needed.
+  if (c.spot) return { kind: 'dig', spot: c.spot, stamina: 0 };
   const use = c.target;
   if (use) {
     if (use.kind === 'exit') return { kind: 'leave' };

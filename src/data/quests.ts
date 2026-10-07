@@ -69,7 +69,7 @@ const SIDE: QuestDef[] = [
     count('talk:nia', 1, L('Show Nia your cooking', 'Tunjukkan masakanmu ke Nia'), true),
   ], [{ item: 'honey', qty: 3 }]),
   side('treasure', 'marlo', 'c3', L('Treasure Map', 'Peta Harta'), [
-    count('dig', 3, L('Dig up 3 treasure spots (marked X) with a shovel', 'Gali 3 tempat harta (bertanda X) dengan sekop')),
+    count('dig', 3, L('Open 3 buried treasure chests (marked X)', 'Buka 3 peti harta terpendam (bertanda X)')),
     count('talk:marlo', 1, L('Tell Marlo', 'Beritahu Marlo'), true),
   ], [{ item: 'arrow', qty: 12 }]),
   side('catch', 'odo', 'c2', L('The Big Catch', 'Tangkapan Besar'), [

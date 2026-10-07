@@ -1,0 +1,60 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('Game', {slot: 0, seed: 1234})"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const w = g.world; const S = w.size; const c = w.landmarks.find(l => l.id === 'camp'); let best = null; for (let r = 4; r < 40 && !best; r++) for (let dy = -r; dy <= r && !best; dy++) for (let dx = -r; dx <= r && !best; dx++) { let ok = true; for (let yy = -4; yy <= 4 && ok; yy++) for (let xx = -4; xx <= 4 && ok; xx++) { const x = c.x + dx + xx, y = c.y + dy + yy; if (x < 1 || y < 1 || x >= S - 1 || y >= S - 1) { ok = false; break; } const i = y * S + x; if (w.terrain[i] !== 3 || g.solids.has(i)) ok = false; } if (ok) best = { x: c.x + dx, y: c.y + dy }; } if (!best) return 'no clearing'; g.pos = { x: best.x + 0.5, y: best.y + 0.5 }; g.player.face(1, 0); return 'clearing ' + best.x + ',' + best.y; })()"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice(); inv[0] = {item:'chest', qty:1}; g.session = {...g.session, inventory: inv, selected: 0}; g.player.face(1,0); return 1; })()"
+ },
+ {
+  "press": "Space",
+  "ms": 60
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); return JSON.stringify({structs: g.session.structures.list, active: __game.scene.isActive('Inventory'), act: g.computeAction ? JSON.stringify(g.computeAction()) : 'n/a'}); })()"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice(); inv[0] = {item:'axe_stone', qty:1, dur:50}; g.session = {...g.session, inventory: inv, selected: 0}; return 1; })()"
+ },
+ {
+  "press": "Space",
+  "ms": 60
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); return JSON.stringify({inv: __game.scene.isActive('Inventory'), paused: g.scene.isPaused(), act: JSON.stringify(g.computeAction())}); })()"
+ },
+ {
+  "shot": "chest-open"
+ }
+]

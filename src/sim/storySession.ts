@@ -1,5 +1,6 @@
 import { Rng, hashString } from '@/core/rng';
 import { CREATURES, type CreatureId } from '@/data/creatures';
+import { ITEMS } from '@/data/items';
 import { BOTTLES, CAT_FOUND, TABLETS, TREASURE_LOOT } from '@/data/lore';
 import { NPCS, type NpcId } from '@/data/npcs';
 import { newAchievements } from '@/data/achievements';
@@ -102,7 +103,8 @@ export function inspect(s: Session, spot: Spot): Step {
 /** Dig up buried treasure with the shovel in hand. Nothing happens (and nothing is lost) if the loot does not fit. */
 export function dig(s: Session, spot: Spot, stamina: number): Step {
   if (s.quests.found.includes(spot.id)) return { session: s, fx: [] };
-  const given = giveItems(wearTool(s.inventory, s.selected), TREASURE_LOOT[numberOf(spot) + 1] ?? []);
+  const held = s.inventory[s.selected];
+  const given = giveItems(held && ITEMS[held.item].tool?.type === 'shovel' ? wearTool(s.inventory, s.selected) : s.inventory, TREASURE_LOOT[numberOf(spot) + 1] ?? []);
   if (given.overflow) return { session: s, fx: [say('msgFull')] };
   const dug: Session = { ...found(s, spot.id), inventory: given.inv, vitals: spendStamina(s.vitals, stamina) ?? s.vitals };
   const r = story(dug, ['dig']);
