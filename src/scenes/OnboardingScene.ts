@@ -87,6 +87,7 @@ export class OnboardingScene extends BaseScene {
     const top = Math.max(24, Math.round(H * 0.5 - boxH / 2) - 20);
     this.ui.add(panel(this, 16, top, boxW, boxH, 'ui_panel_ornate'));
     // The painting is cropped to a wide banner and eases in slowly.
+    this.textures.get(card.art).setFilter(Phaser.Textures.FilterMode.LINEAR);
     const art = this.add.image(W / 2, top + 10 + bannerH / 2, card.art);
     const cropH = Math.round(art.width * 0.52);
     art.setCrop(0, Math.round((art.height - cropH) / 2), art.width, cropH).setScale(bannerW / art.width).setAlpha(0);

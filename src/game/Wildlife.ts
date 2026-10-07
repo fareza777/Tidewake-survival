@@ -19,6 +19,8 @@ export class Wildlife {
   private state = emptyEncounters();
   private rng = new Rng(Rng.seedFromTime());
   private layer: CreatureLayer;
+  /** Where the hero stood at his last blow: creatures recoil away from it. */
+  private lastBlow: Vec | null = null;
 
   constructor(scene: Phaser.Scene) {
     this.layer = new CreatureLayer(scene);
@@ -42,7 +44,7 @@ export class Wildlife {
 
   /** The hero swings: creatures in the arc are hurt. */
   strike(hero: Vec, facing: Facing, stats: SwingStats): EncounterEvent[] {
-    this.layer.swing(hero, facing, stats);
+    this.lastBlow = hero;
     const r = swing(this.state, hero, facing, stats, this.rng);
     return this.apply(r.e, r.events);
   }
@@ -74,7 +76,12 @@ export class Wildlife {
   private apply(next: Encounters, events: EncounterEvent[]): EncounterEvent[] {
     this.state = next;
     for (const ev of events) {
-      if (ev.t === 'hit') this.layer.flash(ev.id);
+      if (ev.t === 'hit') {
+        const dx = this.lastBlow ? ev.x - this.lastBlow.x : 0;
+        const dy = this.lastBlow ? ev.y - this.lastBlow.y : 0;
+        const len = Math.hypot(dx, dy) || 1;
+        this.layer.flash(ev.id, dx / len, dy / len);
+      }
       if (ev.t === 'killed') this.layer.puff(ev);
     }
     this.layer.sync(next.creatures, next.pickups, next.arrows, next.shots);

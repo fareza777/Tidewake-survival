@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { snapWorld } from '@/core/viewport';
 import { ITEMS, type ItemId } from '@/data/items';
+import { nextSlashSide, slashTrail } from '@/gfx/slash';
+import { meleeFor } from '@/sim/melee';
 import { dirFromVector, type Dir } from '@/gfx/animations';
 import { TILE } from '@/gfx/TerrainLayer';
 import { HERO_IFRAMES } from '@/sim/combat';
@@ -16,11 +18,15 @@ export interface Gait {
 }
 
 type Pose = 'idle' | 'walk' | 'run';
-/**
- * Where the feet are inside a 64x64 attack frame, per direction (the swing frames are drawn on a bigger canvas than the
- * 32x32 walking frames, with the crescent of the blow around the hero).
- */
-const ATTACK_FEET: Record<Dir, readonly [number, number]> = { right: [25, 32], left: [39, 32], down: [32, 32], up: [32, 49] };
+
+/** The glow of a blade's slash: warmer for wood, brighter and bluer as the metal gets better. */
+function bladeTint(item: ItemId): number {
+  if (item.includes('crystal')) return 0x8ff0ff;
+  if (item.includes('iron')) return 0xdff3ff;
+  if (item.includes('stone')) return 0xece6cc;
+  if (item.includes('bone')) return 0xfff2d6;
+  return 0xffe6a8;
+}
 /** Hand position of a held tool relative to the feet, per direction, and how it swings (degrees: raised back, then through). */
 const HAND: Record<Dir, { x: number; y: number; wind: number; strike: number; flip: boolean; front: boolean }> = {
   right: { x: 5, y: -10, wind: -95, strike: 45, flip: false, front: true },
@@ -36,7 +42,6 @@ export class Player {
   private shadow: Phaser.GameObjects.Image;
   private dir: Dir = 'down';
   private pose: Pose | null = 'idle';
-  private attacking = false;
   private lunge = { x: 0, y: 0 };
   private tool?: Phaser.GameObjects.Image;
   private dustIn = 0;
@@ -69,11 +74,6 @@ export class Player {
 
   /** Move to `pos`, facing along the stick and animating at the pace he really moves (slow steps when he eases in or out). */
   update(pos: Vec, move: Vec, gait: Gait, dt: number): void {
-    if (this.attacking) {
-      // Mid-swing the blow's own frames play; he only follows the ground.
-      this.place(pos);
-      return;
-    }
     const pose: Pose = gait.pace < 0.12 ? 'idle' : gait.running ? 'run' : 'walk';
     const dir = dirFromVector(move.x, move.y, this.dir);
     if (pose !== this.pose || dir !== this.dir) {
@@ -105,63 +105,41 @@ export class Player {
   }
 
   /**
-   * The hero uses what he holds. A sword or spear plays the swing with its white crescent, a bow the draw, and a tool
-   * (axe, pickaxe, hoe...) shows in his hand and chops through; with nothing in hand he just jabs.
+   * The hero uses what he holds. A sword or spear flashes through with a slash of light, a tool (axe, pickaxe, hoe...)
+   * shows in his hand and chops through; with nothing in hand he just jabs.
    */
   swing(item: ItemId | null): void {
     const type = item ? ITEMS[item].tool?.type : undefined;
-    if (item && (type === 'sword' || type === 'spear')) this.slash();
-    else if (item && type && type !== 'bow') this.swingTool(item);
+    if (item && (type === 'sword' || type === 'spear')) this.swingTool(item, true);
+    else if (item && type && type !== 'bow') this.swingTool(item, false);
     else this.punch();
   }
 
-  /** The sword blow: the wind-up, the cut with the crescent of light, and the follow-through, with a small lunge forward. */
-  private slash(): void {
-    const key = `hero${this.skin}_attack_${this.dir}`;
-    if (!this.scene.anims.exists(key)) {
-      this.punch();
-      return;
-    }
-    const [fx, fy] = ATTACK_FEET[this.dir];
-    this.attacking = true;
-    this.sprite.setOrigin(fx / 64, fy / 64);
-    this.sprite.play(key, true);
-    this.sprite.anims.timeScale = 1.55;
-    const vec = this.dir === 'left' ? [-1, 0] : this.dir === 'right' ? [1, 0] : this.dir === 'up' ? [0, -1] : [0, 1];
-    this.scene.tweens.killTweensOf(this.lunge);
-    this.lunge.x = 0;
-    this.lunge.y = 0;
-    this.scene.tweens.add({ targets: this.lunge, x: vec[0] * 3, y: vec[1] * 3, duration: 90, yoyo: true, ease: 'Quad.easeOut' });
-    this.sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.endAttack());
-  }
-
-  private endAttack(): void {
-    this.attacking = false;
-    this.sprite.setOrigin(0.5, FEET_Y);
-    this.sprite.anims.timeScale = 1;
-    this.pose = null;
-    this.lunge.x = 0;
-    this.lunge.y = 0;
-    this.sprite.play(this.animKey(), true);
-  }
-
-  /** The tool appears in his hand, is raised behind the shoulder and brought down through the target. */
-  private swingTool(item: ItemId): void {
+  /**
+   * The held tool or blade appears in his hand, is raised behind the shoulder and brought down through the target. A blade
+   * also leaves a slash of light, and successive blows sweep opposite ways, so a string of them flows.
+   */
+  private swingTool(item: ItemId, blade: boolean): void {
     const icon = ITEMS[item].icon;
     const hand = HAND[this.dir];
     this.tool?.destroy();
+    const side = blade ? nextSlashSide() : 1;
+    const wind = side > 0 ? hand.wind : hand.strike;
+    const strike = side > 0 ? hand.strike : hand.wind;
     const img = this.scene.add.image(this.sprite.x + hand.x, this.sprite.y + hand.y, icon.atlas, icon.frame)
-      .setOrigin(0.14, 0.86).setFlipX(hand.flip).setScale(0.95)
+      .setOrigin(0.14, 0.86).setFlipX(hand.flip).setScale(blade ? 1.05 : 0.95)
       .setDepth(this.sprite.depth + (hand.front ? 0.5 : -0.5));
     const sign = hand.flip ? -1 : 1;
-    img.setAngle(sign * hand.wind * 0.6);
+    const windMs = blade ? 55 : 70;
+    const strikeMs = blade ? 65 : 80;
+    img.setAngle(sign * wind * 0.6);
     this.tool = img;
-    this.scene.tweens.add({ targets: img, angle: sign * hand.wind, duration: 70, ease: 'Quad.easeOut' });
+    this.scene.tweens.add({ targets: img, angle: sign * wind, duration: windMs, ease: 'Quad.easeOut' });
     this.scene.tweens.add({
-      targets: img, angle: sign * hand.strike, duration: 80, delay: 70, ease: 'Cubic.easeIn',
+      targets: img, angle: sign * strike, duration: strikeMs, delay: windMs, ease: 'Cubic.easeIn',
       onComplete: () => {
         this.scene.tweens.add({
-          targets: img, alpha: 0, duration: 120, delay: 90,
+          targets: img, alpha: 0, duration: 140, delay: 80,
           onComplete: () => {
             img.destroy();
             if (this.tool === img) this.tool = undefined;
@@ -169,12 +147,19 @@ export class Player {
         });
       },
     });
+    if (blade) {
+      const reach = meleeFor(item).reach * TILE;
+      this.scene.time.delayedCall(windMs, () => {
+        slashTrail(this.scene, this.sprite.x + hand.x * 0.3, this.sprite.y - 9, this.dir, reach, side, bladeTint(item), this.sprite.depth + 1);
+      });
+    }
     // The body leans into the blow.
-    const push = this.dir === 'left' ? [-2, 0] : this.dir === 'right' ? [2, 0] : this.dir === 'up' ? [0, -2] : [0, 2];
+    const k = blade ? 3 : 2;
+    const push = this.dir === 'left' ? [-k, 0] : this.dir === 'right' ? [k, 0] : this.dir === 'up' ? [0, -k] : [0, k];
     this.scene.tweens.killTweensOf(this.lunge);
     this.lunge.x = 0;
     this.lunge.y = 0;
-    this.scene.tweens.add({ targets: this.lunge, x: push[0], y: push[1], duration: 80, delay: 70, yoyo: true, ease: 'Quad.easeOut' });
+    this.scene.tweens.add({ targets: this.lunge, x: push[0], y: push[1], duration: strikeMs, delay: windMs, yoyo: true, ease: 'Quad.easeOut' });
     this.punch();
   }
 
@@ -187,7 +172,6 @@ export class Player {
 
   /** Turn toward (dx, dy) without moving (used to face the thing being hit). */
   face(dx: number, dy: number): void {
-    if (this.attacking) return;
     this.dir = dirFromVector(dx, dy, this.dir);
     this.pose = 'idle';
     this.sprite.play(this.animKey(), true);

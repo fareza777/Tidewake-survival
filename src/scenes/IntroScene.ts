@@ -55,6 +55,8 @@ export class IntroScene extends BaseScene {
   }
 
   create(data: GameInit): void {
+    // The pictures are paintings, not pixel art: scale them smoothly instead of in square blocks.
+    for (let i = 1; i <= BEATS.length; i++) this.textures.get(`cine${i}`).setFilter(Phaser.Textures.FilterMode.LINEAR);
     this.init_ = data;
     this.index = -1;
     this.finished = false;
@@ -64,12 +66,13 @@ export class IntroScene extends BaseScene {
     this.fadeIn(500);
     const { W, H } = this;
     const veil = this.add.graphics().setDepth(5);
-    veil.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 0.7, 0.7, 0, 0);
-    veil.fillRect(0, 0, W, 70);
-    veil.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 0, 0, 0.85, 0.85);
-    veil.fillRect(0, H - 230, W, 230);
-    this.add.image(W / 2, H / 2, 'fx_vignette').setDisplaySize(W * 1.2, H * 1.15).setAlpha(0.7).setDepth(6);
-    this.subtitle = label(this, W / 2, H - 112, '', FONT.head, COLORS.text, 0.5, 0.5).setMaxWidth(W - 48).setCenterAlign().setAlpha(0).setDepth(8);
+    veil.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 0.45, 0.45, 0, 0);
+    veil.fillRect(0, 0, W, 80);
+    veil.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 0, 0, 0.78, 0.78);
+    veil.fillRect(0, H - 250, W, 250);
+    this.add.image(W / 2, H / 2, 'fx_vignette').setDisplaySize(W * 1.25, H * 1.2).setAlpha(0.45).setDepth(6);
+    this.subtitle = label(this, W / 2, H - 120, '', FONT.head, 0xfff4d8, 0.5, 0.5).setMaxWidth(W - 56).setCenterAlign().setAlpha(0).setDepth(8);
+    this.subtitle.setDropShadow(1, 2, 0x000000, 0.9);
     new Button(this, W - 44, 26, t('introSkip'), () => this.finish(), { w: 72, h: 26, font: FONT.small, style: 'ghost' }).setDepth(9);
     this.input.on('pointerup', (_p: unknown, over: unknown[]) => {
       if (over.length === 0) this.next();

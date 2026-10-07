@@ -8,6 +8,7 @@ import { browserStorage } from '@/core/storage';
 import { services } from '@/core/services';
 import { loadSettings } from '@/core/settings';
 import { view } from '@/core/viewport';
+import { createIconTextures } from '@/ui/icons';
 import { createHiResSkin } from '@/ui/skin';
 import { createUiTextures, FONT, fontSuffix } from '@/ui/theme';
 
@@ -27,6 +28,7 @@ export class BootScene extends Phaser.Scene {
   async create(): Promise<void> {
     createUiTextures(this);
     createHiResSkin(this);
+    createIconTextures(this);
     const storage = browserStorage();
     const settings = loadSettings(storage, detectLang());
     services.settings = settings;

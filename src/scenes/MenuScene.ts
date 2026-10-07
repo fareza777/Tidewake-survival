@@ -2,11 +2,12 @@ import { BaseScene } from './BaseScene';
 import { t } from '@/core/i18n';
 import { Rng } from '@/core/rng';
 import { services } from '@/core/services';
+import { iconOf } from '@/ui/icons';
 import { COLORS, FONT } from '@/ui/theme';
 import { confirm, showModal } from '@/ui/modal';
 import { Button, label, toast } from '@/ui/widgets';
 
-export const GAME_VERSION = '1.1.0';
+export const GAME_VERSION = '1.2.0';
 
 /** Main menu: Continue, New Game, Settings, About, Share and Rate. */
 export class MenuScene extends BaseScene {
@@ -80,22 +81,22 @@ export class MenuScene extends BaseScene {
   private buildButtons(): void {
     const { W, H } = this;
     const latest = services.saves?.latest() ?? null;
-    const bw = Math.min(200, W - 80);
+    const bw = Math.min(230, W - 70);
     let y = Math.round(H * 0.46);
-    const step = 40;
+    const step = 50;
     const buttons: Button[] = [];
     if (latest !== null) {
-      buttons.push(new Button(this, W / 2, y, t('menuContinue'), () => this.goTo('Game', { slot: latest }), { w: bw, h: 32, style: 'primary' }));
+      buttons.push(new Button(this, W / 2, y, t('menuContinue'), () => this.goTo('Game', { slot: latest }), { w: bw, h: 42, style: 'primary', icon: iconOf('play', 20) }));
       y += step;
     }
-    buttons.push(new Button(this, W / 2, y, t('menuNewGame'), () => this.goTo('NewGame'), { w: bw, h: 32, style: latest === null ? 'primary' : 'normal' }));
+    buttons.push(new Button(this, W / 2, y, t('menuNewGame'), () => this.goTo('NewGame'), { w: bw, h: 42, style: latest === null ? 'primary' : 'normal', icon: latest === null ? iconOf('play', 20) : undefined }));
     y += step;
     const half = Math.floor((bw - 6) / 2);
-    buttons.push(new Button(this, W / 2 - half / 2 - 3, y, t('menuSettings'), () => this.goTo('Settings', { back: 'Menu' }), { w: half, h: 28, font: FONT.small }));
-    buttons.push(new Button(this, W / 2 + half / 2 + 3, y, t('menuAbout'), () => this.goTo('About'), { w: half, h: 28, font: FONT.small }));
-    y += step - 6;
-    buttons.push(new Button(this, W / 2 - half / 2 - 3, y, t('menuShare'), () => void this.share(), { w: half, h: 28, font: FONT.small }));
-    buttons.push(new Button(this, W / 2 + half / 2 + 3, y, t('menuRate'), () => this.rate(), { w: half, h: 28, font: FONT.small }));
+    buttons.push(new Button(this, W / 2 - half / 2 - 3, y, t('menuSettings'), () => this.goTo('Settings', { back: 'Menu' }), { w: half, h: 38, font: FONT.small, icon: iconOf('gear', 20) }));
+    buttons.push(new Button(this, W / 2 + half / 2 + 3, y, t('menuAbout'), () => this.goTo('About'), { w: half, h: 38, font: FONT.small, icon: iconOf('info', 20) }));
+    y += step - 4;
+    buttons.push(new Button(this, W / 2 - half / 2 - 3, y, t('menuShare'), () => void this.share(), { w: half, h: 38, font: FONT.small, icon: iconOf('share', 20) }));
+    buttons.push(new Button(this, W / 2 + half / 2 + 3, y, t('menuRate'), () => this.rate(), { w: half, h: 38, font: FONT.small, icon: iconOf('star', 20) }));
     buttons.forEach((b, i) => {
       b.setAlpha(0);
       b.y += 10;

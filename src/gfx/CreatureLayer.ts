@@ -4,18 +4,19 @@ import { CREATURES, isHostileKind } from '@/data/creatures';
 import { ITEMS } from '@/data/items';
 import { animKey } from '@/gfx/animations';
 import { TILE } from '@/gfx/TerrainLayer';
-import type { Facing } from '@/sim/actions';
-import type { SwingStats } from '@/sim/combat';
 import type { Creature } from '@/sim/creatures';
 import type { FlyingShot } from '@/sim/boss';
 import type { Arrow } from '@/sim/encounters';
 import type { Vec } from '@/sim/movement';
 import type { Pickup } from '@/sim/pickups';
 
-const FLASH_MS = 90;
+const FLASH_MS = 110;
+/** How quickly a creature's picture catches up with where the simulation put it (per second), and how fast a hit's recoil and squash fade. */
+const FOLLOW = 26;
+const KICK_FADE = 13;
+const SQUASH_FADE = 11;
 const WINDUP_TINT = 0xff8a8a;
 const SHOT_TINT = 0xd070ff;
-const FACING_DEG: Record<Facing, number> = { right: 0, down: 90, left: 180, up: 270 };
 /** Where the feet are inside a sprite cell: monsters are drawn in 48x48 cells, animals in 16x20. */
 const FEET: Record<'monsters' | 'actors', number> = { monsters: 0.8, actors: 0.9 };
 const BAR_W = 14;
@@ -25,6 +26,13 @@ interface CreatureView {
   shadow: Phaser.GameObjects.Image;
   bar: [Phaser.GameObjects.Rectangle, Phaser.GameObjects.Rectangle];
   flashUntil: number;
+  /** Where the picture is now (world pixels), eased toward the simulation's position. */
+  x: number;
+  y: number;
+  /** Recoil from the last blow (world pixels, fading) and the squash of the impact (1 fading to 0). */
+  kickX: number;
+  kickY: number;
+  squash: number;
 }
 
 interface ItemView {
@@ -51,13 +59,30 @@ export class CreatureLayer {
 
   private syncCreatures(list: readonly Creature[]): void {
     const now = this.scene.time.now;
+    const dt = Math.min(0.05, this.scene.game.loop.delta / 1000);
+    const follow = 1 - Math.exp(-dt * FOLLOW);
+    const kickFade = Math.exp(-dt * KICK_FADE);
+    const squashFade = Math.exp(-dt * SQUASH_FADE);
     const seen = new Set<number>();
     for (const c of list) {
       seen.add(c.id);
       const def = CREATURES[c.kind];
       const view = this.creatures.get(c.id) ?? this.addCreature(c);
-      const px = snapWorld(c.x * TILE);
-      const py = snapWorld(c.y * TILE);
+      // The picture glides after the simulation instead of jumping with it, so knock-back and charges read as movement.
+      const tx = c.x * TILE;
+      const ty = c.y * TILE;
+      if (Math.hypot(tx - view.x, ty - view.y) > 3 * TILE) {
+        view.x = tx;
+        view.y = ty;
+      } else {
+        view.x += (tx - view.x) * follow;
+        view.y += (ty - view.y) * follow;
+      }
+      view.kickX *= kickFade;
+      view.kickY *= kickFade;
+      view.squash *= squashFade;
+      const px = snapWorld(view.x + view.kickX);
+      const py = snapWorld(view.y + view.kickY);
       view.sprite.setPosition(px, py).setDepth(py);
       view.shadow.setPosition(px, py - 1).setDepth(py - 1);
       const dir = def.sprite.fixedDir ?? c.facing;
@@ -71,7 +96,8 @@ export class CreatureLayer {
       if (now < view.flashUntil) view.sprite.setTintFill(0xffffff);
       else if (c.state === 'windup' || c.state === 'charge') view.sprite.setTint(WINDUP_TINT);
       else view.sprite.clearTint();
-      view.sprite.setScale((def.sprite.scale ?? 1) * (c.state === 'windup' ? 1.12 : 1));
+      const base = (def.sprite.scale ?? 1) * (c.state === 'windup' ? 1.12 : 1);
+      view.sprite.setScale(base * (1 + 0.3 * view.squash), base * (1 - 0.22 * view.squash));
       this.updateBar(view, c, px, py);
     }
     for (const [id, view] of this.creatures) {
@@ -92,7 +118,7 @@ export class CreatureLayer {
     const color = isHostileKind(c.kind) ? 0xe0524f : 0xff9a3c;
     const back = this.scene.add.rectangle(0, 0, BAR_W, 2, 0x000000, 0.65).setOrigin(0, 0.5).setVisible(false);
     const fill = this.scene.add.rectangle(0, 0, BAR_W, 2, color).setOrigin(0, 0.5).setVisible(false);
-    const view: CreatureView = { sprite, shadow, bar: [back, fill], flashUntil: 0 };
+    const view: CreatureView = { sprite, shadow, bar: [back, fill], flashUntil: 0, x: c.x * TILE, y: c.y * TILE, kickX: 0, kickY: 0, squash: 0 };
     this.creatures.set(c.id, view);
     return view;
   }
@@ -171,10 +197,14 @@ export class CreatureLayer {
     }
   }
 
-  /** White flash on a creature that was just hit. */
-  flash(id: number): void {
+  /** A creature was just hit: it flashes white, squashes and recoils away from the blow (`dx, dy` is the direction of the blow). */
+  flash(id: number, dx = 0, dy = 0): void {
     const view = this.creatures.get(id);
-    if (view) view.flashUntil = this.scene.time.now + FLASH_MS;
+    if (!view) return;
+    view.flashUntil = this.scene.time.now + FLASH_MS;
+    view.kickX = dx * 5;
+    view.kickY = dy * 5;
+    view.squash = 1;
   }
 
   /** Small cloud where a creature died. Positions are in tiles. */
@@ -191,13 +221,4 @@ export class CreatureLayer {
     }
   }
 
-  /** The sweep of a blow: a wedge in front of the hero that fades at once. */
-  swing(hero: Vec, facing: Facing, stats: Pick<SwingStats, 'reach' | 'arc'>): void {
-    const mid = FACING_DEG[facing];
-    const wedge = this.scene.add
-      .arc(hero.x * TILE, hero.y * TILE - 8, stats.reach * TILE, mid - stats.arc / 2, mid + stats.arc / 2, false, 0xffffff, 0.2)
-      .setStrokeStyle(1, 0xffffff, 0.7)
-      .setDepth(900_000);
-    this.scene.tweens.add({ targets: wedge, alpha: 0, duration: 150, onComplete: () => wedge.destroy() });
-  }
 }

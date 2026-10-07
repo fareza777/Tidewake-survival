@@ -16,6 +16,7 @@ const SHADOW_WIDTH: Record<ResourceKind, number> = {
 export class WorldObjects {
   private sprites = new Map<number, Phaser.GameObjects.Image>();
   private shadows = new Map<number, Phaser.GameObjects.Image>();
+  private kinds = new Map<number, ResourceKind>();
 
   constructor(private scene: Phaser.Scene, world: World) {
     for (const n of world.resources) {
@@ -23,6 +24,7 @@ export class WorldObjects {
       const y = (n.y + 1) * TILE - 1;
       const img = scene.add.image(x, y, 'props', resourceFrame(n.kind, n.variant)).setOrigin(0.5, 1).setDepth(y);
       this.sprites.set(n.id, img);
+      this.kinds.set(n.id, n.kind);
       const w = SHADOW_WIDTH[n.kind];
       this.shadows.set(n.id, scene.add.image(x, y - 1, 'fx_shadow_soft').setDisplaySize(w, w * 0.38).setDepth(-70));
     }
@@ -52,8 +54,25 @@ export class WorldObjects {
       s.setVisible(false);
       return;
     }
+    const kind = this.kinds.get(id);
+    if (kind === 'tree' || kind === 'palm' || kind === 'swamptree' || kind === 'bush') {
+      // Plants topple over, away from one side, and fade as they land.
+      const side = Math.random() < 0.5 ? -1 : 1;
+      shadow?.setVisible(true);
+      this.scene.tweens.add({ targets: s, angle: side * 84, y: s.y + 2, duration: 420, delay: 110, ease: 'Cubic.easeIn' });
+      this.scene.tweens.add({
+        targets: s, alpha: 0, duration: 180, delay: 480,
+        onComplete: () => {
+          s.setVisible(false).setAngle(0).setY(s.y - 2);
+          shadow?.setVisible(false);
+        },
+      });
+      if (shadow) this.scene.tweens.add({ targets: shadow, alpha: 0, duration: 420, delay: 110, onComplete: () => shadow.setAlpha(1) });
+      return;
+    }
+    // Rocks and ore crumble: they sink a little and shrink away.
     this.scene.tweens.add({
-      targets: s, alpha: 0, scaleX: 0.6, scaleY: 0.6, duration: 160,
+      targets: s, alpha: 0, scaleX: 0.7, scaleY: 0.45, duration: 240, delay: 110, ease: 'Quad.easeIn',
       onComplete: () => s.setVisible(false),
     });
   }
@@ -63,10 +82,18 @@ export class WorldObjects {
     const s = this.sprites.get(id);
     if (!s) return;
     this.scene.tweens.killTweensOf(s);
-    s.setAngle(0);
-    this.scene.tweens.add({
-      targets: s, angle: { from: -4, to: 4 }, duration: 45, yoyo: true, repeat: 1,
-      onComplete: () => s.setAngle(0),
-    });
+    s.setAngle(0).setScale(1);
+    // A damped sway: the plant rocks one way, the other, and settles, with a squash as the blow lands (timed with the tool).
+    const rock = this.kinds.get(id) === 'rock' || this.kinds.get(id) === 'ore' || this.kinds.get(id) === 'crystal' || this.kinds.get(id) === 'redrock';
+    const amp = rock ? 0 : 5;
+    this.scene.tweens.add({ targets: s, scaleX: 1.07, scaleY: 0.93, duration: 60, delay: 110, yoyo: true, ease: 'Quad.easeOut', onComplete: () => s.setScale(1) });
+    if (amp > 0) {
+      this.scene.tweens.chain({
+        targets: s,
+        tweens: [amp, -amp * 0.75, amp * 0.5, -amp * 0.3, amp * 0.15, 0].map((angle, i) => ({
+          angle, duration: 70 + i * 12, ease: 'Sine.easeInOut', delay: i === 0 ? 110 : 0,
+        })),
+      });
+    }
   }
 }

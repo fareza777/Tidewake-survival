@@ -91,6 +91,9 @@ export class GameScene extends BaseScene {
   private idle = 99;
   /** Where the hero is heading, in tiles a second: it eases toward the stick instead of jumping. */
   private vel: Vec = { x: 0, y: 0 };
+  /** Where the camera looks (world pixels): it glides after the hero and leans a little the way he runs. */
+  private look = { x: 0, y: 0, ready: false };
+  private lastDt = 0.016;
   private running = false;
   /** True while the hero faces something he built that can be taken down (a chest, a bench, a bed...). */
   canDismantle = false;
@@ -115,6 +118,8 @@ export class GameScene extends BaseScene {
     this.transitioning = false;
     this.dead = false;
     this.wiped = false;
+    this.look.ready = false;
+    this.vel = { x: 0, y: 0 };
     resetControls();
     const loaded = data.seed === undefined ? services.saves?.load(data.slot) ?? null : null;
     if (data.seed === undefined && !loaded) {
@@ -194,6 +199,7 @@ export class GameScene extends BaseScene {
       return;
     }
     const dt = Math.min(delta / 1000, MAX_STEP);
+    this.lastDt = dt;
     this.idle += dt;
     const move = this.keys.move();
     const moving = move.x !== 0 || move.y !== 0;
@@ -416,6 +422,7 @@ export class GameScene extends BaseScene {
     }
     this.vel = { x: 0, y: 0 };
     this.running = false;
+    this.look.ready = false;
     this.player.update(this.pos, { x: 0, y: 0 }, { pace: 0, running: false }, 0);
     this.dead = false;
     this.idle = 99;
@@ -426,7 +433,16 @@ export class GameScene extends BaseScene {
   /** Centre on the hero, then snap to whole device pixels so pixel art does not shimmer. */
   private followCamera(): void {
     const cam = this.cameras.main;
-    cam.centerOn(this.pos.x * TILE, this.pos.y * TILE);
+    const tx = this.pos.x * TILE + this.vel.x * TILE * 0.12;
+    const ty = this.pos.y * TILE + this.vel.y * TILE * 0.12;
+    if (!this.look.ready) {
+      this.look = { x: this.pos.x * TILE, y: this.pos.y * TILE, ready: true };
+    } else {
+      const ease = 1 - Math.exp(-this.lastDt * 9);
+      this.look.x += (tx - this.look.x) * ease;
+      this.look.y += (ty - this.look.y) * ease;
+    }
+    cam.centerOn(this.look.x, this.look.y);
     const k = worldZoom(2);
     cam.scrollX = Math.round(cam.scrollX * k) / k;
     cam.scrollY = Math.round(cam.scrollY * k) / k;

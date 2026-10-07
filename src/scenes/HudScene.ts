@@ -15,6 +15,7 @@ import { itemIcon } from '@/ui/itemIcon';
 import { Joystick } from '@/ui/Joystick';
 import { nine } from '@/ui/skin';
 import { COLORS, FONT } from '@/ui/theme';
+import { IconButton } from '@/ui/icons';
 import { Bar, Button, panel } from '@/ui/widgets';
 
 const SLOT = 34;
@@ -40,9 +41,10 @@ export class HudScene extends Phaser.Scene {
   private bossName!: Phaser.GameObjects.BitmapText;
   private bossBar!: Bar;
   private tracker!: Phaser.GameObjects.BitmapText;
-  private runButton!: Button;
-  private pickUpButton!: Button;
-  private bagButton!: Button;
+  private runButton!: IconButton;
+  private pickUpButton!: IconButton;
+  private pickUpCaption!: Phaser.GameObjects.BitmapText;
+  private bagButton!: IconButton;
   private useButton!: Button;
   private hint?: Phaser.GameObjects.Container;
   private pulsing?: Phaser.Tweens.Tween;
@@ -73,21 +75,33 @@ export class HudScene extends Phaser.Scene {
       bar.setDepth(5);
       this.bars.push({ bar, last: -1 });
     });
-    new Button(this, W - 24, 22, 'II', () => this.openMenu(), { w: 34, h: 28 }).setDepth(6);
-    this.bagButton = new Button(this, W - 24, 54, t('tabBag'), () => this.world.openInventory({ mode: 'bag' }), { w: 34, h: 24, font: FONT.small }).setDepth(6);
-    new Button(this, W - 26, 82, t('questShort'), () => this.world.openQuests(), { w: 44, h: 24, font: FONT.small }).setDepth(6);
-    this.tracker = this.add.bitmapText(8, 86, FONT.small, '').setTint(COLORS.gold).setDepth(5).setMaxWidth(W - 90);
-    this.useButton = new Button(this, W - 52, H - 100, t('useAction'), () => {
+    // Big round icon buttons down the right edge (finger-sized), each with a small caption under it.
+    const cx = W - 32;
+    new IconButton(this, cx, 34, 'pause', () => this.openMenu(), 48).setDepth(6);
+    this.bagButton = new IconButton(this, cx, 100, 'bag', () => this.world.openInventory({ mode: 'bag' }), 48).setDepth(6);
+    this.caption(cx, 100, t('tabBag'));
+    new IconButton(this, cx, 170, 'quest', () => this.world.openQuests(), 48).setDepth(6);
+    this.caption(cx, 170, t('questShort'));
+    this.tracker = this.add.bitmapText(8, 86, FONT.small, '').setTint(COLORS.gold).setDepth(5).setMaxWidth(W - 100);
+    this.useButton = new Button(this, W - 58, H - 108, t('useAction'), () => {
       controls.action = true;
-    }, { w: 68, h: 68, style: 'primary' }).setDepth(6);
-    const run = new Button(this, W - 52, H - 148, t('runAction'), () => {
+    }, { w: 80, h: 80, style: 'primary' }).setDepth(6);
+    this.runButton = new IconButton(this, W - 58, H - 204, 'run', () => {
       controls.run = !controls.run;
-    }, { w: 68, h: 28, font: FONT.small }).setDepth(6);
-    this.runButton = run;
-    this.pickUpButton = new Button(this, W - 52, H - 182, t('dismantle'), () => this.world.dismantle(), { w: 68, h: 28, font: FONT.small, style: 'danger' }).setDepth(6).setVisible(false);
+    }, 50).setDepth(6);
+    this.caption(W - 58, H - 204, t('runAction'));
+    this.pickUpButton = new IconButton(this, W - 58, H - 272, 'pickup', () => this.world.dismantle(), 50).setDepth(6).setVisible(false);
+    this.pickUpCaption = this.caption(W - 58, H - 272, t('dismantle')).setVisible(false);
     new Joystick(this, () => services.settings?.joystick ?? 'floating');
     this.slotLayer = this.add.container(0, 0).setDepth(7);
     this.input.on('pointerdown', this.onTap, this);
+  }
+
+  /** A small label under a round button. */
+  private caption(x: number, y: number, text: string): Phaser.GameObjects.BitmapText {
+    const label = this.add.bitmapText(x, y + 31, FONT.small, text).setOrigin(0.5, 0).setTint(COLORS.text).setDepth(6);
+    label.setDropShadow(1, 1, 0x000000, 0.9);
+    return label;
   }
 
   private slotX(i: number): number {
@@ -147,7 +161,7 @@ export class HudScene extends Phaser.Scene {
     for (const b of [this.bagButton, this.runButton, this.useButton]) b.setScale(1);
     if (!text) return;
     const { w: W, h: H } = view;
-    const boxW = Math.min(W - 40, 320);
+    const boxW = Math.min(W - 84, 300);
     const body = this.add.bitmapText(0, 0, FONT.body, text).setTint(COLORS.text).setMaxWidth(boxW - 28);
     const boxH = Math.round(body.height) + 54;
     const top = Math.round(H * 0.2);
@@ -155,7 +169,7 @@ export class HudScene extends Phaser.Scene {
     body.setPosition(14, 12);
     const skip = this.add.bitmapText(boxW - 14, boxH - 10, FONT.small, t('tutSkip')).setOrigin(1, 1).setTint(COLORS.textDim).setInteractive({ useHandCursor: true });
     skip.on('pointerup', () => onSkip?.());
-    this.hint = this.add.container(Math.round((W - boxW) / 2), top, [bg, body, skip]).setDepth(8).setAlpha(0);
+    this.hint = this.add.container(10, top, [bg, body, skip]).setDepth(8).setAlpha(0);
     this.tweens.add({ targets: this.hint, alpha: 1, y: top + 4, duration: 260, ease: 'Sine.easeOut' });
     const target = point === 'bag' ? this.bagButton : point === 'run' ? this.runButton : point === 'use' ? this.useButton : null;
     if (target) this.pulsing = this.tweens.add({ targets: target, scale: 1.14, duration: 480, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
@@ -242,8 +256,9 @@ export class HudScene extends Phaser.Scene {
 
   update(): void {
     // The Run button glows green while running is switched on (it switches itself off when the breath runs out).
-    this.runButton.text.setTint(controls.run ? 0x6bd46b : COLORS.text);
+    this.runButton.setActive(controls.run);
     this.pickUpButton.setVisible(this.world.canDismantle);
+    this.pickUpCaption.setVisible(this.world.canDismantle);
     this.updateBoss();
     this.updateTracker();
     const s = this.world.session;
