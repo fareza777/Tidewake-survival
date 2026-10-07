@@ -38,7 +38,7 @@ import { meleeFor } from '@/sim/melee';
 import { moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import {
   applyAction, collapse, craftRecipe, story, equipArmor, markRaid, moveInventorySlot, selectSlot, sessionFromSlot, sessionMods, sessionToSlot, takeOffGear, tickSession,
-  arrive, sailTo, turretFired,
+  arrive, sailTo, turretFired, weatherStrain,
   upgradeItem, repairItem,
   transferStack, type Fx, type Session, type Step,
 } from '@/sim/session';
@@ -238,7 +238,7 @@ export class GameScene extends BaseScene {
     const slot = this.keys.slotPressed();
     if (slot >= 0) this.select(slot);
 
-    const top = PLAYER_SPEED * speedFactor(this.world, this.pos.x, this.pos.y) * (this.running ? RUN_SPEED : 1) * sessionMods(this.session).speed;
+    const top = PLAYER_SPEED * speedFactor(this.world, this.pos.x, this.pos.y) * (this.running ? RUN_SPEED : 1) * sessionMods(this.session).speed * weatherStrain(this.session, this.biomeAt()).speed;
     const ease = 1 - Math.exp(-dt * (moving ? ACCELERATE : BRAKE));
     this.vel = { x: this.vel.x + (move.x * top - this.vel.x) * ease, y: this.vel.y + (move.y * top - this.vel.y) * ease };
     if (!moving && Math.hypot(this.vel.x, this.vel.y) < 0.08) this.vel = { x: 0, y: 0 };

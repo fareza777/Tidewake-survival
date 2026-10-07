@@ -96,7 +96,7 @@ describe('checkHit', () => {
   });
 
   it('scales damage with tool tier and wears the tool', () => {
-    expect(checkHit('tree', 'axe_wood')).toEqual({ ok: true, damage: 1, stamina: 2, wear: true });
+    expect(checkHit('tree', 'axe_wood')).toEqual({ ok: true, damage: 1, stamina: 4, wear: true });
     expect(checkHit('tree', 'axe_stone')).toMatchObject({ damage: 2 });
     expect(checkHit('tree', 'axe_iron')).toMatchObject({ damage: 3 });
   });

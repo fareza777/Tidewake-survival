@@ -14,7 +14,7 @@ import type { GearSlot } from '@/data/items';
 import { addBuff, pruneBuffs, removeBuff, type Buff } from '@/sim/buffs';
 import { climateAt, shelteredAt } from '@/sim/climate';
 import { CRIT_DAMAGE, modsOf, type Mods } from '@/sim/mods';
-import { isWet, seasonOf, weatherAt } from '@/sim/weather';
+import { isWet, seasonOf, strainOf, weatherAt, type Strain } from '@/sim/weather';
 import { gainXp, levelOf, type SkillId, type Skills } from '@/sim/skills';
 import { repairSlot, upgradeSlot } from '@/sim/upgrade';
 import { CREATURES, type CreatureId } from '@/data/creatures';
@@ -177,6 +177,13 @@ export function sailTo(s: Session, to: IslandId): Step {
   };
 }
 
+const NO_STRAIN: Strain = { thirst: 1, regen: 1, speed: 1 };
+
+/** What the weather under the open sky does to the hero right now (nothing underground). */
+export function weatherStrain(s: Session, biome: Biome): Strain {
+  return s.location === null ? strainOf(seasonOf(s.clock.day), weatherAt(s.seed, s.clock.day, s.clock.t), biome) : NO_STRAIN;
+}
+
 /** Advance time: the clock runs and the vital meters drain or recover. */
 export function tickSession(s: Session, dt: number, biome: Biome, busy: boolean, running = false, pos?: Vec): Session {
   const playTime = s.playTime + dt;
@@ -184,6 +191,7 @@ export function tickSession(s: Session, dt: number, biome: Biome, busy: boolean,
   const live = buffs === s.buffs ? s : { ...s, buffs };
   const m = sessionMods(live);
   // The cold only matters out in the open air (and the hero's position must be known).
+  const strain = weatherStrain(live, biome);
   const climate = pos && s.location === null ? climateAt(s.seed, s.clock, s.structures, pos, biome) : null;
   return {
     ...live,
@@ -192,6 +200,7 @@ export function tickSession(s: Session, dt: number, biome: Biome, busy: boolean,
     vitals: tickVitals(s.vitals, dt, {
       difficulty: s.difficulty, biome, busy, running, regen: m.regen, hpRegen: m.hpRegen, hpDrain: m.hpDrain,
       cold: climate?.cold ?? 0, heated: climate?.heated ?? false, sheltered: climate?.sheltered ?? false, protect: m.warmth,
+      thirstMul: strain.thirst, regenMul: strain.regen,
     }),
   };
 }

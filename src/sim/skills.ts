@@ -10,7 +10,7 @@ export type Skills = Readonly<Record<SkillId, number>>;
 export const noSkills = (): Skills => ({ woodcutting: 0, mining: 0, combat: 0, farming: 0, cooking: 0, crafting: 0 });
 
 /** XP needed to climb from `level` to the next one. */
-const step = (level: number): number => Math.round(30 * Math.pow(level, 1.55));
+const step = (level: number): number => Math.round(75 * Math.pow(level, 1.9));
 
 /** Total XP a skill must have to be at `level`. */
 export function xpToReach(level: number): number {

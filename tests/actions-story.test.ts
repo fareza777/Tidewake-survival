@@ -66,7 +66,7 @@ describe('finds', () => {
 
 describe('fishing', () => {
   it('casts the rod at sea water or a river, and nowhere else', () => {
-    expect(resolveAction(ctx({ world: sea, give: [['fishing_rod', 1]] }))).toEqual({ kind: 'fish', x: 11, y: 10, stamina: 2 });
+    expect(resolveAction(ctx({ world: sea, give: [['fishing_rod', 1]] }))).toEqual({ kind: 'fish', x: 11, y: 10, stamina: 4 });
     expect(resolveAction(ctx({ give: [['fishing_rod', 1]] })).kind).toBe('none');
     const river = makeWorld();
     river.terrain[idx(11, 10, WORLD_SIZE)] = T.RIVER;

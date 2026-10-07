@@ -23,8 +23,10 @@ export const STARVE_DAMAGE = 0.6;
 /** Hit points regained per second while both meters are above REGEN_THRESHOLD. */
 export const REGEN_RATE = 0.4;
 export const REGEN_THRESHOLD = 40;
-export const STAMINA_REGEN = 10;
-export const STAMINA_REGEN_BUSY = 2;
+export const STAMINA_REGEN = 8;
+export const STAMINA_REGEN_BUSY = 1;
+/** Below this much hunger or thirst the body recovers its breath at half speed. */
+export const WEAK_BELOW = 25;
 /** Stamina a second that running costs (nothing recovers meanwhile), how much is needed to break into a run, and how fast it is. */
 export const RUN_DRAIN = 9;
 export const RUN_START = 12;
@@ -61,6 +63,9 @@ export interface VitalsContext {
   /** Extra hit points regained a second, and hit points lost a second to poison. */
   hpRegen?: number;
   hpDrain?: number;
+  /** What the weather does: it makes him thirstier and slower to catch his breath (1 = nothing). */
+  thirstMul?: number;
+  regenMul?: number;
 }
 
 const clamp = (v: number): number => Math.min(VITAL_MAX, Math.max(0, v));
@@ -69,7 +74,7 @@ export function tickVitals(v: Vitals, dt: number, ctx: VitalsContext): Vitals {
   if (dt <= 0) return v;
   const drain = DIFFICULTY_DRAIN[ctx.difficulty];
   const hunger = clamp(v.hunger - HUNGER_RATE * drain * dt);
-  const thirst = clamp(v.thirst - THIRST_RATE * drain * (ctx.biome === B.DESERT || ctx.biome === B.VOLCANO ? DESERT_THIRST : 1) * dt);
+  const thirst = clamp(v.thirst - THIRST_RATE * drain * (ctx.biome === B.DESERT || ctx.biome === B.VOLCANO ? DESERT_THIRST : 1) * (ctx.thirstMul ?? 1) * dt);
   const cold = ctx.cold ?? 0;
   let warmth = v.warmth;
   if (ctx.heated) warmth += FIRE_WARMTH * dt;
@@ -83,7 +88,9 @@ export function tickVitals(v: Vitals, dt: number, ctx: VitalsContext): Vitals {
   if (empty > 0) hp -= (warmth <= 0 && hunger > 0 && thirst > 0 ? FREEZE_DAMAGE : STARVE_DAMAGE) * drain * empty * dt;
   else if (hp > 0 && hunger >= REGEN_THRESHOLD && thirst >= REGEN_THRESHOLD) hp += (REGEN_RATE + (ctx.hpRegen ?? 0)) * dt;
   if (ctx.hpDrain) hp -= ctx.hpDrain * dt;
-  const stamina = v.stamina + (ctx.running ? -RUN_DRAIN : (ctx.busy ? STAMINA_REGEN_BUSY : STAMINA_REGEN) + (ctx.regen ?? 0)) * dt;
+  const weak = hunger < WEAK_BELOW || thirst < WEAK_BELOW ? 0.5 : 1;
+  const recover = ((ctx.busy ? STAMINA_REGEN_BUSY : STAMINA_REGEN) + (ctx.regen ?? 0)) * weak * (ctx.regenMul ?? 1);
+  const stamina = v.stamina + (ctx.running ? -RUN_DRAIN : recover) * dt;
   return { hp: clamp(hp), hunger, thirst, stamina: clamp(stamina), warmth };
 }
 

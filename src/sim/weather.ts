@@ -53,6 +53,35 @@ export const weatherName = (season: Season, w: Weather): string => (season === '
 /** Extra darkness of the daytime sky (added to the night overlay's alpha). */
 export const WEATHER_DARKNESS: Record<Weather, number> = { clear: 0, cloudy: 0.06, rain: 0.15, storm: 0.28, fog: 0.1, snow: 0.1 };
 
+/** What the weather does to the body besides the cold: thirst, how fast the breath comes back, and walking speed (1 = nothing). */
+export interface Strain {
+  thirst: number;
+  regen: number;
+  speed: number;
+}
+
+/** Heat, rain and snow all tire the hero in their own way. */
+export function strainOf(season: Season, weather: Weather, biome: Biome): Strain {
+  const hot = (season === 'summer' && (weather === 'clear' || weather === 'cloudy')) || biome === B.VOLCANO || biome === B.DESERT;
+  const swelter = season === 'summer' && weather === 'clear' && (biome === B.DESERT || biome === B.VOLCANO) ? 0.1 : 0;
+  let thirst = hot ? 1.35 + swelter : 1;
+  let regen = hot ? 0.8 : 1;
+  let speed = 1;
+  if (weather === 'rain') {
+    regen *= 0.85;
+    speed = 0.95;
+  } else if (weather === 'storm') {
+    regen *= 0.7;
+    speed = season === 'winter' ? 0.8 : 0.9;
+    thirst *= 0.9;
+  } else if (weather === 'snow') {
+    regen *= 0.8;
+    speed = 0.88;
+  }
+  if (biome === B.FROST) speed *= 0.95;
+  return { thirst, regen, speed };
+}
+
 /**
  * How cold it feels, from 0 (mild) up to about 2.5 (a winter night in a blizzard on a mountain). Anything below 0 is
  * warm. The cold wears the warmth meter down unless the hero is dressed for it or sits by a fire.

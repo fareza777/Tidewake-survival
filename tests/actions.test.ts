@@ -120,7 +120,7 @@ describe('held items', () => {
   });
 
   it('tills grass with a hoe, refuses sand, and needs stamina', () => {
-    expect(resolveAction(ctx({ hold: 'hoe' }))).toEqual({ kind: 'till', x: 11, y: 10, stamina: 2 });
+    expect(resolveAction(ctx({ hold: 'hoe' }))).toEqual({ kind: 'till', x: 11, y: 10, stamina: 4 });
     expect(kind(resolveAction(ctx({ hold: 'hoe', facing: 'left' })))).toBe('none');
     expect(resolveAction(ctx({ hold: 'hoe', vitals: { ...fullVitals(), stamina: 1 } }))).toEqual({ kind: 'blocked', reason: 'tired' });
   });
@@ -140,7 +140,7 @@ describe('held items', () => {
 
 describe('the world', () => {
   it('chops with the right tool and by hand, slowly', () => {
-    expect(resolveAction(ctx({ hold: 'axe_wood', node: tree }))).toEqual({ kind: 'hit', node: tree, damage: 1, stamina: 2, wear: true });
+    expect(resolveAction(ctx({ hold: 'axe_wood', node: tree }))).toEqual({ kind: 'hit', node: tree, damage: 1, stamina: 4, wear: true });
     expect(resolveAction(ctx({ node: tree }))).toMatchObject({ kind: 'hit', damage: 0.34, wear: false });
   });
 

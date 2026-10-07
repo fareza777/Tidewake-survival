@@ -7,7 +7,7 @@ export const TIER_DAMAGE: readonly number[] = [HAND_DAMAGE, 1, 2, 3, 4.2, 5.8];
 
 /** Stamina spent per swing, by hand and with a tool. */
 export const STAMINA_HAND = 1;
-export const STAMINA_TOOL = 2;
+export const STAMINA_TOOL = 4;
 
 export interface NodeNeed {
   /** The tool that works best; null means any hand will do. */
