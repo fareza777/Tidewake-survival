@@ -23,8 +23,8 @@ describe.skipIf(!frames)('dungeon art', () => {
   });
 
   it('puts a closed dungeon door on the entrance tile of the three dungeons, and keeps it solid', () => {
-    for (const id of DUNGEON_IDS) {
-      const door = LANDMARK_PROPS[id].find((p) => p.dx === 0 && p.dy === 0);
+    for (const id of DUNGEON_IDS.filter((x) => x !== 'depths')) {
+      const door = LANDMARK_PROPS[id as keyof typeof LANDMARK_PROPS].find((p) => p.dx === 0 && p.dy === 0);
       expect(door, id).toBeDefined();
       expect(door!.frame, id).toMatch(/^door\//);
       expect(door!.blocks, id).toEqual([[0, 0]]);

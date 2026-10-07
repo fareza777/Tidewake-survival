@@ -1,5 +1,5 @@
 /** The three dungeons, one per region of the island, and the lighthouse where the story ends. */
-export const DUNGEON_IDS = ['grotto', 'deepmine', 'ruin', 'lighthouse', 'frostcave', 'magmaforge', 'drownedcrypt', 'skyspire'] as const;
+export const DUNGEON_IDS = ['grotto', 'deepmine', 'ruin', 'lighthouse', 'frostcave', 'magmaforge', 'drownedcrypt', 'skyspire', 'depths'] as const;
 export type DungeonId = (typeof DUNGEON_IDS)[number];
 
 /** Bumped whenever the dungeon generator changes: progress saved under another version no longer fits the layout. */
@@ -35,6 +35,7 @@ export const emptyProgress = (): DungeonProgress => ({ opened: [], looted: [], s
 export const emptyDungeons = (): Dungeons => ({
   grotto: emptyProgress(), deepmine: emptyProgress(), ruin: emptyProgress(), lighthouse: emptyProgress(),
   frostcave: emptyProgress(), magmaforge: emptyProgress(), drownedcrypt: emptyProgress(), skyspire: emptyProgress(),
+  depths: emptyProgress(),
 });
 
 /** The list with `id` added, or the very same list when it is already there. */
@@ -67,5 +68,6 @@ export function parseDungeons(raw: unknown): Dungeons {
   return {
     grotto: one('grotto'), deepmine: one('deepmine'), ruin: one('ruin'), lighthouse: one('lighthouse'),
     frostcave: one('frostcave'), magmaforge: one('magmaforge'), drownedcrypt: one('drownedcrypt'), skyspire: one('skyspire'),
+    depths: one('depths'),
   };
 }

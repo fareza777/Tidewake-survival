@@ -9,7 +9,7 @@ import { TILE, TerrainLayer } from '@/gfx/TerrainLayer';
 import type { GameScene } from '@/scenes/GameScene';
 import { frontTile } from '@/sim/actions';
 import { isBoss } from '@/sim/boss';
-import { claimReward } from '@/sim/dungeon/rewards';
+import { claimDepthsReward, claimReward } from '@/sim/dungeon/rewards';
 import { story } from '@/sim/session';
 import { lightCrystal, newRun, pushBlock, solidTiles, solveRooms, targetAt, trapUnder, type Run } from '@/sim/dungeon/rules';
 import { bossOf, creaturesInRoom, startEncounters } from '@/sim/dungeon/start';
@@ -146,7 +146,7 @@ export class DungeonLevel implements Level {
     const host = this.host;
     const p = this.progress(host.session);
     if (!p.boss || p.claimed) return;
-    const bag = claimReward(host.session.inventory, this.dungeon.boss.kind);
+    const bag = this.dungeon.id === 'depths' ? claimDepthsReward(host.session.inventory, host.session.floor) : claimReward(host.session.inventory, this.dungeon.boss.kind);
     if (!bag) {
       if (!this.told) services.notify?.(t('msgRewardWaits'));
       this.told = true;

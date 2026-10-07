@@ -77,6 +77,7 @@ export type Action =
   | { kind: 'attack'; melee: Melee }
   | { kind: 'enter'; dungeon: DungeonId }
   | { kind: 'leave' }
+  | { kind: 'descend' }
   | { kind: 'chest'; chest: Chest }
   | { kind: 'door'; door: Door }
   | { kind: 'talk'; npc: NpcId }
@@ -157,6 +158,7 @@ export function resolveAction(c: ActionContext): Action {
   const use = c.target;
   if (use) {
     if (use.kind === 'exit') return { kind: 'leave' };
+    if (use.kind === 'stairs') return { kind: 'descend' };
     if (use.kind === 'chest') return use.chest.locked && countItem(c.inv, 'small_key') === 0 ? blocked({ reason: 'needsKey' }) : { kind: 'chest', chest: use.chest };
     return countItem(c.inv, 'boss_key') === 0 ? blocked({ reason: 'needsBossKey' }) : { kind: 'door', door: use.door };
   }

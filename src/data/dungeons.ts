@@ -26,4 +26,19 @@ export const DUNGEONS: Record<DungeonId, DungeonDef> = {
   magmaforge: { id: 'magmaforge', theme: 'magma', roster: ['emberslime', 'flamewisp', 'lavacrab'], boss: 'forgeheart', story: 'ember_sigil', armor: 'armor_ember' },
   drownedcrypt: { id: 'drownedcrypt', theme: 'bone', roster: ['drowned', 'bonecrab', 'pirate'], boss: 'drownedqueen', story: 'tide_sigil', armor: 'armor_tide' },
   skyspire: { id: 'skyspire', theme: 'void', roster: ['stormghost', 'gargoyle', 'pirate_blue'], boss: 'stormtitan', story: 'sky_sigil', armor: 'armor_sky' },
+  depths: { id: 'depths', theme: 'moss', roster: ['slime', 'mushroom', 'worm', 'wasp'], boss: 'mossback', story: 'compass', armor: 'armor_moss' },
 };
+
+const DEPTH_THEMES: readonly DungeonTheme[] = ['moss', 'mine', 'ruin', 'ice', 'magma', 'bone', 'void'];
+const DEPTH_TIERS: readonly { roster: readonly CreatureId[]; bosses: readonly BossId[] }[] = [
+  { roster: ['slime', 'mushroom', 'worm', 'wasp'], bosses: ['mossback'] },
+  { roster: ['skeleton', 'zombie', 'scorpion', 'ghost'], bosses: ['ironbones', 'mirelord'] },
+  { roster: ['skeleton_warrior', 'frostslime', 'icebone', 'emberslime', 'flamewisp'], bosses: ['hollowkeeper', 'glacierking', 'forgeheart'] },
+  { roster: ['lavacrab', 'drowned', 'bonecrab', 'pirate', 'stormghost', 'gargoyle'], bosses: ['drownedqueen', 'stormtitan'] },
+];
+
+/** The Endless Depths: each floor is a fresh dungeon whose look, guards and boss grow with the floor number. */
+export function depthDef(floor: number): DungeonDef {
+  const tier = DEPTH_TIERS[floor <= 3 ? 0 : floor <= 6 ? 1 : floor <= 10 ? 2 : 3];
+  return { ...DUNGEONS.depths, theme: DEPTH_THEMES[(floor - 1) % DEPTH_THEMES.length], roster: tier.roster, boss: tier.bosses[(floor - 1) % tier.bosses.length] };
+}

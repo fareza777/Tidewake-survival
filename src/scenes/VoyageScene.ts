@@ -55,6 +55,23 @@ export class VoyageScene extends BaseScene {
     else if (!needs) this.ui.add(new Button(this, W - 62, y + h / 2, t('setSail'), () => this.go(id), { w: 84, h: 30, style: 'primary' }));
   }
 
+  /** The way down into the Endless Depths, open once the lighthouse is lit. */
+  private depthsCard(y: number, h: number): void {
+    const { w: W } = view;
+    const open = this.world.session.quests.done.includes('c9');
+    this.ui.add(panel(this, 12, y, W - 24, h, 'ui_panel_dark'));
+    this.ui.add(this.add.rectangle(20, y + 8, 6, h - 16, 0x6a4a9a).setOrigin(0, 0));
+    this.ui.add(label(this, 36, y + 8, t('dungeon_depths'), FONT.head, open ? COLORS.gold : COLORS.textDim));
+    this.ui.add(para(this, 36, y + 28, t(open ? 'depths_about' : 'depths_locked'), W - 36 - 100, FONT.small, COLORS.textDim));
+    if (open) {
+      this.ui.add(new Button(this, W - 62, y + h / 2, t('depths_enter'), () => {
+        this.scene.stop();
+        this.scene.resume('Game');
+        this.world.enterDepths();
+      }, { w: 84, h: 30, style: 'primary' }));
+    }
+  }
+
   private render(): void {
     this.ui.removeAll(true);
     const { w: W, h: H } = view;
@@ -63,8 +80,10 @@ export class VoyageScene extends BaseScene {
     this.ui.add(label(this, 16, 14, t('voyageTitle'), FONT.head, COLORS.gold));
     this.ui.add(new Button(this, W - 30, 24, 'X', () => this.close(), { w: 34, h: 26, style: 'danger' }));
     const gap = 8;
-    const h = Math.min(92, Math.floor((H - 70 - gap * (ISLAND_IDS.length - 1)) / ISLAND_IDS.length));
+    const cards = ISLAND_IDS.length + 1;
+    const h = Math.min(92, Math.floor((H - 70 - gap * (cards - 1)) / cards));
     ISLAND_IDS.forEach((id, i) => this.card(id, 50 + i * (h + gap), h));
+    this.depthsCard(50 + ISLAND_IDS.length * (h + gap), h);
   }
 }
 

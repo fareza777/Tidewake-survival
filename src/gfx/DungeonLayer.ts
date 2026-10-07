@@ -20,6 +20,7 @@ export class DungeonLayer {
   private chests = new Map<number, { sprite: Phaser.GameObjects.Sprite; open: boolean }>();
   private crystals = new Map<number, { sprite: Phaser.GameObjects.Sprite; lit: boolean }>();
   private traps = new Map<number, { sprite: Phaser.GameObjects.Image; state: string }>();
+  private stairs?: Phaser.GameObjects.Sprite;
 
   constructor(private scene: Phaser.Scene, private dungeon: Dungeon, run: Run, progress: DungeonProgress) {
     const d = dungeon;
@@ -27,6 +28,9 @@ export class DungeonLayer {
       scene.add.sprite(footX(t.x), footY(t.y), 'props', `${DUNGEON_ART.torch}/0`).setOrigin(0.5, 1).setDepth(footY(t.y) + 1).play(animKey(DUNGEON_ART.torch));
     }
     scene.add.sprite(footX(d.exit.x), footY(d.exit.y), 'props', `${DUNGEON_ART.door.exit}/3`).setOrigin(0.5, 1).setDepth(footY(d.exit.y));
+    if (d.stairs) {
+      this.stairs = scene.add.sprite(footX(d.stairs.x), footY(d.stairs.y), 'props', `${DUNGEON_ART.door.exit}/0`).setOrigin(0.5, 1).setDepth(footY(d.stairs.y)).setTint(0xffe9a8).setVisible(false);
+    }
     for (const door of d.doors) {
       if (door.lock === 'free') continue;
       const group = door.lock === 'boss' ? DUNGEON_ART.door.boss : DUNGEON_ART.door.gate;
@@ -48,6 +52,7 @@ export class DungeonLayer {
 
   /** Show doors, switches, blocks, chests and crystals as the rules have them. `animate` is off for the first draw. */
   refresh(run: Run, progress: DungeonProgress, animate = true): void {
+    this.stairs?.setVisible(progress.boss);
     for (const door of this.dungeon.doors) {
       const v = this.doors.get(door.id);
       const open = doorIsOpen(door, progress);

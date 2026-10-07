@@ -76,6 +76,8 @@ export interface SaveSlot {
   bounty: Bounty | null;
   /** Rounds of New Game+ finished before this one. */
   ng: number;
+  /** The floor of the Endless Depths the hero is on. */
+  floor: number;
 }
 
 export interface SlotSummary {
@@ -97,7 +99,7 @@ export function newSlot(
     playTimeSec: 0, player: spawn, respawn: { ...spawn }, clock, gather: emptyGather(), inventory: emptyInventory(), selected: 0,
     vitals: fullVitals(), structures: { next: 1, list: [] }, farm: emptyFarm(), location: null, equipment: noEquipment(),
     dungeons: emptyDungeons(), dungeonVersion: DUNGEON_VERSION, quests: settle(emptyQuests(), emptyInventory(), QUESTS).q,
-    skills: noSkills(), buffs: [], raidDay: 0, island: 'home', stash: {}, settlers: [], store: {}, bounty: null, ng: 0,
+    skills: noSkills(), buffs: [], raidDay: 0, island: 'home', stash: {}, settlers: [], store: {}, bounty: null, ng: 0, floor: 1,
   };
 }
 
@@ -255,5 +257,6 @@ export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
     store: parseStore(d.store),
     bounty: parseBounty(d.bounty),
     ng: isInt(d.ng) && d.ng >= 0 && d.ng <= 99 ? d.ng : 0,
+    floor: isInt(d.floor) && d.floor >= 1 && d.floor <= 999 ? d.floor : 1,
   };
 }

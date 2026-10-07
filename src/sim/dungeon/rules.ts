@@ -39,6 +39,7 @@ export function solidTiles(run: Run, p: DungeonProgress): Set<number> {
   const solid = new Set<number>();
   for (const o of [...d.pillars, ...d.crystals, ...d.chests, ...run.blocks]) solid.add(idx(o.x, o.y, size));
   for (const door of d.doors) if (!doorIsOpen(door, p)) solid.add(idx(door.x, door.y, size));
+  if (d.stairs) solid.add(idx(d.stairs.x, d.stairs.y, size));
   return solid;
 }
 
@@ -98,12 +99,13 @@ export function trapUnder(run: Run, hero: Vec, t: number): Trap | null {
   return run.dungeon.traps.find((tr) => tr.x === x && tr.y === y && trapState(tr, t) === 'up') ?? null;
 }
 
-export type Target = { kind: 'door'; door: Door } | { kind: 'chest'; chest: Chest } | { kind: 'exit' };
+export type Target = { kind: 'door'; door: Door } | { kind: 'chest'; chest: Chest } | { kind: 'exit' } | { kind: 'stairs' };
 
 /** What the hero can use on this tile: a locked door, a chest not yet emptied, or the way out. */
 export function targetAt(run: Run, p: DungeonProgress, x: number, y: number): Target | null {
   const d = run.dungeon;
   if (x === d.exit.x && y === d.exit.y) return { kind: 'exit' };
+  if (d.stairs && p.boss && x === d.stairs.x && y === d.stairs.y) return { kind: 'stairs' };
   const door = d.doors.find((o) => o.x === x && o.y === y && o.lock === 'boss' && !doorIsOpen(o, p));
   if (door) return { kind: 'door', door };
   const chest = d.chests.find((o) => o.x === x && o.y === y && !p.looted.includes(o.id));

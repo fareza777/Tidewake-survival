@@ -1,5 +1,5 @@
 import { Rng, hashString } from '@/core/rng';
-import { DUNGEONS } from '@/data/dungeons';
+import { DUNGEONS, depthDef } from '@/data/dungeons';
 import { T, idx, type World } from '@/sim/world/types';
 import { CELLS, DUNGEON_SIZE, LINKS, ROOM_H, ROOM_W, doorwayBetween, roomOrigin } from './layout';
 import type { DungeonId } from './progress';
@@ -65,9 +65,10 @@ function carve(terrain: Uint8Array, x0: number, y0: number, w: number, h: number
 }
 
 /** Build a dungeon from the world seed. The same seed and dungeon always give the same result. */
-export function generateDungeon(seed: number, id: DungeonId): Dungeon {
-  const def = DUNGEONS[id];
-  const rng = new Rng(hashString(`${seed}:dungeon:${id}`));
+export function generateDungeon(seed: number, id: DungeonId, floor = 1): Dungeon {
+  const def = id === 'depths' ? depthDef(floor) : DUNGEONS[id];
+  const rng = new Rng(hashString(id === 'depths' ? `${seed}:dungeon:${id}:${floor}` : `${seed}:dungeon:${id}`));
+  const purse = id === 'depths' ? 1 + (floor - 1) * 0.5 : 1;
   const kinds: RoomKind[] = ['entrance', ...rng.shuffle(PUZZLES), 'vault', 'boss', 'side'];
   const rooms: Room[] = CELLS.map(([col, row], i) => ({ id: i, kind: kinds[i], col, row, ...roomOrigin(col, row) }));
 
@@ -94,9 +95,9 @@ export function generateDungeon(seed: number, id: DungeonId): Dungeon {
     if (room.kind === 'crystal') crystalPuzzle(room, out);
     if (room.kind === 'trap') {
       trapField(room, out, out.traps.length);
-      out.chests.push({ id: chestId++, ...at(room, 11, 1), locked: true, loot: [{ item: 'bandage', qty: 3 }, { item: 'honey', qty: 2 }, { item: 'arrow', qty: 12 }, { item: 'gold', qty: 25 }] });
+      out.chests.push({ id: chestId++, ...at(room, 11, 1), locked: true, loot: [{ item: 'bandage', qty: 3 }, { item: 'honey', qty: 2 }, { item: 'arrow', qty: 12 }, { item: 'gold', qty: Math.round(25 * purse) }] });
     }
-    if (room.kind === 'side') out.chests.push({ id: chestId++, ...at(room, 6, 2), locked: false, loot: [{ item: 'small_key', qty: 2 }, { item: 'gold', qty: 12 }, ...(def.id === 'deepmine' ? [{ item: 'lost_pickaxe' as const, qty: 1 }] : [])] });
+    if (room.kind === 'side') out.chests.push({ id: chestId++, ...at(room, 6, 2), locked: false, loot: [{ item: 'small_key', qty: 2 }, { item: 'gold', qty: Math.round(12 * purse) }, ...(def.id === 'deepmine' ? [{ item: 'lost_pickaxe' as const, qty: 1 }] : [])] });
     if (room.kind === 'vault') out.chests.push({ id: chestId++, ...at(room, 3, 2), locked: true, loot: [{ item: 'boss_key', qty: 1 }] });
   }
   for (const p of out.pillars) terrain[idx(p.x, p.y, DUNGEON_SIZE)] = T.WALL;
@@ -117,5 +118,6 @@ export function generateDungeon(seed: number, id: DungeonId): Dungeon {
     boss: { kind: def.boss, ...at(bossRoom, 9, 5), room: bossRoom.id },
     entry: { x: world.start.x + 0.5, y: world.start.y + 0.5 },
     exit,
+    ...(id === 'depths' ? { stairs: at(bossRoom, 3, 5) } : {}),
   };
 }

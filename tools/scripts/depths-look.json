@@ -1,0 +1,86 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1'); localStorage.setItem('tidewake.tutorial', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.session = { ...g.session, quests: { ...g.session.quests, done: [...g.session.quests.done, 'c9'] } }; g.openVoyage(); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Voyage')",
+  "timeout": 5000
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "dp-chart"
+ },
+ {
+  "eval": "(() => { __game.scene.stop('Voyage'); __game.scene.resume('Game'); __game.scene.getScene('Game').enterDepths(); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.location === 'depths'",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "dp-floor1"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const d = g.level.dungeon; g.session = { ...g.session, dungeons: { ...g.session.dungeons, depths: { ...g.session.dungeons.depths, boss: true } } }; g.level.layer.refresh(g.level.run, g.session.dungeons.depths); g.rebuildBlocking(); g.pos = { x: d.stairs.x + 0.5, y: d.stairs.y + 2.2 }; g.player.facing = 'up'; return JSON.stringify(d.stairs); })()"
+ },
+ {
+  "wait": 600
+ },
+ {
+  "shot": "dp-stairs"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.perform({ kind: 'descend' }); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.floor === 2 && __game.scene.getScene('Game').session.location === 'depths'",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "dp-floor2"
+ }
+]

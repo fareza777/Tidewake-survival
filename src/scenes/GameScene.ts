@@ -31,7 +31,7 @@ import { campSize, raidFor } from '@/sim/raids';
 import { cueForFx } from '@/sim/cues';
 import { newClock } from '@/sim/daynight';
 import { generateDungeon } from '@/sim/dungeon/generate';
-import { DUNGEON_VERSION, emptyDungeons, type DungeonId } from '@/sim/dungeon/progress';
+import { DUNGEON_VERSION, emptyDungeons, emptyProgress, type DungeonId } from '@/sim/dungeon/progress';
 import { doorwayOutside } from '@/sim/dungeon/rules';
 import { emptyGather, sanitizeGather } from '@/sim/gather';
 import { meleeFor } from '@/sim/melee';
@@ -150,7 +150,7 @@ export class GameScene extends BaseScene {
 
     const where = island ? null : this.slotData.location;
     this.session = this.startSession(island, where);
-    this.level = where ? new DungeonLevel(this, generateDungeon(seed, where)) : new IslandLevel(this, island!, this.session);
+    this.level = where ? new DungeonLevel(this, generateDungeon(seed, where, this.session.floor)) : new IslandLevel(this, island!, this.session);
     this.world = this.level.world;
     // (a save from a dungeon this game can no longer build wakes the hero at his bed)
     this.pos = this.level.place(this.slotData.location && !where ? { ...this.slotData.respawn } : { ...this.slotData.player });
@@ -192,7 +192,7 @@ export class GameScene extends BaseScene {
     // Start the chapters that are due (the first one in a new game), with their toasts.
     this.commitStory(story(this.session));
     if (!where) this.commitStory(arrive(this.session));
-    if (where) services.notify?.(t(`dungeon_${where}`));
+    if (where) services.notify?.(where === 'depths' ? t('floorN', { n: this.session.floor }) : t(`dungeon_${where}`));
   }
 
   /** The session from the save; a changed island generator drops the harvest diff, a changed dungeon generator the dungeon progress. */
@@ -321,7 +321,7 @@ export class GameScene extends BaseScene {
 
   private showCursor(a: Action): void {
     const onGrid = ['place', 'till', 'plant', 'water', 'refill', 'harvest', 'open', 'drink', 'pickup', 'dig', 'fish'].includes(a.kind);
-    const onThing = ['sleep', 'enter', 'leave', 'chest', 'door', 'talk', 'inspect', 'raft', 'reload', 'boat'].includes(a.kind);
+    const onThing = ['sleep', 'enter', 'leave', 'chest', 'door', 'talk', 'inspect', 'raft', 'reload', 'boat', 'descend'].includes(a.kind);
     const refused = a.kind === 'blocked' && a.reason === 'cannotPlace';
     this.cursor.setVisible(onGrid || refused);
     this.ring.setVisible(onThing);
@@ -409,7 +409,7 @@ export class GameScene extends BaseScene {
   private travel(to: DungeonId | null): void {
     const from = this.level.dungeon?.id;
     const seed = this.session.seed;
-    this.pos = to ? generateDungeon(seed, to).entry : doorwayOutside(worldFor(seed, this.session.island), from!);
+    this.pos = to ? generateDungeon(seed, to, this.session.floor).entry : doorwayOutside(worldFor(seed, this.session.island), from!);
     this.saveNow();
     this.goTo('Game', { slot: this.slotData.slot });
   }
@@ -599,6 +599,13 @@ export class GameScene extends BaseScene {
     const target = free && !free.overwrites ? free.slot : this.slotData.slot;
     services.saves?.write(newGamePlus(this.session, this.slotData, target, Rng.seedFromTime()));
     this.goTo('Game', { slot: target });
+  }
+
+  /** Go down into the Endless Depths from the first floor. */
+  enterDepths(): void {
+    if (this.transitioning) return;
+    this.session = { ...this.session, location: 'depths', floor: 1, dungeons: { ...this.session.dungeons, depths: emptyProgress() } };
+    this.travel('depths');
   }
 
   openCamp(): void {

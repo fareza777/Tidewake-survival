@@ -111,4 +111,6 @@ export interface Dungeon {
   entry: Vec;
   /** The doorway out, in the south wall of the entrance room. */
   exit: { x: number; y: number };
+  /** The Endless Depths: the stairs down, which open once the floor's boss is dead. */
+  stairs?: { x: number; y: number };
 }
