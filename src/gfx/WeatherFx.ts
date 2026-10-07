@@ -13,12 +13,14 @@ export class WeatherFx {
 
   constructor(private scene: Phaser.Scene) {
     const { w: W, h: H } = view;
+    // A drop must live long enough to fall the whole height of the screen (it starts above it and drifts sideways).
+    const fall = (speed: number): number => Math.ceil(((H + 40) / speed) * 1000);
     this.rain = scene.add.particles(0, 0, 'ui_white', {
-      x: { min: -30, max: W + 60 }, y: -12, lifespan: 650, speedY: { min: 430, max: 540 }, speedX: { min: -110, max: -80 },
-      scaleX: 0.7, scaleY: 8, alpha: { start: 0.55, end: 0.25 }, tint: 0xb4d4ff, frequency: 13, emitting: false,
+      x: { min: -30, max: W + 140 }, y: -16, lifespan: fall(430), speedY: { min: 430, max: 540 }, speedX: { min: -110, max: -80 },
+      scaleX: 0.7, scaleY: 8, alpha: { start: 0.55, end: 0.3 }, tint: 0xb4d4ff, frequency: 13, emitting: false,
     }).setDepth(2);
     this.snow = scene.add.particles(0, 0, 'ui_white', {
-      x: { min: -20, max: W + 20 }, y: -8, lifespan: 9000, speedY: { min: 34, max: 64 }, speedX: { min: -24, max: 14 },
+      x: { min: -20, max: W + 60 }, y: -8, lifespan: fall(49), speedY: { min: 34, max: 64 }, speedX: { min: -24, max: 14 },
       scale: { min: 1.3, max: 2.6 }, alpha: { start: 0.9, end: 0.7 }, tint: 0xffffff, frequency: 80, emitting: false,
     }).setDepth(2);
     for (let i = 0; i < 4; i++) {

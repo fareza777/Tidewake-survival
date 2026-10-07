@@ -102,10 +102,11 @@ export class HudScene extends Phaser.Scene {
     // Big round icon buttons down the right edge (finger-sized), each with a small caption under it.
     const cx = W - 32;
     new IconButton(this, cx, 34, 'pause', () => this.openMenu(), 48).setDepth(6);
-    this.bagButton = new IconButton(this, cx, 100, 'bag', () => this.world.openInventory({ mode: 'bag' }), 48).setDepth(6);
-    this.caption(cx, 100, t('tabBag'));
-    new IconButton(this, cx, 170, 'quest', () => this.world.openQuests(), 48).setDepth(6);
-    this.caption(cx, 170, t('questShort'));
+    // The backpack sits by the thumb, bottom right next to USE, where it is easy to reach on a phone.
+    this.bagButton = new IconButton(this, W - 142, H - 94, 'bag', () => this.world.openInventory({ mode: 'bag' }), 52).setDepth(6);
+    this.caption(W - 142, H - 94, t('tabBag'));
+    new IconButton(this, cx, 100, 'quest', () => this.world.openQuests(), 48).setDepth(6);
+    this.caption(cx, 100, t('questShort'));
     this.tracker = this.add.bitmapText(8, 144, FONT.small, '').setTint(COLORS.gold).setDepth(5).setMaxWidth(W - 100);
     this.useButton = new Button(this, W - 58, H - 108, t('useAction'), () => {
       controls.action = true;
