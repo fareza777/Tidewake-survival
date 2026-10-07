@@ -47,6 +47,8 @@ import { GENERATOR_VERSION } from '@/sim/world/generate';
 import { worldFor } from '@/sim/islands';
 import type { NpcId } from '@/data/npcs';
 import { buyOffer, sellSlot } from '@/sim/shop';
+import { canBeginNewGamePlus, newGamePlus } from '@/sim/newGamePlus';
+import { Rng } from '@/core/rng';
 import type { Job } from '@/data/settlers';
 import { collectStore, hire, produceDay } from '@/sim/settlers';
 import { acceptBounty, dropBounty, turnInBounty } from '@/sim/bounty';
@@ -587,6 +589,16 @@ export class GameScene extends BaseScene {
 
   sell(index: number, qty: number): void {
     this.commit(sellSlot(this.session, index, qty));
+  }
+
+  /** The story is done: a new island and a new story, with the hero's skills, gear and gold kept. */
+  beginNewGamePlus(): void {
+    if (!canBeginNewGamePlus(this.session) || this.transitioning) return;
+    this.saveNow();
+    const free = services.saves?.slotForNewGame();
+    const target = free && !free.overwrites ? free.slot : this.slotData.slot;
+    services.saves?.write(newGamePlus(this.session, this.slotData, target, Rng.seedFromTime()));
+    this.goTo('Game', { slot: target });
   }
 
   openCamp(): void {

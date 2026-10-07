@@ -8,6 +8,7 @@ import { TILE } from '@/gfx/TerrainLayer';
 import type { GameScene } from '@/scenes/GameScene';
 import { enemyDamage } from '@/sim/combat';
 import { cueForEncounter } from '@/sim/cues';
+import { ngScale } from '@/sim/ngScale';
 import { defenseOf } from '@/sim/equipment';
 import { hostilesNear, type Encounters, type EncounterEvent } from '@/sim/encounters';
 import type { Melee } from '@/sim/melee';
@@ -82,7 +83,7 @@ export class HeroCombat {
     this.react(this.wildlife.tick(dt, {
       world: host.world, solids: host.monsterSolids, structures: level.dungeon ? emptyStructures() : s.structures, hero: host.pos, heroAlive: !host.dead,
       turrets: level.dungeon ? [] : s.structures.list.filter((p) => p.type === 'turret').map((p) => ({ id: p.id, x: p.x, y: p.y, ammo: p.ammo ?? 0 })),
-      night: level.isNight(s), difficulty: s.difficulty, defense: defenseOf(s.equipment) + sessionMods(s).defense, fixed: level.fixed,
+      night: level.isNight(s), difficulty: s.difficulty, defense: defenseOf(s.equipment) + sessionMods(s).defense, fixed: level.fixed, pressure: ngScale(s.ng),
     }));
     const loot = this.wildlife.take(host.session.inventory, host.pos);
     if (loot.taken.length > 0) {

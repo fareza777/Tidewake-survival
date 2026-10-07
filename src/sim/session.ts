@@ -37,6 +37,7 @@ import { freshStash, islandUnlocked, worldFor, type Stashes } from '@/sim/island
 import type { Job } from '@/data/settlers';
 import type { Store } from '@/sim/settlers';
 import type { Bounty } from '@/sim/bounty';
+import { ngScale } from '@/sim/ngScale';
 import { idx, type Biome, type IslandId, type ResourceNode } from '@/sim/world/types';
 
 /** The live game state that changes while playing. Pure data: every function here returns a new Session. */
@@ -74,6 +75,8 @@ export interface Session {
   store: Store;
   /** The job a trader posted that the hero has taken, if any. */
   bounty: Bounty | null;
+  /** Rounds of New Game+ already finished (0 on the first run). */
+  ng: number;
 }
 
 /** Something the scene should show or do as a result of a rule: floating text, a sprite change, a dialog. */
@@ -116,7 +119,7 @@ export function sessionFromSlot(slot: SaveSlot): Session {
     selected: slot.selected, vitals: slot.vitals, structures: slot.structures, farm: slot.farm, respawn: slot.respawn,
     playTime: slot.playTimeSec, location: slot.location, equipment: slot.equipment, dungeons: slot.dungeons, quests: slot.quests,
     skills: slot.skills, buffs: slot.buffs, raidDay: slot.raidDay, island: slot.island, stash: slot.stash,
-    settlers: slot.settlers, store: slot.store, bounty: slot.bounty,
+    settlers: slot.settlers, store: slot.store, bounty: slot.bounty, ng: slot.ng,
   };
 }
 
@@ -126,7 +129,7 @@ export function sessionToSlot(base: SaveSlot, s: Session, pos: Vec): SaveSlot {
     ...base, player: { x: pos.x, y: pos.y }, respawn: s.respawn, clock: s.clock, gather: s.gather, inventory: s.inventory,
     selected: s.selected, vitals: s.vitals, structures: s.structures, farm: s.farm, playTimeSec: s.playTime,
     location: s.location, equipment: s.equipment, dungeons: s.dungeons, quests: s.quests, skills: s.skills, buffs: [...s.buffs], raidDay: s.raidDay,
-    island: s.island, stash: s.stash, settlers: [...s.settlers], store: s.store, bounty: s.bounty,
+    island: s.island, stash: s.stash, settlers: [...s.settlers], store: s.store, bounty: s.bounty, ng: s.ng,
   };
 }
 
@@ -296,7 +299,8 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
     case 'attack': {
       const worn = a.melee.wear ? wearTool(s.inventory, s.selected) : s.inventory;
       const crit = new Rng(hashString(`${s.seed}:crit:${Math.floor(s.playTime * 20)}`)).chance(sessionMods(s).crit);
-      const melee = crit ? { ...a.melee, damage: a.melee.damage * CRIT_DAMAGE } : a.melee;
+      const hit = a.melee.damage / ngScale(s.ng);
+      const melee = crit ? { ...a.melee, damage: hit * CRIT_DAMAGE } : { ...a.melee, damage: hit };
       return {
         session: { ...s, inventory: worn, vitals: spendStamina(s.vitals, a.melee.stamina) ?? s.vitals },
         fx: [{ t: 'swing' }, { t: 'strike', melee, crit }, ...brokeFx(slotBefore, worn, s.selected)],
@@ -308,7 +312,7 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       const worn = wearTool(spent, s.selected);
       return {
         session: { ...s, inventory: worn, vitals: spendStamina(s.vitals, a.stats.stamina) ?? s.vitals },
-        fx: [{ t: 'swing' }, { t: 'shot', stats: a.stats }, ...brokeFx(slotBefore, worn, s.selected)],
+        fx: [{ t: 'swing' }, { t: 'shot', stats: { ...a.stats, damage: a.stats.damage / ngScale(s.ng) } }, ...brokeFx(slotBefore, worn, s.selected)],
       };
     }
     case 'enter': return { session: { ...s, location: a.dungeon }, fx: [{ t: 'travel', to: a.dungeon }] };

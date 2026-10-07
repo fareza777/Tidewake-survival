@@ -75,6 +75,8 @@ export interface TickContext {
   fixed?: boolean;
   /** Crossbow turrets standing guard: where they are and how many arrows they hold. */
   turrets?: readonly TurretView[];
+  /** Every blow from a creature is this many times harder (New Game+). */
+  pressure?: number;
 }
 
 export interface TurretView {
@@ -240,7 +242,7 @@ export function tickEncounters(e: Encounters, c: TickContext, dt: number): Encou
   for (const cr of e.creatures) {
     const r = stepCreature(cr, { world: c.world, solids: c.solids, hero: c.hero, heroAlive: c.heroAlive, rng: c.rng, dt });
     if (r.strike) {
-      const amount = enemyDamage(r.damage ?? CREATURES[cr.kind].damage, c.difficulty, c.defense);
+      const amount = enemyDamage((r.damage ?? CREATURES[cr.kind].damage) * (c.pressure ?? 1), c.difficulty, c.defense);
       events.push({ t: 'hurtHero', amount, from: { x: cr.x, y: cr.y }, kind: cr.kind });
     }
     if (r.shots) fired.push({ kind: cr.kind, shots: r.shots });

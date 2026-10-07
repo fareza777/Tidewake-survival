@@ -10,6 +10,8 @@ import { itemIcon } from '@/ui/itemIcon';
 import { nine } from '@/ui/skin';
 import { COLORS, FONT } from '@/ui/theme';
 import { Button, label, panel } from '@/ui/widgets';
+import { confirm } from '@/ui/modal';
+import { canBeginNewGamePlus } from '@/sim/newGamePlus';
 
 const ROWS_PER_PAGE = 8;
 const ROW_H = 46;
@@ -110,6 +112,13 @@ export class JournalScene extends BaseScene {
       this.ui.add(label(this, 20, y, name, FONT.body, COLORS.textDim));
       this.ui.add(label(this, view.w - 20, y, value, FONT.body, COLORS.gold, 1, 0));
     });
+    const s2 = this.world.session;
+    if (s2.ng > 0) this.ui.add(label(this, 20, TOP + lines.length * 34, t('statNg', { n: s2.ng }), FONT.body, COLORS.gold));
+    if (canBeginNewGamePlus(s2)) {
+      this.ui.add(new Button(this, view.w / 2, TOP + lines.length * 34 + 56, t('ngPlusBtn'), () => {
+        confirm(this, t('ngPlusTitle'), t('ngPlusBody'), () => this.world.beginNewGamePlus(), false);
+      }, { w: 240, h: 34, style: 'primary' }));
+    }
     return 0;
   }
 
