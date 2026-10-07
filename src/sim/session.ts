@@ -91,6 +91,7 @@ export type Fx =
   | { t: 'quest'; ev: QuestEvent }
   | { t: 'dialog'; speaker: Text | null; lines: readonly Text[] }
   | { t: 'levelUp'; skill: SkillId; level: number }
+  | { t: 'achievement'; id: string }
   | { t: 'upgraded'; item: ItemId; plus: number }
   | { t: 'ending' }
   | { t: 'theEnd'; which: 'A' | 'B' };

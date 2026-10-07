@@ -5,7 +5,8 @@ import { Player } from '@/entities/Player';
 import { newSlot, type SaveSlot } from '@/core/save';
 import { cleanName } from '@/core/newGame';
 import { services } from '@/core/services';
-import { t } from '@/core/i18n';
+import { t, tr } from '@/core/i18n';
+import { ACHIEVEMENTS } from '@/data/achievements';
 import { worldZoom } from '@/core/viewport';
 import type { Recipe } from '@/data/recipes';
 import type { Station, StructureId } from '@/data/structures';
@@ -363,6 +364,7 @@ export class GameScene extends BaseScene {
       case 'gain': this.showGain(`+${fx.qty} ${t(`item_${fx.item}`)}`); break;
       case 'swing': this.player.swing(this.swingItem); break;
       case 'levelUp': this.levelUp(fx.skill, fx.level); break;
+      case 'achievement': services.notify?.(t('achievementEarned', { name: tr(ACHIEVEMENTS.find((a) => a.id === fx.id)?.title ?? fx.id) })); services.audio?.sfx('craft'); break;
       case 'upgraded': services.notify?.(t('upgraded', { item: t(`item_${fx.item}`), n: fx.plus })); services.audio?.sfx('craft'); break;
       case 'hit': this.chips(fx.id); break;
       case 'strike':
@@ -582,6 +584,12 @@ export class GameScene extends BaseScene {
 
   sell(index: number, qty: number): void {
     this.commit(sellSlot(this.session, index, qty));
+  }
+
+  openJournal(): void {
+    if (this.scene.isPaused()) return;
+    this.scene.pause('Game');
+    this.scene.launch('Journal', { game: this });
   }
 
   openVoyage(): void {

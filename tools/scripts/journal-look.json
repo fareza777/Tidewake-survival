@@ -1,0 +1,69 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1'); localStorage.setItem('tidewake.tutorial', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const c = { ...g.session.quests.counters, 'kill:slime': 40, 'kill:wasp': 5, 'kill:boar': 3, 'kill:mossback': 1, 'boss:mossback': 1, 'ach:first_blood': 1, night: 12 }; g.session = { ...g.session, quests: { ...g.session.quests, counters: c } }; g.openJournal(); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Journal')",
+  "timeout": 5000
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "j-deeds"
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('Journal'); s.tab = 'beasts'; s.page = 0; s.render(); return 1; })()"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "j-beasts"
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('Journal'); s.tab = 'stats'; s.render(); return 1; })()"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "j-stats"
+ }
+]

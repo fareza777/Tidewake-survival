@@ -130,3 +130,24 @@ describe.skipIf(!frames('monsters') || !frames('actors'))('creature art', () => 
     }
   });
 });
+
+describe('the far islands', () => {
+  it('each have their own hostile roster, with something to meet by day and something by night', () => {
+    for (const biome of [B.FROST, B.VOLCANO, B.WRECK, B.SKY]) {
+      for (const night of [false, true]) {
+        const kinds = spawnWeights(biome, night).map(([k]) => k);
+        expect(kinds.length, `biome ${biome} night ${night}`).toBeGreaterThanOrEqual(2);
+        for (const k of kinds) expect(isHostileKind(k), k).toBe(true);
+      }
+      const all = CREATURE_IDS.filter((id) => CREATURES[id].spawn.biomes.includes(biome));
+      expect(all.length, `biome ${biome}`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('keep their creatures off the home island', () => {
+    for (const biome of LAND_BIOMES) {
+      const here = spawnWeights(biome, false).concat(spawnWeights(biome, true)).map(([k]) => k);
+      for (const k of here) expect(CREATURES[k].spawn.biomes, k).not.toContain(B.FROST);
+    }
+  });
+});

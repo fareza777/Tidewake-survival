@@ -2,6 +2,7 @@ import { Rng, hashString } from '@/core/rng';
 import { CREATURES, type CreatureId } from '@/data/creatures';
 import { BOTTLES, CAT_FOUND, TABLETS, TREASURE_LOOT } from '@/data/lore';
 import { NPCS, type NpcId } from '@/data/npcs';
+import { newAchievements } from '@/data/achievements';
 import { QUESTS } from '@/data/quests';
 import { addItem, removeItem, wearTool } from '@/sim/inventory';
 import { bump, settle, startQuest, type Reward } from '@/sim/quests';
@@ -19,10 +20,16 @@ import type { Spot } from '@/sim/world/spots';
 export function story(s: Session, events: readonly string[] = []): Step {
   const raised = events.reduce((q, key) => bump(q, key), s.quests);
   const settled = settle(raised, s.inventory, QUESTS);
-  const incoming: Reward[] = settled.events.flatMap((ev) => (ev.t === 'done' ? [...ev.reward] : []));
+  // Deeds that earn a title, checked whenever something has just happened.
+  const earned = events.length > 0 || settled.events.length > 0 ? newAchievements({ ...s, quests: settled.q }) : [];
+  const marked = earned.reduce((q, a) => bump(q, `ach:${a.id}`), settled.q);
+  const incoming: Reward[] = [
+    ...settled.events.flatMap((ev) => (ev.t === 'done' ? [...ev.reward] : [])),
+    ...earned.map((a): Reward => ({ item: 'gold', qty: a.reward })),
+  ];
   const queue = [...s.quests.owed, ...incoming];
   if (events.length === 0 && settled.events.length === 0 && queue.length === 0) return { session: s, fx: [] };
-  const fx: Fx[] = settled.events.map((ev): Fx => ({ t: 'quest', ev }));
+  const fx: Fx[] = [...settled.events.map((ev): Fx => ({ t: 'quest', ev })), ...earned.map((a): Fx => ({ t: 'achievement', id: a.id }))];
   let inv = s.inventory;
   const owed: Reward[] = [];
   for (const r of queue) {
@@ -33,7 +40,7 @@ export function story(s: Session, events: readonly string[] = []): Step {
   }
   if (events.length === 0 && fx.length === 0 && owed.length === queue.length) return { session: s, fx: [] };
   if (incoming.length > 0 && owed.length > 0) fx.push(say('questOwed'));
-  return { session: { ...s, inventory: inv, quests: { ...settled.q, owed } }, fx };
+  return { session: { ...s, inventory: inv, quests: { ...marked, owed } }, fx };
 }
 
 /** A rule's result with the story's counters raised on top. */
