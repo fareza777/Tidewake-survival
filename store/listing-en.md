@@ -15,13 +15,20 @@ SURVIVE
 - More than 60 recipes: tools, weapons, armor, meals, potions and furniture.
 - Plant and water crops, catch fish, hunt animals and cook what you find.
 
+SAIL
+- Build a boat and cross the sea to four far islands: frozen Frostfang, burning Emberhold, ghostly Bonepool and storm-wracked Skyreach, each with its own weather, creatures, dungeon and boss.
+- Trade gold at every harbour, take on bounties, hire settlers to work your camp and chase deeds.
+- Four seasons, storms, blizzards and a warmth meter: dress for the cold, build walls and turrets, and hold the camp against night raids.
+- Six skills that grow with use, steel and mithril gear, and an anvil to upgrade and repair.
+- Dive the Endless Depths, or begin New Game+ with everything you earned.
+
 EXPLORE
 - A new island from every seed: forest, mountain, swamp and desert, with hidden bottles, ancient tablets and buried treasure.
-- Three dungeons full of push blocks, floor switches, spike traps, crystals and locked chests, each ending in a boss with two phases.
+- Eight dungeons full of push blocks, floor switches, spike traps, crystals and locked chests, each ending in a boss with two phases.
 - A final fight at the lighthouse, and two endings: sail home, or stay and light the lighthouse again.
 
 MEET THE ISLANDERS
-- Five islanders with stories to tell: a ten-chapter main quest and ten side quests.
+- Nine islanders with stories to tell: a sixteen-chapter main quest in three acts and eighteen side quests.
 
 PLAY YOUR WAY
 - Three difficulties (Relaxed, Normal, Hardcore) and three save slots.

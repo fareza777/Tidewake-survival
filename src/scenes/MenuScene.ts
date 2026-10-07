@@ -7,7 +7,7 @@ import { COLORS, FONT } from '@/ui/theme';
 import { confirm, showModal } from '@/ui/modal';
 import { Button, label, toast } from '@/ui/widgets';
 
-export const GAME_VERSION = '1.2.0';
+export const GAME_VERSION = '1.3.0';
 
 /** Main menu: Continue, New Game, Settings, About, Share and Rate. */
 export class MenuScene extends BaseScene {

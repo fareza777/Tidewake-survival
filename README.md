@@ -77,6 +77,28 @@ table with potions and a stamina tonic, more dishes, armour, spears, a longbow, 
 tests for the numbers that decide the feel of the game, the store listing and screenshots, and a privacy policy.
 Measured on the dev PC (headless Edge): tap-to-game 415 ms, 60 fps, still 58 fps with 24 creatures chasing.
 
+## The Archipelago expansion (version 1.3)
+
+The game grew from one island into an archipelago, built in six steps (each is one commit; save format 6, older saves load):
+
+- **Progress:** six skills that level by use (woodcutting, mining, combat, farming, cooking, crafting), steel and mithril
+  tiers, four gear slots (body, helm, boots, charm), upgrades and repairs at the anvil, hides and coal.
+- **Survival depth:** four seasons of eight days, weather (rain, storm, fog, snow, blizzard), a warmth meter, food and
+  potion effects, raw-food sickness, camp building (walls, gates, floors, tents, turrets) and night raids.
+- **Archipelago:** four far islands (Frostfang, Emberhold, Bonepool, Skyreach) with their own ground, resources,
+  creatures and cold or heat, reached by a boat built at a workbench and a sea chart. What the hero did on an island is kept
+  in a per-island stash in the save.
+- **Dungeons:** one new dungeon, boss, sigil and armour per island, and the Endless Depths: floor after floor of fresh
+  dungeons that grow tougher, with stairs down once the boss falls.
+- **People and economy:** gold, a trader on every island (buy, sell and a daily bounty board), four new islanders with their own
+  side quests, acts two and three of the story (chapters 11 to 16, the four sigils), settlers who work for the camp,
+  deeds, a journal with a bestiary and voyage numbers.
+- **Replay:** New Game+ (a new island and story with the hero's skills, gear and gold kept, creatures harder each round).
+
+Where to look: `src/sim/islands.ts` and `src/sim/world/outer.ts` (islands), `src/sim/shop.ts` and `src/data/shops.ts` (trade),
+`src/sim/bounty.ts`, `src/sim/settlers.ts`, `src/data/achievements.ts`, `src/sim/newGamePlus.ts`, `src/data/questsAct2.ts`.
+Browser scenarios for the new screens: `islands-look`, `dungeons-look`, `shop-look`, `journal-look`, `camp-look`, `depths-look`.
+
 ## Credits
 
 Pixel art: Super Retro Collection by Gif. Fonts: Jersey and Tiny5 (SIL OFL).

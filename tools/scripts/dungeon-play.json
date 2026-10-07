@@ -163,7 +163,7 @@
   "eval": "'boss keys: ' + H.inv('boss_key') + ' small keys left: ' + H.inv('small_key')"
  },
  {
-  "eval": "(() => { const c = H.d().chests.find(c => c.locked && c.loot.length === 3); H.tp(c.x + 0.5, c.y + 1.5, 0, -1); return 'at the treasure chest'; })()"
+  "eval": "(() => { const c = H.d().chests.find(c => c.locked && c.loot.length === 4); H.tp(c.x + 0.5, c.y + 1.5, 0, -1); return 'at the treasure chest'; })()"
  },
  {
   "wait": 150
