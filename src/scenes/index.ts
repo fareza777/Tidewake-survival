@@ -15,6 +15,7 @@ import { QuestsScene } from './QuestsScene';
 import { VoyageScene } from './VoyageScene';
 import { ShopScene } from './ShopScene';
 import { JournalScene } from './JournalScene';
+import { CampScene } from './CampScene';
 import { NotifyScene } from './NotifyScene';
 
-export const SCENES = [BootScene, PreloadScene, SplashScene, MenuScene, GameScene, HudScene, InventoryScene, DialogueScene, QuestsScene, VoyageScene, ShopScene, JournalScene, OnboardingScene, NewGameScene, IntroScene, SettingsScene, AboutScene, NotifyScene];
+export const SCENES = [BootScene, PreloadScene, SplashScene, MenuScene, GameScene, HudScene, InventoryScene, DialogueScene, QuestsScene, VoyageScene, ShopScene, JournalScene, CampScene, OnboardingScene, NewGameScene, IntroScene, SettingsScene, AboutScene, NotifyScene];

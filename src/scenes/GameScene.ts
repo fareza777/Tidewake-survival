@@ -47,6 +47,8 @@ import { GENERATOR_VERSION } from '@/sim/world/generate';
 import { worldFor } from '@/sim/islands';
 import type { NpcId } from '@/data/npcs';
 import { buyOffer, sellSlot } from '@/sim/shop';
+import type { Job } from '@/data/settlers';
+import { collectStore, hire, produceDay } from '@/sim/settlers';
 import { idx, type Biome, type IslandId, type World } from '@/sim/world/types';
 import { COLORS } from '@/ui/theme';
 
@@ -462,7 +464,7 @@ export class GameScene extends BaseScene {
 
   private onNewDay(): void {
     this.lastDay = this.session.clock.day;
-    this.session = this.level.newDay(this.session, this.pos);
+    this.session = produceDay(this.level.newDay(this.session, this.pos));
     this.story.newDay();
     this.rebuildBlocking();
     services.notify?.(t('hudDay', { n: this.lastDay }));
@@ -584,6 +586,20 @@ export class GameScene extends BaseScene {
 
   sell(index: number, qty: number): void {
     this.commit(sellSlot(this.session, index, qty));
+  }
+
+  openCamp(): void {
+    if (this.scene.isPaused()) return;
+    this.scene.pause('Game');
+    this.scene.launch('Camp', { game: this });
+  }
+
+  hireSettler(job: Job): void {
+    this.commit(hire(this.session, job));
+  }
+
+  collectStore(): void {
+    this.commit(collectStore(this.session));
   }
 
   openJournal(): void {

@@ -10,7 +10,7 @@ import { WeatherFx } from '@/gfx/WeatherFx';
 import { clockLabel } from '@/sim/daynight';
 import { isHarmful, type BuffId } from '@/sim/buffs';
 import { DAYS_PER_SEASON, dayOfSeason, seasonOf, weatherAt, weatherName } from '@/sim/weather';
-import { HOTBAR_SIZE, type Inventory } from '@/sim/inventory';
+import { HOTBAR_SIZE, countItem, type Inventory } from '@/sim/inventory';
 import { progressOf, trackedQuest, type QuestState } from '@/sim/quests';
 import type { Difficulty } from '@/sim/vitals';
 import { showModal } from '@/ui/modal';
@@ -50,6 +50,8 @@ export class HudScene extends Phaser.Scene {
   private lastSelected = -1;
   private lastDay = '';
   private seasonText!: Phaser.GameObjects.BitmapText;
+  private goldIcon!: Phaser.GameObjects.Image;
+  private goldText!: Phaser.GameObjects.BitmapText;
   private weatherFx!: WeatherFx;
   private buffLayer!: Phaser.GameObjects.Container;
   private lastBuffs: unknown = null;
@@ -81,6 +83,8 @@ export class HudScene extends Phaser.Scene {
     const { w: W, h: H } = view;
     this.dayText = this.add.bitmapText(8, 8, FONT.body, '').setTint(COLORS.text).setDepth(5);
     this.seasonText = this.add.bitmapText(8, 124, FONT.small, '').setTint(0xbfe6ff).setDepth(5);
+    this.goldIcon = this.add.image(112, 14, 'icons', 'gold').setDisplaySize(12, 12).setDepth(5).setVisible(false);
+    this.goldText = this.add.bitmapText(121, 9, FONT.small, '').setTint(COLORS.gold).setDepth(5).setVisible(false);
     this.buffLayer = this.add.container(0, 0).setDepth(5);
     this.weatherFx = new WeatherFx(this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.weatherFx.destroy());
@@ -221,6 +225,14 @@ export class HudScene extends Phaser.Scene {
     const close = showModal(this, t('paused'), '', [
       { label: t('resume'), style: 'primary', onClick: finish },
       {
+        label: t('campBtn'),
+        onClick: () => {
+          this.menuOpen = false;
+          unregister?.();
+          this.scene.launch('Camp', { game: this.world });
+        },
+      },
+      {
         label: t('journalBtn'),
         onClick: () => {
           // The island stays paused while the journal is open; closing it resumes it.
@@ -311,8 +323,13 @@ export class HudScene extends Phaser.Scene {
     const clock = s.clock;
     const season = seasonOf(clock.day);
     const weather = weatherAt(s.seed, clock.day, clock.t);
-    const label = `${t(`season_${season}`)} ${dayOfSeason(clock.day)}/${DAYS_PER_SEASON}  ${t(`weather_${weatherName(season, weather)}`)}`;
+    const where = s.island === 'home' ? '' : `${t(`island_${s.island}`)}  `;
+    const label = `${where}${t(`season_${season}`)} ${dayOfSeason(clock.day)}/${DAYS_PER_SEASON}  ${t(`weather_${weatherName(season, weather)}`)}`;
     if (this.seasonText.text !== label) this.seasonText.setText(label);
+    const gold = countItem(s.inventory, 'gold');
+    this.goldIcon.setVisible(gold > 0);
+    this.goldText.setVisible(gold > 0);
+    if (gold > 0 && this.goldText.text !== String(gold)) this.goldText.setText(String(gold));
     this.weatherFx.set(this.world.level.dungeon ? 'clear' : weather, season);
     this.weatherFx.update(this.game.loop.delta / 1000);
     if (s.buffs !== this.lastBuffs) {

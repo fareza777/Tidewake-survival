@@ -16,6 +16,8 @@ import { noSkills, parseSkills, type Skills } from '@/sim/skills';
 import type { Structure, Structures } from '@/sim/structures';
 import { VITAL_MAX, fullVitals, type Difficulty, type Vitals } from '@/sim/vitals';
 import { GENERATOR_VERSION } from '@/sim/world/generate';
+import type { Job } from '@/data/settlers';
+import { parseSettlers, parseStore, type Store } from '@/sim/settlers';
 import { ISLAND_IDS, isIslandId, type Stash, type Stashes } from '@/sim/islands';
 import { WORLD_SIZE, type IslandId } from '@/sim/world/types';
 
@@ -66,6 +68,9 @@ export interface SaveSlot {
   island: IslandId;
   /** The same four things for the other islands. */
   stash: Stashes;
+  /** The people who work for the hero, one trade each, and what they have brought in. */
+  settlers: Job[];
+  store: Store;
 }
 
 export interface SlotSummary {
@@ -87,7 +92,7 @@ export function newSlot(
     playTimeSec: 0, player: spawn, respawn: { ...spawn }, clock, gather: emptyGather(), inventory: emptyInventory(), selected: 0,
     vitals: fullVitals(), structures: { next: 1, list: [] }, farm: emptyFarm(), location: null, equipment: noEquipment(),
     dungeons: emptyDungeons(), dungeonVersion: DUNGEON_VERSION, quests: settle(emptyQuests(), emptyInventory(), QUESTS).q,
-    skills: noSkills(), buffs: [], raidDay: 0, island: 'home', stash: {},
+    skills: noSkills(), buffs: [], raidDay: 0, island: 'home', stash: {}, settlers: [], store: {},
   };
 }
 
@@ -241,5 +246,7 @@ export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
     raidDay: isInt(d.raidDay) && d.raidDay >= 0 && d.raidDay <= MAX_DAY ? d.raidDay : 0,
     island: isIslandId(d.island) ? d.island : 'home',
     stash: d.version >= 6 ? parseStashes(d.stash) : {},
+    settlers: parseSettlers(d.settlers),
+    store: parseStore(d.store),
   };
 }

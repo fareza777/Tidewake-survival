@@ -1,0 +1,63 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1'); localStorage.setItem('tidewake.tutorial', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = [...g.session.inventory]; inv[0] = { item: 'gold', qty: 640 }; g.session = { ...g.session, inventory: inv, settlers: ['farmer','miner'], store: { carrot: 5, stone: 12, iron_ore: 2, wood: 30 } }; return 1; })()"
+ },
+ {
+  "wait": 600
+ },
+ {
+  "shot": "c-hud"
+ },
+ {
+  "wait": 700
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.scene.resume('Game'); g.openCamp(); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Camp')",
+  "timeout": 5000
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "c-camp"
+ }
+]
