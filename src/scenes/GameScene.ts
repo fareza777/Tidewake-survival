@@ -37,13 +37,15 @@ import { meleeFor } from '@/sim/melee';
 import { moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import {
   applyAction, collapse, craftRecipe, story, equipArmor, markRaid, moveInventorySlot, selectSlot, sessionFromSlot, sessionMods, sessionToSlot, takeOffGear, tickSession,
-  sailTo, turretFired,
+  arrive, sailTo, turretFired,
   upgradeItem, repairItem,
   transferStack, type Fx, type Session, type Step,
 } from '@/sim/session';
 import { RUN_SPEED, RUN_START, isDead, type Difficulty } from '@/sim/vitals';
 import { GENERATOR_VERSION } from '@/sim/world/generate';
 import { worldFor } from '@/sim/islands';
+import type { NpcId } from '@/data/npcs';
+import { buyOffer, sellSlot } from '@/sim/shop';
 import { idx, type Biome, type IslandId, type World } from '@/sim/world/types';
 import { COLORS } from '@/ui/theme';
 
@@ -183,6 +185,7 @@ export class GameScene extends BaseScene {
     this.fadeIn(400);
     // Start the chapters that are due (the first one in a new game), with their toasts.
     this.commitStory(story(this.session));
+    if (!where) this.commitStory(arrive(this.session));
     if (where) services.notify?.(t(`dungeon_${where}`));
   }
 
@@ -566,6 +569,21 @@ export class GameScene extends BaseScene {
   }
 
   /** Open the quest log; the island waits while it is open. */
+  /** A trader's counter opens; the island waits. */
+  openShop(npc: NpcId): void {
+    if (this.scene.isPaused()) return;
+    this.scene.pause('Game');
+    this.scene.launch('Shop', { game: this, npc });
+  }
+
+  buy(npc: NpcId, index: number): void {
+    this.commit(buyOffer(this.session, npc, index));
+  }
+
+  sell(index: number, qty: number): void {
+    this.commit(sellSlot(this.session, index, qty));
+  }
+
   openVoyage(): void {
     if (this.scene.isPaused()) return;
     this.scene.pause('Game');

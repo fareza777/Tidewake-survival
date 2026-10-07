@@ -1,0 +1,138 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1'); localStorage.setItem('tidewake.tutorial', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = [...g.session.inventory]; inv[0] = { item: 'gold', qty: 640 }; inv[1] = { item: 'bone', qty: 12 }; inv[2] = { item: 'steel_ingot', qty: 3 }; inv[3] = { item: 'sword_iron', qty: 1, dur: 80 }; inv[4] = { item: 'hide', qty: 5 }; g.session = { ...g.session, inventory: inv, quests: { ...g.session.quests, done: [...g.session.quests.done, 'c1','c2','c3','c4','c5','c6','c7','c8','c9'] } }; g.setSail('frost'); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.island === 'frost'",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const p = g.level.places.find((x) => x.id === 'rhea'); g.pos = { x: p.x + 0.5, y: p.y - 0.4 }; g.player.facing = 'down'; return JSON.stringify(p) + ' ' + JSON.stringify(g.session.quests.counters); })()"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.perform({ kind: 'talk', npc: 'rhea' }); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Dialogue')",
+  "timeout": 5000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "e-rhea-talk"
+ },
+ {
+  "tap": [
+   195,
+   640
+  ]
+ },
+ {
+  "wait": 2500
+ },
+ {
+  "tap": [
+   195,
+   640
+  ]
+ },
+ {
+  "wait": 2500
+ },
+ {
+  "tap": [
+   195,
+   640
+  ]
+ },
+ {
+  "wait": 2000
+ },
+ {
+  "shot": "e-rhea-choice"
+ },
+ {
+  "tap": [
+   195,
+   787
+  ]
+ },
+ {
+  "wait": 600
+ },
+ {
+  "until": "__game.scene.isActive('Shop')",
+  "timeout": 5000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "shot": "e-shop-buy"
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('Shop'); s.tab = 'sell'; s.render(); return 1; })()"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "shot": "e-shop-sell"
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('Shop'); s.scene.stop(); s.scene.resume('Game'); __game.scene.getScene('Game').openQuests(); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Quests')",
+  "timeout": 5000
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "e-quests"
+ }
+]

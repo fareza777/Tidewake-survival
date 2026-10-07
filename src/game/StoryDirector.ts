@@ -63,7 +63,14 @@ export class StoryDirector {
   private say(fx: Dialog): void {
     const npc = NPC_IDS.find((id) => NPCS[id].name === fx.speaker);
     const portrait = npc ? { atlas: 'actors', frame: `${NPCS[npc].sprite}/walk/down/0` } : undefined;
-    this.open(fx.speaker ? tr(fx.speaker) : null, lines(fx.lines), undefined, portrait);
+    const trade = npc && NPCS[npc].shop;
+    const choices = trade
+      ? [
+        { label: t('shopTrade'), style: 'primary' as const, onPick: this.afterClose(() => this.game.openShop(npc)) },
+        { label: t('shopLeave'), onPick: () => undefined },
+      ]
+      : undefined;
+    this.open(fx.speaker ? tr(fx.speaker) : null, lines(fx.lines), choices, portrait);
   }
 
   /** Run something after a dialogue has closed and the island has woken again (a new dialogue may follow it). */

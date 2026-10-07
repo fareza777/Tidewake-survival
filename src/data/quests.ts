@@ -1,15 +1,6 @@
-import type { ItemId } from '@/data/items';
-import type { QuestDef, QuestDefs, QuestStep, Reward, Text } from '@/sim/quests';
-
-const L = (en: string, id: string): Text => ({ en, id });
-const count = (counter: string, n: number, text: Text, fresh = false): QuestStep => ({ text, obj: { counter, n }, ...(fresh ? { fresh } : {}) });
-const have = (item: ItemId, n: number, text: Text): QuestStep => ({ text, obj: { have: item, n } });
-const chapter = (n: number, title: Text, steps: QuestStep[]): QuestDef => ({
-  id: `c${n}`, kind: 'main', title, auto: true, ...(n > 1 ? { after: `c${n - 1}` } : {}), steps,
-});
-const side = (id: string, giver: string, after: string, title: Text, steps: QuestStep[], reward: Reward[]): QuestDef => ({
-  id, kind: 'side', title, giver, after, steps, reward,
-});
+import { ACT2_MAIN, ACT2_SIDE } from '@/data/questsAct2';
+import { L, chapter, count, have, side } from '@/data/questKit';
+import type { QuestDef, QuestDefs } from '@/sim/quests';
 
 /** The ten chapters of the main quest, which follow one another by themselves. */
 const MAIN: QuestDef[] = [
@@ -111,6 +102,8 @@ const SIDE: QuestDef[] = [
   ], [{ item: 'crystal', qty: 2 }]),
 ];
 
-export const QUESTS: QuestDefs = Object.fromEntries([...MAIN, ...SIDE].map((q) => [q.id, q]));
-export const MAIN_QUEST_IDS: readonly string[] = MAIN.map((q) => q.id);
-export const SIDE_QUEST_IDS: readonly string[] = SIDE.map((q) => q.id);
+const ALL_MAIN = [...MAIN, ...ACT2_MAIN];
+const ALL_SIDE = [...SIDE, ...ACT2_SIDE];
+export const QUESTS: QuestDefs = Object.fromEntries([...ALL_MAIN, ...ALL_SIDE].map((q) => [q.id, q]));
+export const MAIN_QUEST_IDS: readonly string[] = ALL_MAIN.map((q) => q.id);
+export const SIDE_QUEST_IDS: readonly string[] = ALL_SIDE.map((q) => q.id);

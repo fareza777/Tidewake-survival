@@ -54,6 +54,12 @@ export function reached(s: Session, landmark: string): Step {
   return s.quests.counters[`reach:${landmark}`] ? { session: s, fx: [] } : story(s, [`reach:${landmark}`]);
 }
 
+/** The hero has set foot on an island: counted once (it opens the chapter that asks for it). */
+export function arrive(s: Session): Step {
+  const key = `island:${s.island}`;
+  return s.island === 'home' || s.quests.counters[key] ? { session: s, fx: [] } : story(s, [key]);
+}
+
 /** A new day began. A night spent awake beside a fire or torch counts as a night watch. */
 export function dawn(s: Session, how: { slept: boolean; lit: boolean }): Step {
   return story(s, ['night', ...(!how.slept && how.lit ? ['nightwatch'] : [])]);

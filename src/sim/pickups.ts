@@ -28,10 +28,18 @@ const SPREAD = 0.6;
 
 /** What a creature leaves behind, rolled from its drop table. */
 export function rollLoot(kind: CreatureId, rng: Rng): Stack[] {
-  return CREATURES[kind].drops
+  const stacks = CREATURES[kind].drops
     .filter((d) => d.chance === undefined || rng.chance(d.chance))
     .map((d) => ({ item: d.item, qty: rng.int(d.min, d.max) }))
     .filter((s) => s.qty > 0);
+  const gold = goldFor(CREATURES[kind].hp, CREATURES[kind].temper === 'boss', rng);
+  return gold > 0 ? [...stacks, { item: 'gold', qty: gold }] : stacks;
+}
+
+/** The coins a creature leaves: the tougher it was the more (a boss always pays). */
+export function goldFor(hp: number, boss: boolean, rng: Rng): number {
+  if (boss) return Math.round(hp * 0.6);
+  return rng.chance(0.45) ? Math.max(1, Math.round(hp / 8 + rng.float(0, hp / 10))) : 0;
 }
 
 /** Lay stacks on the ground around a spot, numbering them from `nextId`. */

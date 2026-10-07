@@ -65,6 +65,16 @@ def boat():
     return outlined(img)
 
 
+def gold():
+    img, d = canvas()
+    d.ellipse([3, 4, 12, 13], fill=(206, 150, 40, 255))
+    d.ellipse([3, 3, 12, 11], fill=(255, 208, 70, 255))
+    d.ellipse([5, 5, 10, 9], fill=(238, 178, 40, 255))
+    d.line([(6, 5), (9, 5)], fill=(255, 244, 170, 255))
+    d.line([(7, 6), (7, 9)], fill=(255, 244, 170, 255))
+    return outlined(img)
+
+
 def island_icons():
     def piece(body, dark, light, mark):
         img, d = breastplate(body, dark, light)
@@ -78,5 +88,5 @@ def island_icons():
         "armor_ember": piece(EMBER, EMBER_D, FLAME_L, FLAME_L),
         "armor_tide": piece(TIDE, TIDE_D, TIDE_L, WHITE),
         "armor_sky": piece(SKY, SKY_D, SKY_L, SKY_GOLD),
-        "struct_boat": boat(),
+        "struct_boat": boat(), "gold": gold(),
     }

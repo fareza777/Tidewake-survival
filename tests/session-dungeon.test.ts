@@ -35,7 +35,7 @@ describe('opening a chest', () => {
     const r = applyAction(s, { kind: 'chest', chest: free }, pos);
     expect(countItem(r.session.inventory, 'small_key')).toBe(2);
     expect(r.session.dungeons.grotto.looted).toEqual([free.id]);
-    expect(fxTypes(r)).toEqual(['chestOpened', 'gain']);
+    expect(fxTypes(r)).toEqual(['chestOpened', 'gain', 'gain']);
     expect(s.dungeons.grotto.looted).toEqual([]);
   });
 
@@ -50,8 +50,8 @@ describe('opening a chest', () => {
   it('keeps the key and the loot where they are when the backpack is full, and says so', () => {
     let s = give(base({ location: 'grotto' }), ['small_key', 1]);
     for (let i = 0; i < 40; i++) s = { ...s, inventory: addItem(s.inventory, 'wood', 99).inv };
-    // The treasure holds three kinds of item; spending the key frees only one slot.
-    const treasure = d.chests.find((c) => c.locked && c.loot.length === 3)!;
+    // The treasure holds four kinds of item; spending the key frees only one slot.
+    const treasure = d.chests.find((c) => c.locked && c.loot.length === 4)!;
     const r = applyAction(s, { kind: 'chest', chest: treasure }, pos);
     expect(r.session).toBe(s);
     expect(r.fx.map((f) => f.t === 'say' && f.key)).toEqual(['msgFull']);

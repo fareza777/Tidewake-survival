@@ -31,7 +31,7 @@ import { COOKED_FOODS } from '@/data/items';
 import type { Text } from '@/sim/quests';
 import type { QuestEvent, QuestState } from '@/sim/quests';
 import { giveItems, say } from '@/sim/sessionKit';
-import { chooseEnding, claimOwed, dawn, dig, fish, inspect, reached, recordKill, story, talk, useRaft, withStory } from '@/sim/storySession';
+import { arrive, chooseEnding, claimOwed, dawn, dig, fish, inspect, reached, recordKill, story, talk, useRaft, withStory } from '@/sim/storySession';
 import { eat, sleepRecovery, spendStamina, takeDamage, tickVitals, type Difficulty, type Vitals } from '@/sim/vitals';
 import { freshStash, islandUnlocked, worldFor, type Stashes } from '@/sim/islands';
 import { idx, type Biome, type IslandId, type ResourceNode } from '@/sim/world/types';
@@ -461,7 +461,7 @@ export function raidSurvived(s: Session): Step {
   return withXp(withStory({ session: s, fx: [say('msgRaidSurvived')] }, ['raid']), [['combat', 30]]);
 }
 
-export { chooseEnding, claimOwed, dawn, reached, recordKill, story };
+export { arrive, chooseEnding, claimOwed, dawn, reached, recordKill, story };
 
 export function moveInventorySlot(s: Session, from: number, to: number): Session {
   return { ...s, inventory: moveSlot(s.inventory, from, to) };

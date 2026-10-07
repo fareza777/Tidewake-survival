@@ -51,13 +51,13 @@ const spotsCache = new WeakMap<World, Spot[]>();
 
 /** Where each islander stands: beside their landmark, on the nearest free ground. Same island, same places. */
 export function npcPlaces(world: World): NpcPlace[] {
-  if (world.island !== undefined) return [];
   const cached = placesCache.get(world);
   if (cached) return cached;
   const taken = blockedTiles(world);
   const out: NpcPlace[] = [];
   for (const id of NPC_IDS) {
     const def = NPCS[id];
+    if ((def.island ?? 'home') !== (world.island ?? 'home')) continue;
     const l = world.landmarks.find((m) => m.id === def.near)!;
     const p = freeNear(world, l.x + def.dx, l.y + def.dy, taken);
     taken.add(idx(p.x, p.y, world.size));

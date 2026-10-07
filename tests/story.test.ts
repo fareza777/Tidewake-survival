@@ -109,7 +109,7 @@ describe('islanders and finds on the island', () => {
   it('puts every islander on dry, walkable ground that is free of trees, scenery and each other, in the same place every time', () => {
     for (const w of worlds) {
       const places = npcPlaces(w);
-      expect(places.map((p) => p.id).sort()).toEqual([...NPC_IDS].sort());
+      expect(places.map((p) => p.id).sort()).toEqual(NPC_IDS.filter((id) => !NPCS[id].island).sort());
       const props = new Set(propSolidTiles(w));
       const nodes = nodesByTile(w);
       const seen = new Set<number>();

@@ -1,8 +1,9 @@
-import type { LandmarkId } from '@/sim/world/types';
+import { AERO, EXTRA_TOPICS, KAEL, RHEA, SABLE } from '@/data/npcsFar';
+import type { IslandId, LandmarkId } from '@/sim/world/types';
 import type { Text } from '@/sim/quests';
 
-export type NpcId = 'marlo' | 'nia' | 'brock' | 'tali' | 'odo';
-export const NPC_IDS: readonly NpcId[] = ['marlo', 'nia', 'brock', 'tali', 'odo'];
+export type NpcId = 'marlo' | 'nia' | 'brock' | 'tali' | 'odo' | 'rhea' | 'kael' | 'sable' | 'aero';
+export const NPC_IDS: readonly NpcId[] = ['marlo', 'nia', 'brock', 'tali', 'odo', 'rhea', 'kael', 'sable', 'aero'];
 
 /** When a thing to say applies, judged from the quests. `new` means unlocked but not started. */
 export type Cond =
@@ -26,6 +27,10 @@ export interface NpcDef {
   near: LandmarkId;
   dx: number;
   dy: number;
+  /** The island they live on (the home island when absent). */
+  island?: IslandId;
+  /** They buy and sell. */
+  shop?: boolean;
   /** The first topic whose condition holds is what they say. */
   topics: readonly Topic[];
   /** What they say when nothing else applies. */
@@ -207,4 +212,11 @@ const ODO: NpcDef = {
   ],
 };
 
-export const NPCS: Record<NpcId, NpcDef> = { marlo: MARLO, nia: NIA, brock: BROCK, tali: TALI, odo: ODO };
+const withExtra = (npc: NpcDef): NpcDef => {
+  const more = (EXTRA_TOPICS as Partial<Record<string, Topic[]>>)[npc.id];
+  return more ? { ...npc, topics: [...more, ...npc.topics] } : npc;
+};
+
+export const NPCS: Record<NpcId, NpcDef> = {
+  marlo: withExtra({ ...MARLO, shop: true }), nia: NIA, brock: BROCK, tali: TALI, odo: ODO, rhea: RHEA, kael: KAEL, sable: SABLE, aero: AERO,
+};

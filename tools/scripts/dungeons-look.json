@@ -1,0 +1,197 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1'); localStorage.setItem('tidewake.tutorial', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const d = { ...g.session.dungeons }; for (const k of ['frostcave','magmaforge','drownedcrypt']) d[k] = { ...d[k], boss: true }; g.session = { ...g.session, dungeons: d }; return 1; })()"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.setSail('frost'); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.island === 'frost' && !__game.scene.getScene('Game').session.location",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const l = g.world.landmarks.find((x) => x.id !== 'start' && x.id !== 'dock'); g.pos = { x: l.x + 0.5, y: l.y - 0.5 }; g.player.facing = 'down'; return JSON.stringify(l); })()"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.perform({ kind: 'enter', dungeon: 'frostcave' }); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.location === 'frostcave'",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "d-frostcave"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.perform({ kind: 'leave' }); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && !__game.scene.getScene('Game').session.location",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.setSail('ember'); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.island === 'ember' && !__game.scene.getScene('Game').session.location",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const l = g.world.landmarks.find((x) => x.id !== 'start' && x.id !== 'dock'); g.pos = { x: l.x + 0.5, y: l.y - 0.5 }; g.player.facing = 'down'; return JSON.stringify(l); })()"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.perform({ kind: 'enter', dungeon: 'magmaforge' }); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.location === 'magmaforge'",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "d-magmaforge"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.perform({ kind: 'leave' }); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && !__game.scene.getScene('Game').session.location",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.setSail('wreck'); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.island === 'wreck' && !__game.scene.getScene('Game').session.location",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const l = g.world.landmarks.find((x) => x.id !== 'start' && x.id !== 'dock'); g.pos = { x: l.x + 0.5, y: l.y - 0.5 }; g.player.facing = 'down'; return JSON.stringify(l); })()"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.perform({ kind: 'enter', dungeon: 'drownedcrypt' }); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.location === 'drownedcrypt'",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "d-drownedcrypt"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.perform({ kind: 'leave' }); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && !__game.scene.getScene('Game').session.location",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.setSail('sky'); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.island === 'sky' && !__game.scene.getScene('Game').session.location",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const l = g.world.landmarks.find((x) => x.id !== 'start' && x.id !== 'dock'); g.pos = { x: l.x + 0.5, y: l.y - 0.5 }; g.player.facing = 'down'; return JSON.stringify(l); })()"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.perform({ kind: 'enter', dungeon: 'skyspire' }); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.location === 'skyspire'",
+  "timeout": 20000
+ },
+ {
+  "wait": 1500
+ },
+ {
+  "shot": "d-skyspire"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.perform({ kind: 'leave' }); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && !__game.scene.getScene('Game').session.location",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ }
+]
