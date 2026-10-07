@@ -598,6 +598,8 @@ export class GameScene extends BaseScene {
     const free = services.saves?.slotForNewGame();
     const target = free && !free.overwrites ? free.slot : this.slotData.slot;
     services.saves?.write(newGamePlus(this.session, this.slotData, target, Rng.seedFromTime()));
+    // The old game must not be written back over the new one when this scene shuts down.
+    this.wiped = true;
     this.goTo('Game', { slot: target });
   }
 

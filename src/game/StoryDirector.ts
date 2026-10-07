@@ -107,7 +107,7 @@ export class StoryDirector {
   kill(kind: CreatureId): void {
     this.apply(recordKill(this.game.session, kind));
     this.game.commitStory(rewardKill(this.game.session, kind));
-    if (kind === 'hollowkeeper') this.open(null, lines(LIGHTHOUSE_SECRET));
+    if (kind === 'hollowkeeper' && this.game.session.location !== 'depths') this.open(null, lines(LIGHTHOUSE_SECRET));
   }
 
   /** A day began: a night survived, and perhaps a night watched. */

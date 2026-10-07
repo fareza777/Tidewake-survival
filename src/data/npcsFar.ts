@@ -41,7 +41,7 @@ export const KAEL: NpcDef = {
   id: 'kael', name: L('Kael the Smith', 'Kael si Pandai Besi'), sprite: 'npc9', near: 'dock', dx: -3, dy: 2, island: 'ember', shop: true,
   topics: [
     {
-      when: atStep('c13', 0),
+      when: atStep('c13', 1),
       lines: [
         L('Careful, the ground bites here. I am Kael. I came for the mithril and stayed for the fire.', 'Hati-hati, tanah di sini menggigit. Aku Kael. Aku datang demi mithril dan tinggal demi apinya.'),
         L('Forgeheart beats under the Magma Forge. Every hammer on this island rings in time with it. End it, and the lava will cool.', 'Jantung Tempa berdetak di bawah Tempa Magma. Setiap palu di pulau ini berdentang seirama. Hentikan, dan lavanya akan dingin.'),
@@ -71,7 +71,7 @@ export const SABLE: NpcDef = {
   id: 'sable', name: L('Sable', 'Sable'), sprite: 'npc22', near: 'dock', dx: -3, dy: 2, island: 'wreck', shop: true,
   topics: [
     {
-      when: atStep('c14', 0),
+      when: atStep('c14', 1),
       lines: [
         L('You walk like someone the sea has not made up its mind about. I am Sable. I pick what the tide leaves.', 'Kau berjalan seperti orang yang belum diputuskan laut. Aku Sable. Aku memungut apa yang ditinggalkan pasang.'),
         L('A queen lies below the Drowned Crypt. She waits for her fleet to return, and anyone who comes too close joins it.', 'Seorang ratu terbaring di bawah Ruang Makam Tenggelam. Dia menunggu armadanya kembali, dan siapa pun yang mendekat ikut bergabung.'),
@@ -101,7 +101,7 @@ export const AERO: NpcDef = {
   id: 'aero', name: L('Aero', 'Aero'), sprite: 'npc28', near: 'dock', dx: -3, dy: 2, island: 'sky', shop: true,
   topics: [
     {
-      when: atStep('c15', 0),
+      when: atStep('c15', 1),
       lines: [
         L('You climbed the whole way up here in a boat? The wind approves. I am Aero, keeper of the last dock.', 'Kau naik sampai sini dengan perahu? Angin menyetujuinya. Aku Aero, penjaga dermaga terakhir.'),
         L('Above the clouds stands the Sky Spire and the Storm Titan inside it. He is the reason the sea is angry.', 'Di atas awan berdiri Menara Langit dan Titan Badai di dalamnya. Dialah alasan laut marah.'),

@@ -116,7 +116,11 @@ export class JournalScene extends BaseScene {
     if (s2.ng > 0) this.ui.add(label(this, 20, TOP + lines.length * 34, t('statNg', { n: s2.ng }), FONT.body, COLORS.gold));
     if (canBeginNewGamePlus(s2)) {
       this.ui.add(new Button(this, view.w / 2, TOP + lines.length * 34 + 56, t('ngPlusBtn'), () => {
-        confirm(this, t('ngPlusTitle'), t('ngPlusBody'), () => this.world.beginNewGamePlus(), false);
+        confirm(this, t('ngPlusTitle'), t('ngPlusBody'), () => {
+          this.scene.stop();
+          this.scene.resume('Game');
+          this.world.beginNewGamePlus();
+        }, false);
       }, { w: 240, h: 34, style: 'primary' }));
     }
     return 0;

@@ -137,10 +137,10 @@ describe('parseQuests', () => {
   });
 
   it('caps how many counters and found spots it will hold', () => {
-    const counters = Object.fromEntries(Array.from({ length: 500 }, (_, i) => [`k${i}`, 1]));
+    const counters = Object.fromEntries(Array.from({ length: 2000 }, (_, i) => [`k${i}`, 1]));
     const found = Array.from({ length: 500 }, (_, i) => `s${i}`);
     const q = parseQuests({ counters, found }, defs);
-    expect(Object.keys(q.counters).length).toBeLessThanOrEqual(120);
+    expect(Object.keys(q.counters).length).toBeLessThanOrEqual(800);
     expect(q.found.length).toBeLessThanOrEqual(120);
   });
 });

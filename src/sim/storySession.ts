@@ -53,7 +53,9 @@ export function withStory(step: Step, events: readonly string[]): Step {
 export const claimOwed = (s: Session): Step => story(s);
 
 export function recordKill(s: Session, kind: CreatureId): Step {
-  return story(s, [`kill:${kind}`, ...(CREATURES[kind].temper === 'boss' ? [`boss:${kind}`] : [])]);
+  // A boss met on a floor of the Endless Depths is not the dungeon boss the chapters ask for.
+  const boss = CREATURES[kind].temper === 'boss' && s.location !== 'depths';
+  return story(s, [`kill:${kind}`, ...(boss ? [`boss:${kind}`] : [])]);
 }
 
 /** The hero came near a landmark (counted once). */

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { newSlot } from '@/core/saveData';
+import { newSlot, parseSlot } from '@/core/saveData';
+import { pickTopic } from '@/sim/story';
 import { Rng } from '@/core/rng';
 import { ITEMS } from '@/data/items';
 import { NPCS, NPC_IDS } from '@/data/npcs';
@@ -8,7 +9,7 @@ import { SHOPS, sellPrice } from '@/data/shops';
 import { addItem, countItem } from '@/sim/inventory';
 import { rollLoot } from '@/sim/pickups';
 import { buyOffer, goldOf, sellSlot } from '@/sim/shop';
-import { applyAction, arrive, sessionFromSlot, type Session } from '@/sim/session';
+import { applyAction, arrive, recordKill, sessionFromSlot, sessionToSlot, type Session } from '@/sim/session';
 import { npcPlaces } from '@/sim/world/spots';
 import { generateOuter } from '@/sim/world/outer';
 import { UI_STRINGS } from '@/data/strings';
@@ -131,5 +132,48 @@ describe('acts two and three', () => {
     const r = applyAction(lit, { kind: 'none' }, { x: 5, y: 5 });
     expect(r.session).toBe(lit);
     expect(UI_STRINGS.shopBuy).toBeDefined();
+  });
+});
+
+describe('review fixes', () => {
+  it('keeps every counter a real game raises across a save and load (deeds must not be paid twice)', () => {
+    let s = base();
+    const counters: Record<string, number> = {};
+    for (let i = 0; i < 300; i++) counters[`craft:item_${i}`] = 1;
+    counters['ach:legend'] = 1;
+    counters['bountyday:marlo'] = 5;
+    s = { ...s, quests: { ...s.quests, counters } };
+    const back = parseSlot(JSON.parse(JSON.stringify(sessionToSlot(slot(), s, { x: 1, y: 1 }))), 0)!;
+    expect(back.quests.counters['ach:legend']).toBe(1);
+    expect(back.quests.counters['bountyday:marlo']).toBe(5);
+  });
+
+  it('accepts an owed deed reward of a thousand gold from a save', () => {
+    const s = base({ quests: { ...base().quests, owed: [{ item: 'gold', qty: 800 }] } });
+    const back = parseSlot(JSON.parse(JSON.stringify(sessionToSlot(slot(), s, { x: 1, y: 1 }))), 0)!;
+    expect(back.quests.owed).toEqual([{ item: 'gold', qty: 800 }]);
+  });
+
+  it('shows the far islanders their first topic when the hero has just landed (step one, after the arrival)', () => {
+    for (const [chapter, npc] of [['c13', 'kael'], ['c14', 'sable'], ['c15', 'aero']] as const) {
+      const q = { ...base().quests, active: { [chapter]: { step: 1, base: {} } } };
+      const lines = pickTopic(NPCS[npc], q, QUESTS).lines;
+      expect(lines.length, npc).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('makes every kill objective count from the step that asks for it, so carried kills finish nothing', () => {
+    for (const q of Object.values(QUESTS)) for (const step of q.steps) if ('counter' in step.obj && step.obj.counter.startsWith('kill:')) expect(step.fresh, q.id).toBe(true);
+  });
+
+  it('pays a flat pittance for placeable goods, less than what they cost to make', () => {
+    expect(sellPrice({ item: 'wood_floor', qty: 4 })).toBeLessThanOrEqual(1);
+  });
+
+  it('does not count a boss met in the Endless Depths for the chapter that asks for the real one', () => {
+    const r = recordKill(base({ location: 'depths' }), 'glacierking');
+    expect(r.session.quests.counters['kill:glacierking']).toBe(1);
+    expect(r.session.quests.counters['boss:glacierking']).toBeUndefined();
+    expect(recordKill(base(), 'glacierking').session.quests.counters['boss:glacierking']).toBe(1);
   });
 });

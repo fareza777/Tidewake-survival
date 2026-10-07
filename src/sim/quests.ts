@@ -141,6 +141,8 @@ export function trackedQuest(q: QuestState, defs: QuestDefs): QuestDef | null {
 // ---- reading a save
 
 const MAX_ENTRIES = 120;
+/** A game raises a counter for every recipe, creature, deed and island, so the counters get a roomier cap than the lists. */
+const MAX_COUNTERS = 800;
 const KEY = /^[a-z0-9:_]{1,40}$/;
 const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 1_000_000;
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -148,13 +150,13 @@ const has = (o: object, k: string): boolean => Object.prototype.hasOwnProperty.c
 /** Keys that must never become a counter name. */
 const RESERVED = new Set(['__proto__', 'constructor', 'prototype']);
 /** What a save may owe the hero besides the rewards of quests (Brock's pickaxe, for a hero who emptied its chest before it was there). */
-const EXTRA_OWED: Readonly<Record<string, number>> = { lost_pickaxe: 1 };
+const EXTRA_OWED: Readonly<Record<string, number>> = { lost_pickaxe: 1, gold: 1000 };
 
 function parseCounters(raw: unknown): Record<string, number> {
   const out: Record<string, number> = {};
   if (!isRecord(raw)) return out;
   for (const [k, v] of Object.entries(raw)) {
-    if (Object.keys(out).length >= MAX_ENTRIES) break;
+    if (Object.keys(out).length >= MAX_COUNTERS) break;
     if (KEY.test(k) && !RESERVED.has(k) && isCount(v)) out[k] = v;
   }
   return out;

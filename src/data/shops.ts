@@ -57,6 +57,6 @@ export function sellPrice(slot: Slot): number {
     return Math.max(1, Math.round(base * worn * plusMult(slot.plus)));
   }
   if (def.food) return Math.max(2, Math.round((def.food.hunger + def.food.thirst + def.food.hp) / 5));
-  if (def.place) return 4;
+  if (def.place) return 1;
   return 1;
 }
