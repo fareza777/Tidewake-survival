@@ -30,6 +30,7 @@ const SPECS: SpotSpec[] = [
 export const RESERVE_RADIUS: Record<LandmarkId, number> = {
   start: 6, camp: 5, sailor: 4, herbalist: 4, miner: 4, grotto: 4, deepmine: 4, ruin: 4,
   lighthouse: 4, tablets: 3, treasure1: 1, treasure2: 1, treasure3: 1,
+  dock: 4, outpost: 4, frostcave: 4, magmaforge: 4, drownedcrypt: 4, skyspire: 4,
 };
 
 const dist = (ax: number, ay: number, bx: number, by: number): number => Math.hypot(ax - bx, ay - by);

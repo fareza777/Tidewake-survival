@@ -95,6 +95,7 @@ export class CreatureLayer {
       }
       if (now < view.flashUntil) view.sprite.setTintFill(0xffffff);
       else if (c.state === 'windup' || c.state === 'charge') view.sprite.setTint(WINDUP_TINT);
+      else if (def.sprite.tint !== undefined) view.sprite.setTint(def.sprite.tint);
       else view.sprite.clearTint();
       const base = (def.sprite.scale ?? 1) * (c.state === 'windup' ? 1.12 : 1);
       view.sprite.setScale(base * (1 + 0.3 * view.squash), base * (1 - 0.22 * view.squash));

@@ -60,8 +60,10 @@ describe('weapons', () => {
 describe('bosses', () => {
   const bosses = Object.keys(BOSSES) as BossId[];
   /** The best weapon a hero has when he reaches each boss, in the order the story leads him there. */
-  const BEST: Record<BossId, ItemId> = { mossback: 'sword_stone', ironbones: 'sword_iron', mirelord: 'sword_iron', hollowkeeper: 'sword_iron' };
-  const ARMOUR: Record<BossId, number> = { mossback: 0, ironbones: 3, mirelord: 5, hollowkeeper: 7 };
+  const BEST: Record<BossId, ItemId> = { mossback: 'sword_stone', ironbones: 'sword_iron', mirelord: 'sword_iron', hollowkeeper: 'sword_iron',
+    glacierking: 'sword_steel', forgeheart: 'sword_steel', drownedqueen: 'sword_mithril', stormtitan: 'sword_mithril',
+  };
+  const ARMOUR: Record<BossId, number> = { mossback: 0, ironbones: 3, mirelord: 5, hollowkeeper: 7, glacierking: 8, forgeheart: 9, drownedqueen: 11, stormtitan: 12 };
 
   it('fall to continuous blows in half a minute at most and no faster than a few seconds, even before dodging is counted', () => {
     for (const id of bosses) {

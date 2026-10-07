@@ -28,6 +28,9 @@ const RIMS: readonly Rim[] = [
   {},
   { outside: { color: [200, 238, 255], alpha: 0.34, width: 0.11 } },
   FOAM, SHADED, SHADED, SHADED, SHADED, { inside: { shade: 0.78, width: 0.09 } },
+  { inside: { shade: 0.9, width: 0.07 } },
+  { inside: { shade: 0.8, width: 0.08 } },
+  { outside: { color: [255, 150, 50], alpha: 0.6, width: 0.16 }, inside: { shade: 0.85, width: 0.08 } },
 ];
 
 function tilesPixels(scene: Phaser.Scene): { data: Uint8ClampedArray; width: number } {
@@ -108,6 +111,8 @@ const DIRT_PALETTE: Record<string, string> = { s: '#8c6a48', S: '#5f432c', h: '#
 const SWAMP_PALETTE: Record<string, string> = { g: '#4f7a3c', d: '#385a30', l: '#7aa65a', p: '#e6a0c0', w: '#cfe0b0', b: '#2f4a38' };
 const DESERT_PALETTE: Record<string, string> = { s: '#b8845a', S: '#8c5f3c', h: '#dcb287', g: '#5d8a4a', G: '#3f6a38', w: '#efe3cf' };
 const STONE_PALETTE: Record<string, string> = { s: '#8d8c97', S: '#62616f', h: '#b9b8c4', g: '#5f8a54' };
+const SNOW_PALETTE: Record<string, string> = { s: '#c7dbef', S: '#9db6d2', h: '#ffffff', g: '#6f9a7c', r: '#8d8c97', b: '#9ad0f0' };
+const ASH_PALETTE: Record<string, string> = { s: '#7c7684', S: '#4a4552', h: '#a29cac', e: '#ff7a2a', E: '#ffc04a', k: '#2a2630' };
 
 interface DecorSet {
   terrain: number;
@@ -137,6 +142,11 @@ export const DECOR_SETS: readonly DecorSet[] = [
   },
   { terrain: T.DESERT, palette: DESERT_PALETTE, chance: 0.08, stamps: [['hs', 'sS'], ['.g.', 'gGg', '.G.'], ['w.w', '.w.'], ['S'], ['s.']] },
   { terrain: T.STONE, palette: STONE_PALETTE, chance: 0.1, stamps: [['hs', 'sS'], ['g.g', '.g.'], ['s'], ['S.', '.h']] },
+  {
+    terrain: T.SNOW, palette: SNOW_PALETTE, chance: 0.12,
+    stamps: [['hh', 's.'], ['.s.', 'sSs'], ['b'], ['h'], ['r.', 'rr'], ['g.g', '.g.']],
+  },
+  { terrain: T.ASH, palette: ASH_PALETTE, chance: 0.14, stamps: [['hs', 'sS'], ['e'], ['E.', '.e'], ['k.', 'kk'], ['s'], ['h']] },
 ];
 
 /** Decoration tiles flattened into one strip; `decorBase[i]` is the first tile of DECOR_SETS[i]. Each stamp has two positions. */

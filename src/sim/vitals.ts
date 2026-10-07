@@ -69,7 +69,7 @@ export function tickVitals(v: Vitals, dt: number, ctx: VitalsContext): Vitals {
   if (dt <= 0) return v;
   const drain = DIFFICULTY_DRAIN[ctx.difficulty];
   const hunger = clamp(v.hunger - HUNGER_RATE * drain * dt);
-  const thirst = clamp(v.thirst - THIRST_RATE * drain * (ctx.biome === B.DESERT ? DESERT_THIRST : 1) * dt);
+  const thirst = clamp(v.thirst - THIRST_RATE * drain * (ctx.biome === B.DESERT || ctx.biome === B.VOLCANO ? DESERT_THIRST : 1) * dt);
   const cold = ctx.cold ?? 0;
   let warmth = v.warmth;
   if (ctx.heated) warmth += FIRE_WARMTH * dt;

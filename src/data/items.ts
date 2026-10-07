@@ -25,7 +25,8 @@ export type ItemId =
   | 'boots_leather' | 'boots_iron' | 'boots_steel' | 'boots_mithril'
   | 'ring_might' | 'ring_swift' | 'amulet_vigor' | 'amulet_fortune' | 'amulet_warmth'
   | 'wood_wall' | 'stone_wall' | 'wood_door' | 'wood_floor' | 'tent' | 'turret'
-  | 'warm_stew' | 'potion_strength' | 'potion_swift' | 'potion_ward' | 'potion_warmth';
+  | 'warm_stew' | 'potion_strength' | 'potion_swift' | 'potion_ward' | 'potion_warmth'
+  | 'frost_sigil' | 'ember_sigil' | 'tide_sigil' | 'sky_sigil' | 'armor_frost' | 'armor_ember' | 'armor_tide' | 'armor_sky' | 'boat';
 
 /** Where a piece of gear is worn. */
 export type GearSlot = 'armor' | 'helm' | 'boots' | 'charm';
@@ -249,6 +250,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   amulet_vigor: gear('amulet_vigor', 'charm', 0, { regen: 4 }),
   amulet_fortune: gear('amulet_fortune', 'charm', 1, { luck: 0.15 }),
   amulet_warmth: gear('amulet_warmth', 'charm', 0, { warmth: 25 }),
+
+  frost_sigil: keepsake('frost_sigil'),
+  ember_sigil: keepsake('ember_sigil'),
+  tide_sigil: keepsake('tide_sigil'),
+  sky_sigil: keepsake('sky_sigil'),
+  armor_frost: { ...gear('armor_frost', 'armor', 11, { warmth: 25 }), keep: true },
+  armor_ember: { ...gear('armor_ember', 'armor', 12, { damage: 0.06 }), keep: true },
+  armor_tide: { ...gear('armor_tide', 'armor', 13, { regen: 3 }), keep: true },
+  armor_sky: { ...gear('armor_sky', 'armor', 15, { speed: 0.05, luck: 0.05 }), keep: true },
+  boat: placeable('boat', 'boat', 1),
 
   wood_wall: placeable('wood_wall', 'wood_wall', 50),
   stone_wall: placeable('stone_wall', 'stone_wall', 50),

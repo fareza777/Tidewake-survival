@@ -8,8 +8,8 @@ import type { LandmarkId } from '@/sim/world/types';
 const PROPS = path.resolve(__dirname, '../public/assets/pack/props.json');
 
 describe('landmark props', () => {
-  it('defines scenery for all 13 landmarks', () => {
-    expect(Object.keys(LANDMARK_PROPS)).toHaveLength(13);
+  it('defines scenery for all 19 landmarks', () => {
+    expect(Object.keys(LANDMARK_PROPS)).toHaveLength(19);
     for (const props of Object.values(LANDMARK_PROPS)) expect(props.length).toBeGreaterThan(0);
   });
 

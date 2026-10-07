@@ -7,7 +7,7 @@ import { addItem, emptyInventory } from '@/sim/inventory';
 
 const ARMORS: ItemId[] = [
   'armor_bone', 'armor_iron', 'armor_moss', 'armor_ironbones', 'armor_mire', 'armor_hollow', 'armor_wood', 'armor_crystal',
-  'armor_leather', 'armor_steel', 'armor_mithril',
+  'armor_leather', 'armor_steel', 'armor_mithril', 'armor_frost', 'armor_ember', 'armor_tide', 'armor_sky',
 ];
 const GEAR: ItemId[] = [
   'cap_leather', 'helm_iron', 'helm_steel', 'helm_crystal', 'helm_mithril', 'boots_leather', 'boots_iron', 'boots_steel', 'boots_mithril',
@@ -16,7 +16,7 @@ const GEAR: ItemId[] = [
 
 describe('armour items', () => {
   it('are the body pieces and the helms, boots and charms, never stack, never wear out, and name a defence', () => {
-    expect(ITEM_IDS.filter((id) => ITEMS[id].armor)).toEqual([...ARMORS, ...GEAR]);
+    expect(ITEM_IDS.filter((id) => ITEMS[id].armor).sort()).toEqual([...ARMORS, ...GEAR].sort());
     for (const id of GEAR) {
       expect(ITEMS[id].stack, id).toBe(1);
       expect(ITEMS[id].armor!.slot, id).toBeDefined();

@@ -64,6 +64,10 @@ export function coldOf(season: Season, weather: Weather, night: boolean, biome: 
     cold += { clear: 0, cloudy: 0.05, rain: 0.4, storm: 0.7, fog: 0.15, snow: 0.8 }[weather];
   }
   if (biome === B.MOUNTAIN) cold += 0.35;
+  else if (biome === B.FROST) cold += 0.9;
+  else if (biome === B.VOLCANO) cold -= 1.1;
+  else if (biome === B.SKY) cold += 0.4;
+  else if (biome === B.WRECK) cold += 0.1;
   else if (biome === B.SWAMP) cold += 0.15;
   else if (biome === B.DESERT && !night) cold -= 0.6;
   return cold;

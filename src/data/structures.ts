@@ -1,6 +1,6 @@
 /** Things the player can build. `station` is the crafting station a structure provides, if any. */
 export type StructureId = 'campfire' | 'workbench' | 'furnace' | 'bed' | 'chest' | 'torch' | 'fence' | 'raft' | 'alchemy' | 'sign' | 'table' | 'stool' | 'lamp_post' | 'barrel' | 'anvil'
-  | 'wood_wall' | 'stone_wall' | 'wood_door' | 'wood_floor' | 'tent' | 'turret';
+  | 'wood_wall' | 'stone_wall' | 'wood_door' | 'wood_floor' | 'tent' | 'turret' | 'boat';
 
 /** Where a recipe can be crafted. `hand` is always available. */
 export type Station = 'hand' | 'campfire' | 'workbench' | 'furnace' | 'alchemy' | 'anvil';
@@ -52,6 +52,7 @@ export const STRUCTURES: Record<StructureId, StructureDef> = {
   wood_floor: { id: 'wood_floor', solid: false, frame: 'struct_wood_floor', light: 0, pickup: 'always', floor: true },
   tent: { id: 'tent', solid: true, frame: 'struct_tent', light: 0, pickup: 'tool', shelter: 3.5 },
   turret: { id: 'turret', solid: true, frame: 'struct_turret', light: 0, pickup: 'tool' },
+  boat: { id: 'boat', solid: true, frame: 'struct_boat', light: 0, pickup: 'tool' },
 };
 
 /** Number of slots in a chest. */

@@ -14,7 +14,7 @@ export const WADE_SPEED = 0.6;
 export function tileBlocked(world: World, solids: ReadonlySet<number>, tx: number, ty: number): boolean {
   if (!inBounds(tx, ty, world.size)) return true;
   const i = idx(tx, ty, world.size);
-  return world.terrain[i] === T.DEEP || world.terrain[i] === T.WALL || solids.has(i);
+  return world.terrain[i] === T.DEEP || world.terrain[i] === T.WALL || world.terrain[i] === T.LAVA || solids.has(i);
 }
 
 /** Can one point see the other: no wall, closed door or other solid tile on the straight line between them? */

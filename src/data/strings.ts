@@ -1,4 +1,5 @@
 import type { L10n } from '@/core/i18n';
+import { ISLAND_STRINGS } from './stringsIslands';
 import { PROGRESS_STRINGS } from './stringsProgress';
 import { SURVIVAL_STRINGS } from './stringsSurvival';
 
@@ -329,4 +330,4 @@ export const UI_STRINGS: Record<string, L10n> = {
   },
 };
 
-Object.assign(UI_STRINGS, PROGRESS_STRINGS, SURVIVAL_STRINGS);
+Object.assign(UI_STRINGS, PROGRESS_STRINGS, SURVIVAL_STRINGS, ISLAND_STRINGS);

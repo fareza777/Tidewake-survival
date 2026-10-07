@@ -11,8 +11,8 @@ describe('claimed reward', () => {
 });
 
 describe('dungeon progress', () => {
-  it('knows the four dungeons and starts each with nothing done', () => {
-    expect(DUNGEON_IDS).toEqual(['grotto', 'deepmine', 'ruin', 'lighthouse']);
+  it('knows the eight dungeons and starts each with nothing done', () => {
+    expect(DUNGEON_IDS).toEqual(['grotto', 'deepmine', 'ruin', 'lighthouse', 'frostcave', 'magmaforge', 'drownedcrypt', 'skyspire']);
     for (const id of DUNGEON_IDS) expect(emptyDungeons()[id]).toEqual({ opened: [], looted: [], solved: [], lit: [], boss: false });
     expect(emptyProgress()).not.toBe(emptyProgress());
   });

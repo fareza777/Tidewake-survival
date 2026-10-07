@@ -3,7 +3,7 @@ import { BOTTLES, TABLETS } from '@/data/lore';
 import { NPCS, NPC_IDS, type NpcId } from '@/data/npcs';
 import { nodesByTile, propSolidTiles } from '@/sim/solids';
 import type { QuestState } from '@/sim/quests';
-import { B, T, idx, inBounds, type World } from './types';
+import { B, GROUND, T, idx, inBounds, type World } from './types';
 
 /** Things lying about the island that the hero can use: a lost cat, bottles on the beach, old tablets, buried treasure. */
 export type SpotKind = 'cat' | 'bottle' | 'tablet' | 'treasure';
@@ -22,7 +22,6 @@ export interface NpcPlace {
   y: number;
 }
 
-export const GROUND: ReadonlySet<number> = new Set([T.SAND, T.GRASS, T.DIRT, T.STONE, T.DESERT, T.SWAMP]);
 const dist = (ax: number, ay: number, bx: number, by: number): number => Math.hypot(ax - bx, ay - by);
 
 /** Tiles where nothing may be put: scenery, trees and rocks. */

@@ -12,8 +12,8 @@ function world(size: number, base: number, patches: readonly [number, number, nu
 }
 
 describe('ground layers', () => {
-  it('stack from deep water up to stone and treat rivers like shallow water', () => {
-    expect(GROUND_LAYERS.map(layerOf)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+  it('stack from deep water up to lava and treat rivers like shallow water', () => {
+    expect(GROUND_LAYERS.map(layerOf)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     expect(layerOf(T.RIVER)).toBe(layerOf(T.SHALLOW));
     expect(layerOf(T.FLOOR)).toBe(0);
   });

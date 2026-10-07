@@ -26,4 +26,9 @@ export const NODE_NEED: Record<ResourceKind, NodeNeed> = {
   ore: { tool: 'pickaxe', minTier: 2 },
   crystal: { tool: 'pickaxe', minTier: 3 },
   mithril: { tool: 'pickaxe', minTier: 4 },
+  pine: { tool: 'axe', minTier: 0 },
+  icerock: { tool: 'pickaxe', minTier: 0 },
+  ashrock: { tool: 'pickaxe', minTier: 0 },
+  coalvein: { tool: 'pickaxe', minTier: 2 },
+  driftwood: { tool: 'axe', minTier: 0 },
 };

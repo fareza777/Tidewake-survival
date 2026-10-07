@@ -36,8 +36,8 @@ describe('floor and wall terrain', () => {
 });
 
 describe('dungeon tiles', () => {
-  it('has three themes with four floor tiles, a wall face and a wall top each, all packed', () => {
-    expect(DUNGEON_THEMES).toEqual(['moss', 'mine', 'ruin']);
+  it('has seven themes with four floor tiles, a wall face and a wall top each, all packed', () => {
+    expect(DUNGEON_THEMES).toEqual(['moss', 'mine', 'ruin', 'ice', 'magma', 'bone', 'void']);
     for (const theme of DUNGEON_THEMES) {
       const t = themeTiles(theme);
       expect(t[T.FLOOR].length, theme).toBe(4);

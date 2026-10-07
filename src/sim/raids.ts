@@ -6,7 +6,7 @@ import type { Encounters } from '@/sim/encounters';
 import { bodyBlocked, type Vec } from '@/sim/movement';
 import type { Structures } from '@/sim/structures';
 import type { Difficulty } from '@/sim/vitals';
-import { T, idx, inBounds, type Biome, type World } from '@/sim/world/types';
+import { GROUND, idx, inBounds, type Biome, type World } from '@/sim/world/types';
 
 /** How much each kind of structure counts toward the size of a camp (floors and signs are decoration). */
 const WEIGHT: Partial<Record<StructureId, number>> = {
@@ -50,7 +50,6 @@ export function raidFor(seed: number, day: number, difficulty: Difficulty, camp:
   return Array.from({ length: count }, () => rng.weighted(hostile));
 }
 
-const GROUND: ReadonlySet<number> = new Set([T.SAND, T.GRASS, T.SWAMP, T.DIRT, T.STONE, T.DESERT]);
 const RING_MIN = 9;
 const RING_MAX = 14;
 

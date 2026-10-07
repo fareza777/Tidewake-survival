@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { LANDMARK_PROPS } from '@/data/landmarkProps';
-import { resourceFrame } from '@/data/resources';
+import { RESOURCES, resourceFrame } from '@/data/resources';
 import { TILE } from '@/gfx/TerrainLayer';
 import type { ResourceKind, World } from '@/sim/world/types';
 
@@ -10,7 +10,7 @@ import type { ResourceKind, World } from '@/sim/world/types';
  */
 /** Width (world pixels) of the soft ground shadow under each kind of node. */
 const SHADOW_WIDTH: Record<ResourceKind, number> = {
-  tree: 46, palm: 30, bush: 26, rock: 28, ore: 28, crystal: 24, swamptree: 46, redrock: 26, mithril: 26,
+  tree: 46, palm: 30, bush: 26, rock: 28, ore: 28, crystal: 24, swamptree: 46, redrock: 26, mithril: 26, pine: 44, icerock: 28, ashrock: 28, coalvein: 28, driftwood: 22,
 };
 
 export class WorldObjects {
@@ -23,6 +23,8 @@ export class WorldObjects {
       const x = (n.x + 0.5) * TILE;
       const y = (n.y + 1) * TILE - 1;
       const img = scene.add.image(x, y, 'props', resourceFrame(n.kind, n.variant)).setOrigin(0.5, 1).setDepth(y);
+      const tint = RESOURCES[n.kind].tint;
+      if (tint !== undefined) img.setTint(tint);
       this.sprites.set(n.id, img);
       this.kinds.set(n.id, n.kind);
       const w = SHADOW_WIDTH[n.kind];
@@ -34,6 +36,7 @@ export class WorldObjects {
         const y = (l.y + p.dy + 1) * TILE - 1;
         const obj = p.anim ? scene.add.sprite(x, y, 'props', p.frame).play(p.anim) : scene.add.image(x, y, 'props', p.frame);
         obj.setOrigin(0.5, 1).setDepth(y);
+        if (p.tint !== undefined) obj.setTint(p.tint);
       }
     }
   }

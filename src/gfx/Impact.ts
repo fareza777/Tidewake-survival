@@ -21,9 +21,9 @@ export type ImpactKind = keyof typeof LOOKS;
 /** What flies off each kind of resource when the hero strikes it. */
 export function impactOf(kind: ResourceKind | undefined): ImpactKind {
   switch (kind) {
-    case 'tree': case 'palm': case 'swamptree': return 'wood';
+    case 'tree': case 'palm': case 'swamptree': case 'pine': case 'driftwood': return 'wood';
     case 'bush': return 'leaf';
-    case 'ore': case 'crystal': case 'mithril': return 'ore';
+    case 'ore': case 'crystal': case 'mithril': case 'coalvein': return 'ore';
     default: return 'stone';
   }
 }

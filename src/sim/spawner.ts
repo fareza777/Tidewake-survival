@@ -4,7 +4,7 @@ import { STRUCTURES } from '@/data/structures';
 import { newCreature, type Creature } from '@/sim/creatures';
 import { bodyBlocked, type Vec } from '@/sim/movement';
 import type { Structures } from '@/sim/structures';
-import { T, idx, inBounds, type Biome, type World } from '@/sim/world/types';
+import { GROUND, idx, inBounds, type Biome, type World } from '@/sim/world/types';
 
 /** New creatures appear this far from the hero (tiles): beyond the edge of a portrait screen, but not far away. */
 export const SPAWN_MIN = 12;
@@ -36,8 +36,6 @@ export interface SpawnContext {
   nextId: number;
   rng: Rng;
 }
-
-const GROUND: ReadonlySet<number> = new Set([T.SAND, T.GRASS, T.SWAMP, T.DIRT, T.STONE, T.DESERT]);
 
 /** Monsters keep away from the starting beach and from anything that gives light (campfires, torches, furnaces). */
 export function hostileSpotOk(world: World, structures: Structures, x: number, y: number): boolean {

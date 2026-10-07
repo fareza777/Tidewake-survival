@@ -113,6 +113,8 @@ export const RECIPES: readonly Recipe[] = [
   r('wood_floor', 4, [['plank', 2]], 'workbench'),
   r('tent', 1, [['hide', 6], ['plank', 2], ['rope', 3], ['fiber', 6]], 'workbench', 2),
   r('turret', 1, [['plank', 6], ['iron_ingot', 4], ['rope', 3]], 'workbench', 4),
+  // The way to the other islands
+  r('boat', 1, [['plank', 16], ['rope', 6], ['sailcloth', 2]], 'workbench', 4),
   // Warm and strong
   r('warm_stew', 1, [['raw_meat', 1], ['carrot', 1], ['pumpkin', 1]], 'campfire'),
   r('potion_strength', 1, [['gel', 2], ['honey', 1], ['crystal', 1]], 'alchemy', 3),

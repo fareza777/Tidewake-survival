@@ -19,10 +19,13 @@ export const GROUND_TILES: Record<Terrain, Weighted> = {
   [T.DESERT]: [['desert.0', 10], ['desert.1', 3], ['desert.2', 3], ['desert.3', 3]],
   [T.FLOOR]: [['floor.mine.0', 10], ['floor.mine.1', 3], ['floor.mine.2', 3], ['floor.mine.3', 2]],
   [T.WALL]: [['walltop.mine', 1]],
+  [T.SNOW]: [['snow.0', 10], ['snow.1', 3], ['snow.2', 3], ['snow.3', 3]],
+  [T.ASH]: [['ash.0', 10], ['ash.1', 3], ['ash.2', 3], ['ash.3', 3]],
+  [T.LAVA]: [['lava.0', 10], ['lava.1', 3], ['lava.2', 3], ['lava.3', 3]],
 };
 
 /** Looks of the three dungeons: mossy grotto, brown mine, sandstone ruin. */
-export const DUNGEON_THEMES = ['moss', 'mine', 'ruin'] as const;
+export const DUNGEON_THEMES = ['moss', 'mine', 'ruin', 'ice', 'magma', 'bone', 'void'] as const;
 export type DungeonTheme = (typeof DUNGEON_THEMES)[number];
 
 /** Floor and wall tiles of one dungeon theme. */

@@ -1,7 +1,7 @@
 import type { Rng } from '@/core/rng';
 import type { Vec } from '@/sim/movement';
-import { GROUND, type NpcPlace } from './spots';
-import { idx, inBounds, type World } from './types';
+import type { NpcPlace } from './spots';
+import { GROUND, idx, inBounds, type World } from './types';
 
 /** How far an islander strolls from where they live (tiles), and how close to the hero they may step. */
 export const WANDER_RADIUS = 2;

@@ -7,11 +7,12 @@ import { T, idx, inBounds, type World } from '@/sim/world/types';
  */
 
 /** Ground kinds from the bottom layer to the top one; a higher layer paints over the lower ones. */
-export const GROUND_LAYERS = [T.DEEP, T.SHALLOW, T.SAND, T.DESERT, T.DIRT, T.SWAMP, T.GRASS, T.STONE] as const;
+export const GROUND_LAYERS = [T.DEEP, T.SHALLOW, T.SAND, T.DESERT, T.DIRT, T.SWAMP, T.GRASS, T.STONE, T.SNOW, T.ASH, T.LAVA] as const;
 export const LAYER_COUNT = GROUND_LAYERS.length;
 
 const LAYER_OF: Record<number, number> = {
   [T.DEEP]: 0, [T.SHALLOW]: 1, [T.RIVER]: 1, [T.SAND]: 2, [T.DESERT]: 3, [T.DIRT]: 4, [T.SWAMP]: 5, [T.GRASS]: 6, [T.STONE]: 7,
+  [T.SNOW]: 8, [T.ASH]: 9, [T.LAVA]: 10,
 };
 
 /** Layer a terrain belongs to (dungeon floors and walls are not blended and count as the lowest). */
