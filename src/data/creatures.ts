@@ -74,41 +74,41 @@ export const CREATURES: Record<CreatureId, CreatureDef> = {
   skeleton_warrior: { ...enemy('skeleton_warrior', 24, 1.6, 16, 7, 0.45, 1.3, monster('m05_3'), [{ item: 'bone', min: 1, max: 3 }, { item: 'iron_ore', min: 1, max: 1, chance: 0.3 }], { biomes: [DESERT], weight: 5, when: 'night' }), reach: 1 },
 
   // Frostfang
-  frostslime: enemy('frostslime', 24, 1.2, 14, 5, 0.3, 1.2, monster('m01_7'), [{ item: 'gel', min: 1, max: 2 }, { item: 'crystal', min: 1, max: 1, chance: 0.08 }], { biomes: [FROST], weight: 10, when: 'any' }),
-  snowghost: enemy('snowghost', 26, 1.5, 17, 7, 0.35, 1.3, monster('m02_5'), [{ item: 'crystal', min: 1, max: 1, chance: 0.2 }, { item: 'gel', min: 1, max: 1, chance: 0.4 }], { biomes: [FROST], weight: 6, when: 'night' }),
-  icebone: enemy('icebone', 32, 1.6, 18, 7, 0.4, 1.2, monster('m05_1'), [{ item: 'bone', min: 1, max: 3 }, { item: 'steel_ingot', min: 1, max: 1, chance: 0.08 }], { biomes: [FROST], weight: 7, when: 'any' }),
-  frostharpy: enemy('frostharpy', 20, 2.4, 15, 8, 0.3, 1, monster('bonus_4', 'down'), [{ item: 'hide', min: 1, max: 1, chance: 0.5 }, { item: 'raw_meat', min: 1, max: 1, chance: 0.5 }], { biomes: [FROST], weight: 5, when: 'day' }),
+  frostslime: enemy('frostslime', 24, 1.2, 26, 5, 0.3, 1.2, monster('m01_7'), [{ item: 'gel', min: 1, max: 2 }, { item: 'crystal', min: 1, max: 1, chance: 0.08 }], { biomes: [FROST], weight: 10, when: 'any' }),
+  snowghost: enemy('snowghost', 26, 1.5, 30, 7, 0.35, 1.3, monster('m02_5'), [{ item: 'crystal', min: 1, max: 1, chance: 0.2 }, { item: 'gel', min: 1, max: 1, chance: 0.4 }], { biomes: [FROST], weight: 6, when: 'night' }),
+  icebone: enemy('icebone', 32, 1.6, 32, 7, 0.4, 1.2, monster('m05_1'), [{ item: 'bone', min: 1, max: 3 }, { item: 'steel_ingot', min: 1, max: 1, chance: 0.08 }], { biomes: [FROST], weight: 7, when: 'any' }),
+  frostharpy: enemy('frostharpy', 20, 2.4, 28, 8, 0.3, 1, monster('bonus_4', 'down'), [{ item: 'hide', min: 1, max: 1, chance: 0.5 }, { item: 'raw_meat', min: 1, max: 1, chance: 0.5 }], { biomes: [FROST], weight: 5, when: 'day' }),
   // Emberhold
-  emberslime: enemy('emberslime', 26, 1.2, 16, 5, 0.3, 1.2, monster('m01_2'), [{ item: 'gel', min: 1, max: 2 }, { item: 'coal', min: 1, max: 2, chance: 0.5 }], { biomes: [VOLCANO], weight: 10, when: 'any' }),
-  flamewisp: enemy('flamewisp', 22, 1.9, 19, 7, 0.3, 1.2, monster('m02_7'), [{ item: 'coal', min: 1, max: 1, chance: 0.6 }, { item: 'crystal', min: 1, max: 1, chance: 0.12 }], { biomes: [VOLCANO], weight: 6, when: 'any' }),
-  lavacrab: { ...enemy('lavacrab', 40, 1.4, 22, 6, 0.5, 1.5, monster('m04_6'), [{ item: 'coal', min: 1, max: 3 }, { item: 'iron_ore', min: 1, max: 1, chance: 0.4 }, { item: 'mithril_ore', min: 1, max: 1, chance: 0.1 }], { biomes: [VOLCANO], weight: 6, when: 'any' }), radius: 0.4 },
-  ashimp: enemy('ashimp', 28, 2, 19, 7, 0.3, 1.1, monster('bonus_0', 'down'), [{ item: 'coal', min: 1, max: 1, chance: 0.5 }, { item: 'bone', min: 1, max: 1, chance: 0.4 }], { biomes: [VOLCANO], weight: 5, when: 'night' }),
+  emberslime: enemy('emberslime', 26, 1.2, 34, 5, 0.3, 1.2, monster('m01_2'), [{ item: 'gel', min: 1, max: 2 }, { item: 'coal', min: 1, max: 2, chance: 0.5 }], { biomes: [VOLCANO], weight: 10, when: 'any' }),
+  flamewisp: enemy('flamewisp', 22, 1.9, 38, 7, 0.3, 1.2, monster('m02_7'), [{ item: 'coal', min: 1, max: 1, chance: 0.6 }, { item: 'crystal', min: 1, max: 1, chance: 0.12 }], { biomes: [VOLCANO], weight: 6, when: 'any' }),
+  lavacrab: { ...enemy('lavacrab', 40, 1.4, 42, 6, 0.5, 1.5, monster('m04_6'), [{ item: 'coal', min: 1, max: 3 }, { item: 'iron_ore', min: 1, max: 1, chance: 0.4 }, { item: 'mithril_ore', min: 1, max: 1, chance: 0.1 }], { biomes: [VOLCANO], weight: 6, when: 'any' }), radius: 0.4 },
+  ashimp: enemy('ashimp', 28, 2, 38, 7, 0.3, 1.1, monster('bonus_0', 'down'), [{ item: 'coal', min: 1, max: 1, chance: 0.5 }, { item: 'bone', min: 1, max: 1, chance: 0.4 }], { biomes: [VOLCANO], weight: 5, when: 'night' }),
   // Bonepool
-  drowned: enemy('drowned', 42, 1.1, 22, 6, 0.5, 1.5, monster('m02_1'), [{ item: 'bone', min: 1, max: 2 }, { item: 'fiber', min: 1, max: 2, chance: 0.5 }], { biomes: [WRECK], weight: 9, when: 'any' }),
-  bonecrab: { ...enemy('bonecrab', 44, 1.7, 24, 6, 0.4, 1.3, monster('m04_4'), [{ item: 'raw_meat', min: 1, max: 2 }, { item: 'bone', min: 1, max: 2 }, { item: 'mithril_ore', min: 1, max: 1, chance: 0.12 }], { biomes: [WRECK], weight: 7, when: 'any' }), radius: 0.4 },
-  pirate: { ...enemy('pirate', 48, 1.6, 26, 7, 0.45, 1.3, monster('m05_4'), [{ item: 'bone', min: 1, max: 2 }, { item: 'steel_ingot', min: 1, max: 1, chance: 0.12 }, { item: 'rope', min: 1, max: 2, chance: 0.5 }], { biomes: [WRECK], weight: 6, when: 'night' }), reach: 1 },
-  pirate_blue: { ...enemy('pirate_blue', 44, 1.7, 28, 7, 0.4, 1.2, monster('m05_5'), [{ item: 'bone', min: 1, max: 2 }, { item: 'crystal', min: 1, max: 1, chance: 0.2 }], { biomes: [WRECK, SKY], weight: 4, when: 'night' }), reach: 1 },
+  drowned: enemy('drowned', 42, 1.1, 38, 6, 0.5, 1.5, monster('m02_1'), [{ item: 'bone', min: 1, max: 2 }, { item: 'fiber', min: 1, max: 2, chance: 0.5 }], { biomes: [WRECK], weight: 9, when: 'any' }),
+  bonecrab: { ...enemy('bonecrab', 44, 1.7, 42, 6, 0.4, 1.3, monster('m04_4'), [{ item: 'raw_meat', min: 1, max: 2 }, { item: 'bone', min: 1, max: 2 }, { item: 'mithril_ore', min: 1, max: 1, chance: 0.12 }], { biomes: [WRECK], weight: 7, when: 'any' }), radius: 0.4 },
+  pirate: { ...enemy('pirate', 48, 1.6, 44, 7, 0.45, 1.3, monster('m05_4'), [{ item: 'bone', min: 1, max: 2 }, { item: 'steel_ingot', min: 1, max: 1, chance: 0.12 }, { item: 'rope', min: 1, max: 2, chance: 0.5 }], { biomes: [WRECK], weight: 6, when: 'night' }), reach: 1 },
+  pirate_blue: { ...enemy('pirate_blue', 44, 1.7, 46, 7, 0.4, 1.2, monster('m05_5'), [{ item: 'bone', min: 1, max: 2 }, { item: 'crystal', min: 1, max: 1, chance: 0.2 }], { biomes: [WRECK, SKY], weight: 4, when: 'night' }), reach: 1 },
   // Skyreach
-  stormghost: enemy('stormghost', 52, 1.7, 28, 8, 0.35, 1.2, monster('m02_6'), [{ item: 'crystal', min: 1, max: 1, chance: 0.3 }, { item: 'mithril_ore', min: 1, max: 1, chance: 0.1 }], { biomes: [SKY], weight: 8, when: 'any' }),
-  gargoyle: { ...enemy('gargoyle', 80, 1.2, 34, 7, 0.6, 1.6, monster('m04_1'), [{ item: 'stone', min: 2, max: 4 }, { item: 'crystal', min: 1, max: 2, chance: 0.4 }, { item: 'mithril_ore', min: 1, max: 1, chance: 0.2 }], { biomes: [SKY], weight: 5, when: 'any' }), radius: 0.45 },
+  stormghost: enemy('stormghost', 52, 1.7, 44, 8, 0.35, 1.2, monster('m02_6'), [{ item: 'crystal', min: 1, max: 1, chance: 0.3 }, { item: 'mithril_ore', min: 1, max: 1, chance: 0.1 }], { biomes: [SKY], weight: 8, when: 'any' }),
+  gargoyle: { ...enemy('gargoyle', 80, 1.2, 52, 7, 0.6, 1.6, monster('m04_1'), [{ item: 'stone', min: 2, max: 4 }, { item: 'crystal', min: 1, max: 2, chance: 0.4 }, { item: 'mithril_ore', min: 1, max: 1, chance: 0.2 }], { biomes: [SKY], weight: 5, when: 'any' }), radius: 0.45 },
 
   mossback: boss('mossback', 140, 1.6, 12, 'm04_2', [{ item: 'compass', min: 1, max: 1 }, { item: 'armor_moss', min: 1, max: 1 }]),
   ironbones: boss('ironbones', 160, 1.7, 14, 'm04_3', [{ item: 'hull_planks', min: 1, max: 1 }, { item: 'armor_ironbones', min: 1, max: 1 }]),
   mirelord: boss('mirelord', 180, 1.5, 9, 'm04_0', [{ item: 'lighthouse_key', min: 1, max: 1 }, { item: 'armor_mire', min: 1, max: 1 }]),
   glacierking: {
-    ...boss('glacierking', 320, 1.5, 20, 'm04_1', [{ item: 'frost_sigil', min: 1, max: 1 }, { item: 'armor_frost', min: 1, max: 1 }]),
+    ...boss('glacierking', 320, 1.5, 34, 'm04_1', [{ item: 'frost_sigil', min: 1, max: 1 }, { item: 'armor_frost', min: 1, max: 1 }]),
     sprite: { ...monster('m04_1'), scale: 1.7, tint: 0x9fe0ff }, radius: 0.75,
   },
   forgeheart: {
-    ...boss('forgeheart', 360, 1.5, 22, 'm04_6', [{ item: 'ember_sigil', min: 1, max: 1 }, { item: 'armor_ember', min: 1, max: 1 }]),
+    ...boss('forgeheart', 360, 1.5, 38, 'm04_6', [{ item: 'ember_sigil', min: 1, max: 1 }, { item: 'armor_ember', min: 1, max: 1 }]),
     sprite: { ...monster('m04_6'), scale: 1.9 }, radius: 0.8,
   },
   drownedqueen: {
-    ...boss('drownedqueen', 400, 1.5, 24, 'm04_4', [{ item: 'tide_sigil', min: 1, max: 1 }, { item: 'armor_tide', min: 1, max: 1 }]),
+    ...boss('drownedqueen', 400, 1.5, 42, 'm04_4', [{ item: 'tide_sigil', min: 1, max: 1 }, { item: 'armor_tide', min: 1, max: 1 }]),
     sprite: { ...monster('m04_4'), scale: 1.8, tint: 0x8ff0d0 }, radius: 0.8,
   },
   stormtitan: {
-    ...boss('stormtitan', 520, 1.6, 28, 'm04_1', [{ item: 'sky_sigil', min: 1, max: 1 }, { item: 'armor_sky', min: 1, max: 1 }]),
+    ...boss('stormtitan', 520, 1.6, 44, 'm04_1', [{ item: 'sky_sigil', min: 1, max: 1 }, { item: 'armor_sky', min: 1, max: 1 }]),
     sprite: { ...monster('m04_1'), scale: 2, tint: 0xffe08a }, radius: 0.9,
   },
   hollowkeeper: {

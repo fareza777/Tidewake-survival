@@ -62,29 +62,29 @@ export const BOSSES: Record<BossId, BossDef> = {
   glacierking: {
     id: 'glacierking', summon: 'frostslime', phase2Below: 0.5,
     phases: [
-      { speed: 1, moves: [move('slam', 0.6, 1, [0, 2.4], 22), move('fan', 0.7, 1.1, [3, 10], 13, 5), move('charge', 0.9, 1.3, [3, 9], 22)] },
-      { speed: 1.3, moves: [move('slam', 0.45, 0.8, [0, 2.6], 26), move('ring', 0.9, 1.2, [0, 12], 13, 12), move('charge', 0.7, 1, [3, 10], 24), move('summon', 0.8, 1.4, [0, 99], 0, 3)] },
+      { speed: 1, moves: [move('slam', 0.6, 1, [0, 2.4], 30), move('fan', 0.7, 1.1, [3, 10], 18, 5), move('charge', 0.9, 1.3, [3, 9], 30)] },
+      { speed: 1.3, moves: [move('slam', 0.45, 0.8, [0, 2.6], 34), move('ring', 0.9, 1.2, [0, 12], 18, 12), move('charge', 0.7, 1, [3, 10], 32), move('summon', 0.8, 1.4, [0, 99], 0, 3)] },
     ],
   },
   forgeheart: {
     id: 'forgeheart', summon: 'emberslime', phase2Below: 0.5,
     phases: [
-      { speed: 1.05, moves: [move('charge', 0.8, 1.2, [3, 10], 24), move('fan', 0.6, 1, [3, 11], 14, 5), move('slam', 0.5, 0.9, [0, 2.6], 24)] },
-      { speed: 1.35, moves: [move('fan', 0.5, 0.8, [3, 11], 15, 9), move('ring', 0.8, 1, [0, 12], 14, 14), move('charge', 0.6, 0.9, [3, 10], 26), move('summon', 0.7, 1.2, [0, 99], 0, 3)] },
+      { speed: 1.05, moves: [move('charge', 0.8, 1.2, [3, 10], 32), move('fan', 0.6, 1, [3, 11], 20, 5), move('slam', 0.5, 0.9, [0, 2.6], 30)] },
+      { speed: 1.35, moves: [move('fan', 0.5, 0.8, [3, 11], 22, 9), move('ring', 0.8, 1, [0, 12], 20, 14), move('charge', 0.6, 0.9, [3, 10], 36), move('summon', 0.7, 1.2, [0, 99], 0, 3)] },
     ],
   },
   drownedqueen: {
     id: 'drownedqueen', summon: 'drowned', phase2Below: 0.5,
     phases: [
-      { speed: 1.05, moves: [move('fan', 0.75, 1, [4, 12], 15, 7), move('ring', 0.95, 1.3, [0, 12], 14, 12), move('slam', 0.55, 0.9, [0, 2.4], 24)] },
-      { speed: 1.3, moves: [move('fan', 0.55, 0.8, [4, 12], 16, 9), move('ring', 0.8, 1.1, [0, 12], 15, 16), move('summon', 0.8, 1.3, [0, 99], 0, 3), move('charge', 0.65, 1, [3, 10], 26)] },
+      { speed: 1.05, moves: [move('fan', 0.75, 1, [4, 12], 22, 7), move('ring', 0.95, 1.3, [0, 12], 22, 12), move('slam', 0.55, 0.9, [0, 2.4], 36)] },
+      { speed: 1.3, moves: [move('fan', 0.55, 0.8, [4, 12], 24, 9), move('ring', 0.8, 1.1, [0, 12], 24, 16), move('summon', 0.8, 1.3, [0, 99], 0, 3), move('charge', 0.65, 1, [3, 10], 42)] },
     ],
   },
   stormtitan: {
     id: 'stormtitan', summon: 'stormghost', phase2Below: 0.5,
     phases: [
-      { speed: 1.1, moves: [move('slam', 0.55, 0.9, [0, 2.8], 30), move('fan', 0.6, 0.9, [3, 12], 17, 7), move('charge', 0.75, 1.1, [3, 10], 28)] },
-      { speed: 1.4, moves: [move('slam', 0.4, 0.7, [0, 3], 34), move('ring', 0.75, 0.9, [0, 13], 17, 18), move('fan', 0.45, 0.7, [3, 12], 18, 11), move('summon', 0.7, 1.1, [0, 99], 0, 4), move('charge', 0.55, 0.8, [3, 11], 30)] },
+      { speed: 1.1, moves: [move('slam', 0.55, 0.9, [0, 2.8], 40), move('fan', 0.6, 0.9, [3, 12], 26, 7), move('charge', 0.75, 1.1, [3, 10], 42)] },
+      { speed: 1.4, moves: [move('slam', 0.4, 0.7, [0, 3], 44), move('ring', 0.75, 0.9, [0, 13], 28, 18), move('fan', 0.45, 0.7, [3, 12], 28, 11), move('summon', 0.7, 1.1, [0, 99], 0, 4), move('charge', 0.55, 0.8, [3, 11], 44)] },
     ],
   },
   mirelord: {

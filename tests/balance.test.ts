@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { BOSSES } from '@/data/bosses';
-import { CREATURES } from '@/data/creatures';
+import { CREATURES, CREATURE_IDS } from '@/data/creatures';
 import type { BossId } from '@/data/dungeons';
 import { DUNGEONS } from '@/data/dungeons';
 import { ITEMS, ITEM_IDS, type ItemId } from '@/data/items';
 import { DAY_SECONDS } from '@/sim/daynight';
 import { DIFFICULTY_DAMAGE, enemyDamage } from '@/sim/combat';
+import { B } from '@/sim/world/types';
 import { HUNGER_RATE, REGEN_RATE, STARVE_DAMAGE, THIRST_RATE, VITAL_MAX } from '@/sim/vitals';
 
 /** Guard rails for the numbers that decide how the game feels. They are loose on purpose: they catch a typo, not a taste. */
@@ -63,7 +64,7 @@ describe('bosses', () => {
   const BEST: Record<BossId, ItemId> = { mossback: 'sword_stone', ironbones: 'sword_iron', mirelord: 'sword_iron', hollowkeeper: 'sword_iron',
     glacierking: 'sword_steel', forgeheart: 'sword_steel', drownedqueen: 'sword_mithril', stormtitan: 'sword_mithril',
   };
-  const ARMOUR: Record<BossId, number> = { mossback: 0, ironbones: 3, mirelord: 5, hollowkeeper: 7, glacierking: 8, forgeheart: 9, drownedqueen: 11, stormtitan: 12 };
+  const ARMOUR: Record<BossId, number> = { mossback: 0, ironbones: 3, mirelord: 5, hollowkeeper: 7, glacierking: 17, forgeheart: 18, drownedqueen: 22, stormtitan: 24 };
 
   it('fall to continuous blows in half a minute at most and no faster than a few seconds, even before dodging is counted', () => {
     for (const id of bosses) {
@@ -107,5 +108,27 @@ describe('difficulty', () => {
     expect(DIFFICULTY_DAMAGE.relaxed).toBeLessThan(DIFFICULTY_DAMAGE.normal);
     expect(DIFFICULTY_DAMAGE.normal).toBeLessThan(DIFFICULTY_DAMAGE.hardcore);
     expect(enemyDamage(10, 'relaxed')).toBeLessThan(enemyDamage(10, 'hardcore'));
+  });
+});
+
+describe('far island creatures', () => {
+  /** The armour the hero has when he sails there (a steel set, the frost plate, a mithril set, the tide plate and mithril). */
+  const ARMOUR_BY_BIOME: Record<number, number> = { [B.FROST]: 14, [B.VOLCANO]: 17, [B.WRECK]: 21, [B.SKY]: 24 };
+
+  it('hurt a hero in the armour that is meant for the island enough to matter, but never to end him in three blows', () => {
+    for (const [biome, defense] of Object.entries(ARMOUR_BY_BIOME)) {
+      for (const id of CREATURE_IDS) {
+        const c = CREATURES[id];
+        if (c.temper === 'boss' || !c.spawn.biomes.includes(Number(biome) as never)) continue;
+        const taken = enemyDamage(c.damage, 'normal', defense);
+        expect(taken, `${id} on biome ${biome}`).toBeGreaterThanOrEqual(6);
+        expect(Math.ceil(VITAL_MAX / taken), `${id} on biome ${biome}`).toBeGreaterThanOrEqual(4);
+      }
+    }
+  });
+
+  it('are tougher than anything the home island has', () => {
+    const home = Math.max(...CREATURE_IDS.filter((id) => CREATURES[id].temper === 'chase' && CREATURES[id].spawn.biomes.some((b) => b <= B.DESERT)).map((id) => CREATURES[id].damage));
+    for (const id of ['frostslime', 'emberslime', 'drowned', 'stormghost'] as const) expect(CREATURES[id].damage, id).toBeGreaterThan(home);
   });
 });
