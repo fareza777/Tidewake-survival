@@ -8,8 +8,11 @@ const weapons = ITEM_IDS.filter((id) => ITEMS[id].weapon);
 const recipe = (out: ItemId) => RECIPES.find((r) => r.out === out)!;
 
 describe('weapons', () => {
-  it('are four swords, three spears and two bows', () => {
-    expect(weapons).toEqual(['sword_wood', 'sword_stone', 'sword_iron', 'spear_bone', 'bow', 'spear_wood', 'spear_iron', 'bow_long', 'sword_crystal']);
+  it('are six swords, four spears and two bows', () => {
+    expect(weapons).toEqual([
+      'sword_wood', 'sword_stone', 'sword_iron', 'spear_bone', 'bow', 'spear_wood', 'spear_iron', 'bow_long', 'sword_crystal',
+      'sword_steel', 'sword_mithril', 'spear_steel',
+    ]);
   });
 
   it('never stack, wear out, and have positive stats', () => {

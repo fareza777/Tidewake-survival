@@ -16,7 +16,16 @@ export type ItemId =
   | 'veggie_stew' | 'fish_stew' | 'berry_jam' | 'smoked_meat' | 'roasted_turnip' | 'pumpkin_pie' | 'sweet_drink'
   | 'healing_potion' | 'great_healing_potion' | 'stamina_tonic' | 'armor_wood' | 'armor_crystal'
   | 'spear_wood' | 'spear_iron' | 'bow_long' | 'sword_crystal'
-  | 'salve' | 'alchemy' | 'sign' | 'table' | 'stool' | 'lamp_post' | 'barrel';
+  | 'salve' | 'alchemy' | 'sign' | 'table' | 'stool' | 'lamp_post' | 'barrel'
+  | 'coal' | 'steel_ingot' | 'mithril_ore' | 'mithril_ingot' | 'hide' | 'anvil'
+  | 'axe_steel' | 'pickaxe_steel' | 'axe_mithril' | 'pickaxe_mithril' | 'sword_steel' | 'sword_mithril' | 'spear_steel'
+  | 'armor_leather' | 'armor_steel' | 'armor_mithril'
+  | 'cap_leather' | 'helm_iron' | 'helm_steel' | 'helm_crystal' | 'helm_mithril'
+  | 'boots_leather' | 'boots_iron' | 'boots_steel' | 'boots_mithril'
+  | 'ring_might' | 'ring_swift' | 'amulet_vigor' | 'amulet_fortune' | 'amulet_warmth';
+
+/** Where a piece of gear is worn. */
+export type GearSlot = 'armor' | 'helm' | 'boots' | 'charm';
 
 export type ToolType = 'axe' | 'pickaxe' | 'hoe' | 'can' | 'sword' | 'spear' | 'bow' | 'shovel' | 'rod';
 
@@ -46,16 +55,21 @@ export interface ItemDef {
   stack: number;
   icon: IconRef;
   /** Tools wear out: `durability` uses. A watering can instead holds `durability` charges of water. */
-  tool?: { type: ToolType; tier: 1 | 2 | 3; durability: number };
+  tool?: { type: ToolType; tier: Tier; durability: number };
   weapon?: WeaponStats;
-  /** Worn in the armour slot: every blow from a creature is cut by `defense` points. */
-  armor?: { defense: number };
+  /**
+   * Worn gear. `defense` cuts every blow from a creature; `slot` is where it goes (body armour when absent); the rest are small
+   * bonuses: walking speed and damage as fractions (0.05 = 5%), warmth against the cold, stamina recovered a second, and luck.
+   */
+  armor?: { defense: number; slot?: GearSlot; speed?: number; damage?: number; warmth?: number; regen?: number; luck?: number };
   /** Never lost to the death penalty: keys, story items and the armour bosses leave behind. */
   keep?: true;
   food?: { hunger: number; thirst: number; hp: number; stamina?: number };
   place?: StructureId;
   seed?: CropId;
 }
+
+export type Tier = 1 | 2 | 3 | 4 | 5;
 
 const icons = (frame: string): IconRef => ({ atlas: 'icons', frame });
 const pack = (frame: string): IconRef => ({ atlas: 'props', frame });
@@ -65,14 +79,17 @@ const food = (id: ItemId, icon: IconRef, hunger: number, thirst: number, hp: num
   id, stack: 20, icon, food: { hunger, thirst, hp },
 });
 const seed = (id: ItemId, crop: CropId): ItemDef => ({ id, stack: 50, icon: icons(id), seed: crop });
-const tool = (id: ItemId, type: ToolType, tier: 1 | 2 | 3, durability: number): ItemDef => ({
+const tool = (id: ItemId, type: ToolType, tier: Tier, durability: number): ItemDef => ({
   id, stack: 1, icon: icons(id), tool: { type, tier, durability },
 });
-const weapon = (id: ItemId, type: 'sword' | 'spear' | 'bow', tier: 1 | 2 | 3, durability: number, stats: WeaponStats): ItemDef => ({
+const weapon = (id: ItemId, type: 'sword' | 'spear' | 'bow', tier: Tier, durability: number, stats: WeaponStats): ItemDef => ({
   ...tool(id, type, tier, durability), weapon: stats,
 });
 const sword = (damage: number): WeaponStats => ({ kind: 'melee', damage, reach: 1.3, arc: 110, cooldown: 0.42, stamina: 3, knockback: 0.35 });
 const armor = (id: ItemId, defense: number): ItemDef => ({ id, stack: 1, icon: icons(id), armor: { defense } });
+const gear = (id: ItemId, slot: GearSlot, defense: number, extra: Omit<NonNullable<ItemDef['armor']>, 'defense' | 'slot'> = {}): ItemDef => ({
+  id, stack: 1, icon: icons(id), armor: { defense, slot, ...extra },
+});
 const keepsake = (id: ItemId, stack = 1): ItemDef => ({ id, stack, icon: icons(id), keep: true });
 const placeable = (id: ItemId, place: StructureId, stack = 10): ItemDef => ({ id, stack, icon: icons(`struct_${id}`), place });
 
@@ -181,6 +198,39 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   stool: placeable('stool', 'stool', 10),
   lamp_post: placeable('lamp_post', 'lamp_post', 10),
   barrel: placeable('barrel', 'barrel', 10),
+
+  coal: material('coal', 'coal'),
+  steel_ingot: material('steel_ingot', 'steel_ingot'),
+  mithril_ore: material('mithril_ore', 'mithril_ore'),
+  mithril_ingot: material('mithril_ingot', 'mithril_ingot'),
+  hide: material('hide', 'hide'),
+  anvil: placeable('anvil', 'anvil', 5),
+
+  axe_steel: tool('axe_steel', 'axe', 4, 260),
+  pickaxe_steel: tool('pickaxe_steel', 'pickaxe', 4, 260),
+  axe_mithril: tool('axe_mithril', 'axe', 5, 400),
+  pickaxe_mithril: tool('pickaxe_mithril', 'pickaxe', 5, 400),
+  sword_steel: weapon('sword_steel', 'sword', 4, 260, sword(14)),
+  sword_mithril: weapon('sword_mithril', 'sword', 5, 380, sword(19)),
+  spear_steel: weapon('spear_steel', 'spear', 4, 220, { kind: 'melee', damage: 12, reach: 1.9, arc: 30, cooldown: 0.52, stamina: 4, knockback: 0.6 }),
+
+  armor_leather: armor('armor_leather', 2),
+  armor_steel: armor('armor_steel', 8),
+  armor_mithril: armor('armor_mithril', 12),
+  cap_leather: gear('cap_leather', 'helm', 1),
+  helm_iron: gear('helm_iron', 'helm', 2),
+  helm_steel: gear('helm_steel', 'helm', 3),
+  helm_crystal: gear('helm_crystal', 'helm', 3, { luck: 0.08 }),
+  helm_mithril: gear('helm_mithril', 'helm', 5),
+  boots_leather: gear('boots_leather', 'boots', 1, { speed: 0.04 }),
+  boots_iron: gear('boots_iron', 'boots', 2),
+  boots_steel: gear('boots_steel', 'boots', 3, { speed: 0.03 }),
+  boots_mithril: gear('boots_mithril', 'boots', 4, { speed: 0.08 }),
+  ring_might: gear('ring_might', 'charm', 0, { damage: 0.12 }),
+  ring_swift: gear('ring_swift', 'charm', 0, { speed: 0.08 }),
+  amulet_vigor: gear('amulet_vigor', 'charm', 0, { regen: 4 }),
+  amulet_fortune: gear('amulet_fortune', 'charm', 1, { luck: 0.15 }),
+  amulet_warmth: gear('amulet_warmth', 'charm', 0, { warmth: 25 }),
 };
 
 /** Foods that count as a cooked meal for the story. */

@@ -22,7 +22,7 @@ describe('melee attacks', () => {
     const s = give(base(), ['sword_stone', 1]);
     const r = applyAction(s, attack('sword_stone'), pos);
     expect(fxTypes(r)).toEqual(['swing', 'strike']);
-    expect(r.fx[1]).toEqual({ t: 'strike', melee: meleeFor('sword_stone') });
+    expect(r.fx[1]).toMatchObject({ t: 'strike', melee: meleeFor('sword_stone'), crit: false });
     expect(r.session.vitals.stamina).toBe(100 - ITEMS.sword_stone.weapon!.stamina);
     expect(r.session.inventory[0]!.dur).toBe(ITEMS.sword_stone.tool!.durability - 1);
   });

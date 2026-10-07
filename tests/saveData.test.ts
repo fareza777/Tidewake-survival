@@ -26,7 +26,7 @@ describe('save format 3', () => {
   it('starts a new game on the island with nothing worn and no dungeon progress', () => {
     const s = make(0);
     expect(s.location).toBeNull();
-    expect(s.equipment).toEqual({ armor: null });
+    expect(s.equipment).toEqual({ armor: null, helm: null, boots: null, charm: null });
     expect(s.dungeons.grotto).toEqual({ opened: [], looted: [], solved: [], lit: [], boss: false });
   });
 
@@ -50,7 +50,7 @@ describe('save format 3', () => {
     expect(up.version).toBe(SAVE_VERSION);
     expect(up.inventory[0]).toEqual({ item: 'wood', qty: 7 });
     expect(up.location).toBeNull();
-    expect(up.equipment).toEqual({ armor: null });
+    expect(up.equipment).toEqual({ armor: null, helm: null, boots: null, charm: null });
     expect(up.dungeons.ruin.boss).toBe(false);
   });
 
@@ -61,10 +61,10 @@ describe('save format 3', () => {
     raw.dungeons = { deepmine: { opened: [1, 4], looted: [2], solved: [0], lit: [], boss: true } };
     const s = parseSlot(raw, 0)!;
     expect(s.location).toBe('deepmine');
-    expect(s.equipment).toEqual({ armor: 'armor_iron' });
+    expect(s.equipment).toEqual({ armor: 'armor_iron', helm: null, boots: null, charm: null });
     expect(s.dungeons.deepmine).toEqual({ opened: [1, 4], looted: [2], solved: [0], lit: [], boss: true });
     expect(parseSlot({ ...raw, location: 'atlantis' }, 0)!.location).toBeNull();
-    expect(parseSlot({ ...raw, equipment: { armor: 'wood' } }, 0)!.equipment).toEqual({ armor: null });
+    expect(parseSlot({ ...raw, equipment: { armor: 'wood' } }, 0)!.equipment).toEqual({ armor: null, helm: null, boots: null, charm: null });
   });
 });
 
@@ -92,7 +92,7 @@ describe('parseSlot', () => {
   });
 
   it('rejects saves whose version is not one this game understands', () => {
-    for (const version of [0, -5, 5, 1.5, '2', null]) expect(parseSlot({ ...valid(), version }, 0), String(version)).toBeNull();
+    for (const version of [0, -5, 6, 1.5, '2', null]) expect(parseSlot({ ...valid(), version }, 0), String(version)).toBeNull();
   });
 
   it('drops unreadable inventory slots instead of failing the whole save', () => {

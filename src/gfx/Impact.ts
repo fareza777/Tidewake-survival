@@ -23,7 +23,7 @@ export function impactOf(kind: ResourceKind | undefined): ImpactKind {
   switch (kind) {
     case 'tree': case 'palm': case 'swamptree': return 'wood';
     case 'bush': return 'leaf';
-    case 'ore': case 'crystal': return 'ore';
+    case 'ore': case 'crystal': case 'mithril': return 'ore';
     default: return 'stone';
   }
 }

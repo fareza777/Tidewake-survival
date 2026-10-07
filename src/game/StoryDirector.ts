@@ -9,7 +9,7 @@ import { QUESTS } from '@/data/quests';
 import type { DialogueChoice, Portrait } from '@/scenes/DialogueScene';
 import type { GameScene } from '@/scenes/GameScene';
 import type { Fx, Step } from '@/sim/session';
-import { chooseEnding, claimOwed, dawn, reached, recordKill } from '@/sim/session';
+import { chooseEnding, claimOwed, dawn, reached, recordKill, rewardKill } from '@/sim/session';
 import type { Text } from '@/sim/quests';
 
 /** How often the story looks at where the hero stands and at rewards still owed (seconds), and how close counts as "reached" (tiles). */
@@ -99,6 +99,7 @@ export class StoryDirector {
   /** A creature was killed: counts for the kill quests, and the Hollow Keeper's fall reveals the secret. */
   kill(kind: CreatureId): void {
     this.apply(recordKill(this.game.session, kind));
+    this.game.commitStory(rewardKill(this.game.session, kind));
     if (kind === 'hollowkeeper') this.open(null, lines(LIGHTHOUSE_SECRET));
   }
 

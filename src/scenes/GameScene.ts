@@ -11,7 +11,8 @@ import type { Recipe } from '@/data/recipes';
 import type { Station, StructureId } from '@/data/structures';
 import { FloatText } from '@/gfx/FloatText';
 import { NightLight } from '@/gfx/NightLight';
-import { ITEMS, type ItemId } from '@/data/items';
+import { ITEMS, type GearSlot, type ItemId } from '@/data/items';
+import type { SkillId } from '@/sim/skills';
 import { burst, impactOf } from '@/gfx/Impact';
 import { TILE } from '@/gfx/TerrainLayer';
 import { DungeonLevel } from '@/game/DungeonLevel';
@@ -33,7 +34,8 @@ import { emptyGather, sanitizeGather } from '@/sim/gather';
 import { meleeFor } from '@/sim/melee';
 import { moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import {
-  applyAction, collapse, craftRecipe, story, equipArmor, moveInventorySlot, selectSlot, sessionFromSlot, sessionToSlot, takeOffArmor, tickSession,
+  applyAction, collapse, craftRecipe, story, equipArmor, moveInventorySlot, selectSlot, sessionFromSlot, sessionMods, sessionToSlot, takeOffGear, tickSession,
+  upgradeItem, repairItem,
   transferStack, type Fx, type Session, type Step,
 } from '@/sim/session';
 import { RUN_SPEED, RUN_START, isDead, type Difficulty } from '@/sim/vitals';
@@ -217,7 +219,7 @@ export class GameScene extends BaseScene {
     const slot = this.keys.slotPressed();
     if (slot >= 0) this.select(slot);
 
-    const top = PLAYER_SPEED * speedFactor(this.world, this.pos.x, this.pos.y) * (this.running ? RUN_SPEED : 1);
+    const top = PLAYER_SPEED * speedFactor(this.world, this.pos.x, this.pos.y) * (this.running ? RUN_SPEED : 1) * sessionMods(this.session).speed;
     const ease = 1 - Math.exp(-dt * (moving ? ACCELERATE : BRAKE));
     this.vel = { x: this.vel.x + (move.x * top - this.vel.x) * ease, y: this.vel.y + (move.y * top - this.vel.y) * ease };
     if (!moving && Math.hypot(this.vel.x, this.vel.y) < 0.08) this.vel = { x: 0, y: 0 };
@@ -264,7 +266,7 @@ export class GameScene extends BaseScene {
     return resolveAction({
       world: this.world, inv: s.inventory, selected: s.selected, vitals: s.vitals, pos: this.pos, facing: this.player.facing,
       structures: view.structures, farm: view.farm, occupied: this.occupied, node: view.node, creature: this.combat.reaches(melee),
-      entrance: view.entrance, target: view.target, npc: view.npc, spot: view.spot,
+      entrance: view.entrance, target: view.target, npc: view.npc, spot: view.spot, mods: sessionMods(s),
     });
   }
 
@@ -323,6 +325,8 @@ export class GameScene extends BaseScene {
       case 'say': services.notify?.(this.sayText(fx)); break;
       case 'gain': this.showGain(`+${fx.qty} ${t(`item_${fx.item}`)}`); break;
       case 'swing': this.player.swing(this.swingItem); break;
+      case 'levelUp': this.levelUp(fx.skill, fx.level); break;
+      case 'upgraded': services.notify?.(t('upgraded', { item: t(`item_${fx.item}`), n: fx.plus })); services.audio?.sfx('craft'); break;
       case 'hit': this.chips(fx.id); break;
       case 'strike':
       case 'shot': this.combat.onFx(fx); break;
@@ -334,6 +338,16 @@ export class GameScene extends BaseScene {
       case 'theEnd': this.story.play(fx); break;
       case 'travel': this.travel(fx.to); break;
     }
+  }
+
+  /** A skill rose a level: a toast, a chime and a ring of gold sparks around the hero. */
+  private levelUp(skill: SkillId, level: number): void {
+    services.notify?.(t('levelUp', { skill: t(`skill_${skill}`), n: level }));
+    services.audio?.sfx('craft');
+    services.platform?.haptic('success');
+    const x = this.pos.x * TILE;
+    const y = this.pos.y * TILE - 10;
+    for (let i = 0; i < 10; i++) burst(this, x, y, 'spark', y + 40, i % 2 === 0 ? -1 : 1);
   }
 
   /** Chips, leaves or sparks fly off the thing the tool just struck, as the blow lands. */
@@ -473,9 +487,23 @@ export class GameScene extends BaseScene {
     this.commit(transferStack(this.session, chestId, from, index));
   }
 
-  /** Put on the armour in a backpack slot, or take the worn armour off (null). */
-  wear(index: number | null): void {
-    this.commit(index === null ? takeOffArmor(this.session) : equipArmor(this.session, index));
+  /** Put on the gear in a backpack slot. */
+  wear(index: number): void {
+    this.commit(equipArmor(this.session, index));
+  }
+
+  /** Take off what is worn in a gear slot. */
+  takeOff(place: GearSlot): void {
+    this.commit(takeOffGear(this.session, place));
+  }
+
+  /** At an anvil: upgrade or repair the tool in a backpack slot. */
+  upgrade(index: number): void {
+    this.commit(upgradeItem(this.session, index, this.stations()));
+  }
+
+  repair(index: number): void {
+    this.commit(repairItem(this.session, index, this.stations()));
   }
 
   /** The boss's name key and health while the fight is on, for the health bar. */

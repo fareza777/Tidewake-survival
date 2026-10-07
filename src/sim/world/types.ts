@@ -22,7 +22,7 @@ export interface Landmark {
   biome: Biome;
 }
 
-export type ResourceKind = 'tree' | 'palm' | 'bush' | 'rock' | 'ore' | 'crystal' | 'swamptree' | 'redrock';
+export type ResourceKind = 'tree' | 'palm' | 'bush' | 'rock' | 'ore' | 'crystal' | 'swamptree' | 'redrock' | 'mithril';
 
 export interface ResourceNode {
   id: number;

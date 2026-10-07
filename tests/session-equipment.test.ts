@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { newSlot } from '@/core/saveData';
+import { noEquipment } from '@/sim/equipment';
 import { addItem } from '@/sim/inventory';
 import { equipArmor, sessionFromSlot, sessionToSlot, takeOffArmor, type Session } from '@/sim/session';
 
@@ -8,10 +9,10 @@ const base = (over: Partial<Session> = {}): Session => ({ ...sessionFromSlot(slo
 
 describe('session and save slot', () => {
   it('carry the new fields both ways', () => {
-    const s = base({ location: 'ruin', equipment: { armor: 'armor_bone' } });
+    const s = base({ location: 'ruin', equipment: { ...noEquipment(), armor: 'armor_bone' } });
     const out = sessionToSlot(slot(), s, { x: 3.5, y: 4.5 });
     expect(out.location).toBe('ruin');
-    expect(out.equipment).toEqual({ armor: 'armor_bone' });
+    expect(out.equipment).toEqual({ ...noEquipment(), armor: 'armor_bone' });
     expect(out.dungeons).toBe(s.dungeons);
     expect(sessionFromSlot(out)).toEqual(s);
   });
@@ -21,7 +22,7 @@ describe('wearing armour', () => {
   it('puts the armour in a slot on and says so', () => {
     const s = base({ inventory: addItem(base().inventory, 'armor_iron', 1).inv });
     const r = equipArmor(s, 0);
-    expect(r.session.equipment).toEqual({ armor: 'armor_iron' });
+    expect(r.session.equipment).toEqual({ ...noEquipment(), armor: 'armor_iron' });
     expect(r.session.inventory[0]).toBeNull();
     expect(r.fx.map((f) => f.t)).toEqual(['equipped']);
   });
@@ -34,11 +35,11 @@ describe('wearing armour', () => {
   });
 
   it('takes it off again, and tells the player when the backpack is full', () => {
-    const worn = base({ equipment: { armor: 'armor_moss' } });
+    const worn = base({ equipment: { ...noEquipment(), armor: 'armor_moss' } });
     const off = takeOffArmor(worn);
-    expect(off.session.equipment).toEqual({ armor: null });
+    expect(off.session.equipment).toEqual(noEquipment());
     expect(off.session.inventory[0]).toEqual({ item: 'armor_moss', qty: 1 });
-    let full = base({ equipment: { armor: 'armor_moss' } });
+    let full = base({ equipment: { ...noEquipment(), armor: 'armor_moss' } });
     for (let i = 0; i < 32; i++) full = { ...full, inventory: addItem(full.inventory, 'wood', 99).inv };
     const refused = takeOffArmor(full);
     expect(refused.session).toBe(full);

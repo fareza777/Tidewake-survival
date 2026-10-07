@@ -1,0 +1,92 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1'); localStorage.setItem('tidewake.tutorial', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 1000
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const inv = g.session.inventory.slice(); const put = (i, item, qty, extra) => { inv[i] = { item, qty, ...(extra||{}) }; }; put(0,'axe_iron',1,{dur:160}); put(1,'sword_steel',1,{dur:260, plus:2}); put(2,'pickaxe_stone',1,{dur:30}); put(3,'armor_steel',1); put(4,'helm_iron',1); put(5,'boots_leather',1); put(6,'ring_might',1); put(7,'iron_ingot',30); put(8,'steel_ingot',12); put(9,'plank',20); put(10,'stone',40); put(11,'coal',9); put(12,'hide',6); const p = g.pos; g.session = { ...g.session, inventory: inv, skills: { woodcutting: 400, mining: 1200, combat: 2300, farming: 40, cooking: 300, crafting: 700 }, equipment: { armor: 'armor_iron', helm: null, boots: null, charm: null }, structures: { next: 2, list: [{ id: 1, type: 'anvil', x: Math.floor(p.x) + 1, y: Math.floor(p.y) }] } }; return 1; })()"
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__game.scene.getScene('Hud').world.openInventory({ mode: 'bag' }), 1"
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "p-bag"
+ },
+ {
+  "eval": "(() => { const s = __game.scene.getScene('Inventory'); s.picked = 3; s.render(); return 1; })()"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "p-bag-picked"
+ },
+ {
+  "eval": "__game.scene.getScene('Inventory').switchTab('skills'), 1"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "p-skills"
+ },
+ {
+  "eval": "__game.scene.getScene('Inventory').switchTab('anvil'), 1"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "p-anvil"
+ },
+ {
+  "eval": "__game.scene.getScene('Inventory').switchTab('craft'), 1"
+ },
+ {
+  "wait": 300
+ },
+ {
+  "shot": "p-craft"
+ },
+ {
+  "eval": "JSON.stringify(window.__errs)"
+ }
+]

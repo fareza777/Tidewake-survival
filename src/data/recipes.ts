@@ -8,9 +8,11 @@ export interface Recipe {
   qty: number;
   cost: Cost;
   station: Station;
+  /** Crafting level needed (1 when absent). */
+  lvl?: number;
 }
 
-const r = (out: ItemId, qty: number, cost: Cost, station: Station = 'hand'): Recipe => ({ id: out, out, qty, cost, station });
+const r = (out: ItemId, qty: number, cost: Cost, station: Station = 'hand', lvl?: number): Recipe => (lvl ? { id: out, out, qty, cost, station, lvl } : { id: out, out, qty, cost, station });
 
 /** The first crafting set. Later plans add armour, weapons, glass, potions and more. */
 export const RECIPES: readonly Recipe[] = [
@@ -79,4 +81,34 @@ export const RECIPES: readonly Recipe[] = [
   r('pumpkin_pie', 1, [['pumpkin', 1], ['honey', 1], ['corn', 1]], 'campfire'),
   r('sweet_drink', 1, [['coconut', 2], ['honey', 1]], 'campfire'),
   r('antidote', 1, [['gel', 2], ['fiber', 3], ['berries', 2]], 'campfire'),
+
+  // Leather, from the hides of animals
+  r('armor_leather', 1, [['hide', 6], ['rope', 2]], 'workbench'),
+  r('cap_leather', 1, [['hide', 3], ['rope', 1]], 'workbench'),
+  r('boots_leather', 1, [['hide', 3], ['fiber', 2]], 'workbench'),
+  // The anvil and what is worked at it
+  r('anvil', 1, [['iron_ingot', 8], ['stone', 10], ['plank', 4]], 'workbench', 3),
+  r('steel_ingot', 1, [['iron_ingot', 2], ['coal', 2]], 'furnace', 4),
+  r('mithril_ingot', 1, [['mithril_ore', 2], ['coal', 2], ['crystal', 1]], 'furnace', 7),
+  r('helm_iron', 1, [['iron_ingot', 5], ['rope', 1]], 'anvil', 3),
+  r('boots_iron', 1, [['iron_ingot', 4], ['hide', 2]], 'anvil', 3),
+  r('helm_crystal', 1, [['crystal', 5], ['iron_ingot', 3]], 'anvil', 5),
+  r('axe_steel', 1, [['plank', 2], ['steel_ingot', 3], ['rope', 1]], 'anvil', 4),
+  r('pickaxe_steel', 1, [['plank', 2], ['steel_ingot', 3], ['rope', 1]], 'anvil', 4),
+  r('sword_steel', 1, [['steel_ingot', 4], ['plank', 1], ['rope', 1]], 'anvil', 4),
+  r('spear_steel', 1, [['steel_ingot', 3], ['plank', 1], ['rope', 1]], 'anvil', 4),
+  r('helm_steel', 1, [['steel_ingot', 5], ['rope', 1]], 'anvil', 4),
+  r('boots_steel', 1, [['steel_ingot', 4], ['hide', 2]], 'anvil', 4),
+  r('armor_steel', 1, [['steel_ingot', 10], ['hide', 2], ['rope', 3]], 'anvil', 5),
+  r('axe_mithril', 1, [['plank', 2], ['mithril_ingot', 3], ['rope', 1]], 'anvil', 7),
+  r('pickaxe_mithril', 1, [['plank', 2], ['mithril_ingot', 3], ['rope', 1]], 'anvil', 7),
+  r('sword_mithril', 1, [['mithril_ingot', 5], ['crystal', 1], ['rope', 1]], 'anvil', 8),
+  r('helm_mithril', 1, [['mithril_ingot', 6], ['rope', 1]], 'anvil', 8),
+  r('boots_mithril', 1, [['mithril_ingot', 5], ['hide', 2]], 'anvil', 8),
+  r('armor_mithril', 1, [['mithril_ingot', 12], ['hide', 3], ['rope', 3]], 'anvil', 9),
+  // Charms
+  r('ring_might', 1, [['iron_ingot', 2], ['crystal', 2]], 'anvil', 4),
+  r('ring_swift', 1, [['steel_ingot', 1], ['crystal', 2], ['fiber', 4]], 'anvil', 5),
+  r('amulet_vigor', 1, [['rope', 2], ['crystal', 3], ['honey', 2]], 'anvil', 5),
+  r('amulet_fortune', 1, [['rope', 2], ['crystal', 4], ['steel_ingot', 1]], 'anvil', 6),
 ];

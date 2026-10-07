@@ -15,6 +15,7 @@ import { itemIcon } from '@/ui/itemIcon';
 import { Joystick } from '@/ui/Joystick';
 import { nine } from '@/ui/skin';
 import { COLORS, FONT } from '@/ui/theme';
+import { maxDurability } from '@/sim/upgrade';
 import { IconButton } from '@/ui/icons';
 import { Bar, Button, panel } from '@/ui/widgets';
 
@@ -143,7 +144,7 @@ export class HudScene extends Phaser.Scene {
       }
       const tool = ITEMS[slot.item].tool;
       if (tool && slot.dur !== undefined) {
-        const ratio = Math.min(1, slot.dur / tool.durability);
+        const ratio = Math.min(1, slot.dur / maxDurability(slot.item, slot.plus));
         this.slotLayer.add(this.add.rectangle(x + 4, y + SLOT - 5, SLOT - 8, 2, 0x000000, 0.6).setOrigin(0, 0));
         this.slotLayer.add(this.add.rectangle(x + 4, y + SLOT - 5, Math.round((SLOT - 8) * ratio), 2, tool.type === 'can' ? 0x5fa8ff : 0x6bd46b).setOrigin(0, 0));
       }

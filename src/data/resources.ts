@@ -46,12 +46,17 @@ export const RESOURCES: Record<ResourceKind, ResourceDef> = {
   rock: {
     frames: ['p/rock_18', 'p/rock_19', 'p/rock_20', 'p/rock_36'],
     hp: 6,
-    drops: [{ item: 'stone', min: 2, max: 4 }],
+    drops: [{ item: 'stone', min: 2, max: 4 }, { item: 'coal', min: 1, max: 2, chance: 0.22 }],
   },
   ore: {
     frames: ['p/rock_44', 'p/rock_45'],
     hp: 9,
-    drops: [{ item: 'iron_ore', min: 1, max: 2 }, { item: 'stone', min: 1, max: 1 }],
+    drops: [{ item: 'iron_ore', min: 1, max: 2 }, { item: 'stone', min: 1, max: 1 }, { item: 'coal', min: 1, max: 2, chance: 0.5 }],
+  },
+  mithril: {
+    frames: ['p/rock_15', 'p/rock_16', 'p/rock_17'],
+    hp: 14,
+    drops: [{ item: 'mithril_ore', min: 1, max: 2 }, { item: 'coal', min: 1, max: 1, chance: 0.4 }],
   },
   crystal: {
     frames: ['p/rock_15', 'p/rock_16', 'p/rock_17'],

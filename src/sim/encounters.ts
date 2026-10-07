@@ -84,7 +84,8 @@ export const emptyEncounters = (): Encounters => ({
 });
 
 /** Deal damage to one creature. A death removes it and leaves its loot on the ground. */
-function damageCreature(e: Encounters, id: number, amount: number, push: Vec, rng: Rng): EncounterStep {
+function damageCreature(e: Encounters, id: number, rawAmount: number, push: Vec, rng: Rng): EncounterStep {
+  const amount = Math.max(1, Math.round(rawAmount));
   const target = e.creatures.find((c) => c.id === id);
   if (!target) return { e, events: [] };
   const hit: EncounterEvent = { t: 'hit', id, kind: target.kind, amount, x: target.x, y: target.y };

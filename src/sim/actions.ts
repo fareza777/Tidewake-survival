@@ -9,6 +9,8 @@ import type { Target } from '@/sim/dungeon/rules';
 import type { Chest, Door } from '@/sim/dungeon/types';
 import { countItem, type Inventory } from '@/sim/inventory';
 import { meleeFor, type Melee } from '@/sim/melee';
+import { neutralMods, type Mods } from '@/sim/mods';
+import { plusMult } from '@/sim/upgrade';
 import type { Vec } from '@/sim/movement';
 import { canPlace, structureAt, type PlaceResult, type Structure, type Structures } from '@/sim/structures';
 import { checkHit } from '@/sim/tools';
@@ -50,6 +52,8 @@ export interface ActionContext {
   npc?: NpcId | null;
   /** The find (bottle, tablet, cat, treasure) in front of the hero or under his feet. */
   spot?: Spot | null;
+  /** What his skills and gear add to a swing (nothing when absent). */
+  mods?: Mods;
 }
 
 export type Blocked =
@@ -115,7 +119,10 @@ export function resolveAction(c: ActionContext): Action {
   const slot = c.inv[c.selected] ?? null;
   const def = slot ? ITEMS[slot.item] : null;
   // What a blow with the held item would be, offered whenever the item has nothing else to do and a creature is in reach.
-  const melee = meleeFor(slot?.item ?? null);
+  const mods = c.mods ?? neutralMods();
+  const plus = plusMult(slot?.plus);
+  const baseMelee = meleeFor(slot?.item ?? null);
+  const melee: Melee = { ...baseMelee, damage: baseMelee.damage * mods.meleeDamage * plus, stamina: baseMelee.stamina * mods.staminaFight };
   const fight: Action = c.vitals.stamina < melee.stamina ? blocked({ reason: 'tired' }) : { kind: 'attack', melee };
   const orFight = c.creature ? fight : NONE;
 
@@ -171,8 +178,9 @@ export function resolveAction(c: ActionContext): Action {
 
   if (def?.weapon?.kind === 'bow') {
     if (countItem(c.inv, 'arrow') === 0) return blocked({ reason: 'noArrows' });
-    if (c.vitals.stamina < def.weapon.stamina) return blocked({ reason: 'tired' });
-    return { kind: 'shoot', stats: def.weapon };
+    const stats = { ...def.weapon, damage: def.weapon.damage * mods.meleeDamage * plus, stamina: def.weapon.stamina * mods.staminaFight };
+    if (c.vitals.stamina < stats.stamina) return blocked({ reason: 'tired' });
+    return { kind: 'shoot', stats };
   }
   if (c.creature) return fight;
 
@@ -181,8 +189,11 @@ export function resolveAction(c: ActionContext): Action {
   if (c.node) {
     const check = checkHit(c.node.kind, slot?.item ?? null);
     if (!check.ok) return blocked({ reason: 'needsTool', tool: check.tool, tier: check.tier });
-    if (c.vitals.stamina < check.stamina) return blocked({ reason: 'tired' });
-    return { kind: 'hit', node: c.node, damage: check.damage, stamina: check.stamina, wear: check.wear };
+    const wood = c.node.kind === 'tree' || c.node.kind === 'palm' || c.node.kind === 'swamptree' || c.node.kind === 'bush';
+    const stamina = check.stamina * (wood ? mods.staminaWood : mods.staminaMine);
+    if (c.vitals.stamina < stamina) return blocked({ reason: 'tired' });
+    const damage = check.damage * (wood ? mods.chopDamage : mods.mineDamage) * (check.wear ? plus : 1);
+    return { kind: 'hit', node: c.node, damage, stamina, wear: check.wear };
   }
   if (terrain === T.SHALLOW || terrain === T.DEEP) return blocked({ reason: 'saltWater' });
   return NONE;

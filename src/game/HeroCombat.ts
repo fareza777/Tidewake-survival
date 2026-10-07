@@ -30,6 +30,8 @@ export class HeroCombat {
   private numbers: FloatText;
   private fullTimer = 0;
   private calm = FIGHT_LINGER;
+  /** The blow being resolved is a critical one (its numbers are gold). */
+  private critNow = false;
 
   constructor(private host: GameScene) {
     this.wildlife = new Wildlife(host);
@@ -59,7 +61,11 @@ export class HeroCombat {
   /** The hero's blow or shot, as chosen by the rules. */
   onFx(fx: Extract<Fx, { t: 'strike' | 'shot' }>): void {
     const { pos, player } = this.host;
-    if (fx.t === 'strike') this.react(this.wildlife.strike(pos, player.facing, fx.melee));
+    if (fx.t === 'strike') {
+      this.critNow = fx.crit === true;
+      this.react(this.wildlife.strike(pos, player.facing, fx.melee));
+      this.critNow = false;
+    }
     else this.wildlife.shoot(pos, player.facing, fx.stats);
   }
 
@@ -99,7 +105,7 @@ export class HeroCombat {
       if (ev.t === 'hit') {
         host.hitStop = HIT_STOP;
         burst(host, ev.x * TILE, ev.y * TILE - 6, 'spark', ev.y * TILE + 4, host.player.facing === 'left' ? -1 : host.player.facing === 'right' ? 1 : 0);
-        if (services.settings?.damageNumbers !== false) this.numbers.show(ev.x * TILE, ev.y * TILE - 18, `-${ev.amount}`, COLORS.white);
+        if (services.settings?.damageNumbers !== false) this.numbers.show(ev.x * TILE, ev.y * TILE - 18, `-${ev.amount}`, this.critNow ? COLORS.gold : COLORS.white);
       } else if (ev.t === 'hurtHero') {
         this.hurt(ev.amount);
       }

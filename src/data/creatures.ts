@@ -65,7 +65,7 @@ export const CREATURES: Record<CreatureId, CreatureDef> = {
   zombie: enemy('zombie', 18, 1, 12, 6, 0.5, 1.6, monster('m02_3'), [{ item: 'bone', min: 1, max: 1, chance: 0.6 }, { item: 'fiber', min: 1, max: 2, chance: 0.5 }], { biomes: [MOUNTAIN, SWAMP], weight: 6, when: 'night' }),
   worm: enemy('worm', 12, 0.9, 8, 4, 0.4, 1.3, monster('bonus_2', 'left'), [{ item: 'gel', min: 1, max: 2 }], { biomes: [SWAMP], weight: 8, when: 'any' }),
   ghost: enemy('ghost', 10, 1.3, 9, 7, 0.35, 1.3, monster('m02_4'), [{ item: 'crystal', min: 1, max: 1, chance: 0.2 }, { item: 'gel', min: 1, max: 1, chance: 0.5 }], { biomes: [SWAMP], weight: 5, when: 'night' }),
-  scorpion: enemy('scorpion', 16, 1.8, 12, 6, 0.35, 1.2, monster('m04_5'), [{ item: 'raw_meat', min: 1, max: 2 }, { item: 'bone', min: 1, max: 1, chance: 0.5 }], { biomes: [DESERT], weight: 8, when: 'any' }),
+  scorpion: enemy('scorpion', 16, 1.8, 12, 6, 0.35, 1.2, monster('m04_5'), [{ item: 'raw_meat', min: 1, max: 2 }, { item: 'hide', min: 1, max: 1, chance: 0.4 }, { item: 'bone', min: 1, max: 1, chance: 0.5 }], { biomes: [DESERT], weight: 8, when: 'any' }),
   skeleton_warrior: { ...enemy('skeleton_warrior', 24, 1.6, 16, 7, 0.45, 1.3, monster('m05_3'), [{ item: 'bone', min: 1, max: 3 }, { item: 'iron_ore', min: 1, max: 1, chance: 0.3 }], { biomes: [DESERT], weight: 5, when: 'night' }), reach: 1 },
 
   mossback: boss('mossback', 140, 1.6, 12, 'm04_2', [{ item: 'compass', min: 1, max: 1 }, { item: 'armor_moss', min: 1, max: 1 }]),
@@ -78,9 +78,9 @@ export const CREATURES: Record<CreatureId, CreatureDef> = {
   },
 
   rabbit: { id: 'rabbit', temper: 'flee', hp: 3, speed: 3, damage: 0, sight: 4, reach: 0, windup: 0, cooldown: 0, radius: 0.2, sprite: critter('bunny1/walk'), drops: [{ item: 'raw_meat', min: 1, max: 1 }], spawn: { biomes: [FOREST], weight: 10, when: 'any' } },
-  fox: { id: 'fox', temper: 'flee', hp: 6, speed: 2.9, damage: 0, sight: 5, reach: 0, windup: 0, cooldown: 0, radius: 0.22, sprite: critter('fox1/walk'), drops: [{ item: 'raw_meat', min: 1, max: 2 }], spawn: { biomes: [FOREST, MOUNTAIN, DESERT], weight: 5, when: 'any' } },
+  fox: { id: 'fox', temper: 'flee', hp: 6, speed: 2.9, damage: 0, sight: 5, reach: 0, windup: 0, cooldown: 0, radius: 0.22, sprite: critter('fox1/walk'), drops: [{ item: 'raw_meat', min: 1, max: 2 }, { item: 'hide', min: 1, max: 1, chance: 0.6 }], spawn: { biomes: [FOREST, MOUNTAIN, DESERT], weight: 5, when: 'any' } },
   bird: { id: 'bird', temper: 'flee', hp: 2, speed: 3.1, damage: 0, sight: 4, reach: 0, windup: 0, cooldown: 0, radius: 0.18, sprite: critter('bird1/walk'), drops: [{ item: 'raw_meat', min: 1, max: 1, chance: 0.7 }], spawn: { biomes: [FOREST, MOUNTAIN, SWAMP, DESERT], weight: 8, when: 'day' } },
-  boar: { id: 'boar', temper: 'defend', hp: 14, speed: 2.3, damage: 8, sight: 6, reach: 0.9, windup: 0.4, cooldown: 1.2, radius: 0.32, sprite: critter('pig2/move', 4), drops: [{ item: 'raw_meat', min: 2, max: 3 }, { item: 'bone', min: 1, max: 1, chance: 0.4 }], spawn: { biomes: [FOREST, SWAMP], weight: 4, when: 'any' } },
+  boar: { id: 'boar', temper: 'defend', hp: 14, speed: 2.3, damage: 8, sight: 6, reach: 0.9, windup: 0.4, cooldown: 1.2, radius: 0.32, sprite: critter('pig2/move', 4), drops: [{ item: 'raw_meat', min: 2, max: 3 }, { item: 'hide', min: 1, max: 2, chance: 0.8 }, { item: 'bone', min: 1, max: 1, chance: 0.4 }], spawn: { biomes: [FOREST, SWAMP], weight: 4, when: 'any' } },
 };
 
 export const CREATURE_IDS = Object.keys(CREATURES) as CreatureId[];

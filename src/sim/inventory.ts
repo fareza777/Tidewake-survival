@@ -9,6 +9,8 @@ export interface Slot {
   readonly qty: number;
   /** Remaining uses of a tool (or water in a watering can). */
   readonly dur?: number;
+  /** How many times the tool has been upgraded at an anvil. */
+  readonly plus?: number;
 }
 
 export type Inventory = readonly (Slot | null)[];
@@ -121,6 +123,12 @@ export function setDurability(inv: Inventory, index: number, dur: number): Inven
   const out = inv.slice();
   out[index] = { ...s, dur: Math.min(tool.durability, Math.max(0, dur)) };
   return out;
+}
+
+/** Replace the contents of one slot. */
+export function setSlot(inv: Inventory, index: number, slot: Slot | null): Inventory {
+  if (index < 0 || index >= inv.length) return inv;
+  return inv.map((s, i) => (i === index ? slot : s));
 }
 
 /** Remove one item from a slot (eating, planting, placing). */

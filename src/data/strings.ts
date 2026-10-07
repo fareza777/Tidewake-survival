@@ -1,4 +1,5 @@
 import type { L10n } from '@/core/i18n';
+import { PROGRESS_STRINGS } from './stringsProgress';
 
 /** UI strings by key. Every entry needs both languages; tests/i18n.test.ts enforces parity and matching {placeholders}. */
 export const UI_STRINGS: Record<string, L10n> = {
@@ -326,3 +327,5 @@ export const UI_STRINGS: Record<string, L10n> = {
     id: 'Kumpulkan. Bangun. Bertahan. Dan cari tahu mengapa ombak membawamu ke sini.',
   },
 };
+
+Object.assign(UI_STRINGS, PROGRESS_STRINGS);

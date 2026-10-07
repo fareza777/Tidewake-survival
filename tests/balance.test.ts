@@ -52,7 +52,7 @@ describe('weapons', () => {
     for (const id of ITEM_IDS.filter((i) => ITEMS[i].weapon)) {
       const d = ITEMS[id].tool!.durability;
       expect(d, id).toBeGreaterThanOrEqual(40);
-      expect(d, id).toBeLessThanOrEqual(250);
+      expect(d, id).toBeLessThanOrEqual(400);
     }
   });
 });

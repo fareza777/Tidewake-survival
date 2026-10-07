@@ -1,5 +1,6 @@
 import { CROPS, type CropId } from '@/data/crops';
 import { ITEMS, isItemId } from '@/data/items';
+import { UPGRADE_MAX, maxDurability } from '@/sim/upgrade';
 import { CHEST_SLOTS, STRUCTURES, type StructureId } from '@/data/structures';
 import { QUESTS } from '@/data/quests';
 import { DAY_SECONDS, type Clock } from '@/sim/daynight';
@@ -10,12 +11,13 @@ import { emptyGather, type GatherState } from '@/sim/gather';
 import { HOTBAR_SIZE, INVENTORY_SIZE, addItem, emptyInventory, type Inventory, type Slot } from '@/sim/inventory';
 import { emptyQuests, parseQuests, settle, type QuestState } from '@/sim/quests';
 import { migrateQuests } from '@/sim/questMigration';
+import { noSkills, parseSkills, type Skills } from '@/sim/skills';
 import type { Structure, Structures } from '@/sim/structures';
 import { VITAL_MAX, fullVitals, type Difficulty, type Vitals } from '@/sim/vitals';
 import { GENERATOR_VERSION } from '@/sim/world/generate';
 import { WORLD_SIZE } from '@/sim/world/types';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 /** A save claiming more days than this is corrupt (real games last far fewer). */
 const MAX_DAY = 1_000_000;
 
@@ -52,6 +54,8 @@ export interface SaveSlot {
   /** DUNGEON_VERSION the dungeon progress was made under. */
   dungeonVersion: number;
   quests: QuestState;
+  /** Experience in each skill. */
+  skills: Skills;
 }
 
 export interface SlotSummary {
@@ -73,6 +77,7 @@ export function newSlot(
     playTimeSec: 0, player: spawn, respawn: { ...spawn }, clock, gather: emptyGather(), inventory: emptyInventory(), selected: 0,
     vitals: fullVitals(), structures: { next: 1, list: [] }, farm: emptyFarm(), location: null, equipment: noEquipment(),
     dungeons: emptyDungeons(), dungeonVersion: DUNGEON_VERSION, quests: settle(emptyQuests(), emptyInventory(), QUESTS).q,
+    skills: noSkills(),
   };
 }
 
@@ -94,9 +99,11 @@ function parseInventory(raw: unknown, size: number): Inventory {
       out[i] = { item: s.item, qty: Math.min(def.stack, s.qty) };
       continue;
     }
-    const dur = isNum(s.dur) ? Math.min(def.tool.durability, Math.max(0, s.dur)) : def.tool.type === 'can' ? 0 : def.tool.durability;
+    const plus = isInt(s.plus) && s.plus > 0 && def.tool.type !== 'can' ? Math.min(UPGRADE_MAX, s.plus) : 0;
+    const top = maxDurability(s.item, plus);
+    const dur = isNum(s.dur) ? Math.min(top, Math.max(0, s.dur)) : def.tool.type === 'can' ? 0 : top;
     if (dur <= 0 && def.tool.type !== 'can') continue;
-    out[i] = { item: s.item, qty: 1, dur };
+    out[i] = plus > 0 ? { item: s.item, qty: 1, dur, plus } : { item: s.item, qty: 1, dur };
   }
   return out;
 }
@@ -153,7 +160,7 @@ function inventoryFromBag(bag: unknown): Inventory {
 export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
   if (!isRecord(raw)) return null;
   const d = raw;
-  if (d.version !== 1 && d.version !== 2 && d.version !== 3 && d.version !== 4) return null;
+  if (typeof d.version !== 'number' || !Number.isInteger(d.version) || d.version < 1 || d.version > SAVE_VERSION) return null;
   if (!isNum(d.seed)) return null;
   const player = d.player;
   const clock = d.clock;
@@ -191,6 +198,7 @@ export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
     equipment: parseEquipment(d.equipment),
     dungeons,
     dungeonVersion: isInt(d.dungeonVersion) ? d.dungeonVersion : DUNGEON_VERSION,
-    quests: d.version === SAVE_VERSION ? parseQuests(d.quests, QUESTS) : migrateQuests(parseQuests(d.quests, QUESTS), dungeons, d.seed >>> 0),
+    quests: d.version >= 4 ? parseQuests(d.quests, QUESTS) : migrateQuests(parseQuests(d.quests, QUESTS), dungeons, d.seed >>> 0),
+    skills: parseSkills(d.skills),
   };
 }

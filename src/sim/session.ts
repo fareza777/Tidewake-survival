@@ -9,7 +9,12 @@ import { applyDeath } from '@/sim/death';
 import type { DungeonId, DungeonProgress, Dungeons } from '@/sim/dungeon/progress';
 import { lootChest, unlockDoor } from '@/sim/dungeon/rules';
 import type { Chest, Door } from '@/sim/dungeon/types';
-import { equipFromSlot, unequipArmor, type Equipment } from '@/sim/equipment';
+import { equipFromSlot, unequipSlot, type Equipment } from '@/sim/equipment';
+import type { GearSlot } from '@/data/items';
+import { CRIT_DAMAGE, modsOf, type Mods } from '@/sim/mods';
+import { gainXp, levelOf, type SkillId, type Skills } from '@/sim/skills';
+import { repairSlot, upgradeSlot } from '@/sim/upgrade';
+import { CREATURES, type CreatureId } from '@/data/creatures';
 import * as farmSim from '@/sim/farm';
 import { hitNode, startNewDay, type GatherState } from '@/sim/gather';
 import {
@@ -46,6 +51,8 @@ export interface Session {
   dungeons: Dungeons;
   /** Quest progress: the chapters, the side quests, what has happened and what has been found. */
   quests: QuestState;
+  /** Experience in each skill. */
+  skills: Skills;
 }
 
 /** Something the scene should show or do as a result of a rule: floating text, a sprite change, a dialog. */
@@ -53,7 +60,7 @@ export type Fx =
   | { t: 'say'; key: string; vars?: Record<string, string | number>; /** Variables that are i18n keys to translate. */ translate?: string[] }
   | { t: 'gain'; item: ItemId; qty: number }
   | { t: 'swing' }
-  | { t: 'strike'; melee: Melee }
+  | { t: 'strike'; melee: Melee; /** A critical blow. */ crit?: boolean }
   | { t: 'shot'; stats: WeaponStats }
   | { t: 'hit'; id: number }
   | { t: 'gone'; id: number }
@@ -69,6 +76,8 @@ export type Fx =
   | { t: 'doorOpened'; id: number }
   | { t: 'quest'; ev: QuestEvent }
   | { t: 'dialog'; speaker: Text | null; lines: readonly Text[] }
+  | { t: 'levelUp'; skill: SkillId; level: number }
+  | { t: 'upgraded'; item: ItemId; plus: number }
   | { t: 'ending' }
   | { t: 'theEnd'; which: 'A' | 'B' };
 
@@ -82,6 +91,7 @@ export function sessionFromSlot(slot: SaveSlot): Session {
     seed: slot.seed, difficulty: slot.difficulty, clock: slot.clock, gather: slot.gather, inventory: slot.inventory,
     selected: slot.selected, vitals: slot.vitals, structures: slot.structures, farm: slot.farm, respawn: slot.respawn,
     playTime: slot.playTimeSec, location: slot.location, equipment: slot.equipment, dungeons: slot.dungeons, quests: slot.quests,
+    skills: slot.skills,
   };
 }
 
@@ -90,8 +100,36 @@ export function sessionToSlot(base: SaveSlot, s: Session, pos: Vec): SaveSlot {
   return {
     ...base, player: { x: pos.x, y: pos.y }, respawn: s.respawn, clock: s.clock, gather: s.gather, inventory: s.inventory,
     selected: s.selected, vitals: s.vitals, structures: s.structures, farm: s.farm, playTimeSec: s.playTime,
-    location: s.location, equipment: s.equipment, dungeons: s.dungeons, quests: s.quests,
+    location: s.location, equipment: s.equipment, dungeons: s.dungeons, quests: s.quests, skills: s.skills,
   };
+}
+
+/** What his skills and gear add to what he does. */
+let modsMemo: { skills: Skills; equipment: Equipment; mods: Mods } | null = null;
+export function sessionMods(s: Session): Mods {
+  if (modsMemo && modsMemo.skills === s.skills && modsMemo.equipment === s.equipment) return modsMemo.mods;
+  const mods = modsOf(s.skills, s.equipment);
+  modsMemo = { skills: s.skills, equipment: s.equipment, mods };
+  return mods;
+}
+
+/** Give experience in one or more skills; a level reached is announced. */
+function withXp(step: Step, gains: readonly (readonly [SkillId, number])[]): Step {
+  let skills = step.session.skills;
+  const fx = [...step.fx];
+  for (const [id, n] of gains) {
+    const g = gainXp(skills, id, n);
+    skills = g.skills;
+    if (g.leveledTo !== null) fx.push({ t: 'levelUp', skill: id, level: g.leveledTo });
+  }
+  return skills === step.session.skills ? step : { session: { ...step.session, skills }, fx };
+}
+
+/** Experience for a kill: the tougher the creature, the more. */
+export function rewardKill(s: Session, kind: CreatureId): Step {
+  const def = CREATURES[kind];
+  const xp = Math.max(2, Math.round(def.hp / 2)) * (def.temper === 'boss' ? 3 : 1);
+  return withXp({ session: s, fx: [] }, [['combat', xp]]);
 }
 
 /** Advance time: the clock runs and the vital meters drain or recover. */
@@ -100,7 +138,7 @@ export function tickSession(s: Session, dt: number, biome: Biome, busy: boolean,
     ...s,
     clock: advance(s.clock, dt),
     playTime: s.playTime + dt,
-    vitals: tickVitals(s.vitals, dt, { difficulty: s.difficulty, biome, busy, running }),
+    vitals: tickVitals(s.vitals, dt, { difficulty: s.difficulty, biome, busy, running, regen: sessionMods(s).regen }),
   };
 }
 
@@ -144,13 +182,8 @@ export function equipArmor(s: Session, index: number): Step {
   return worn ? { session: { ...s, inventory: worn.inv, equipment: worn.equipment }, fx: [{ t: 'equipped' }] } : { session: s, fx: [] };
 }
 
-/** Take the armour off into the backpack. */
-export function takeOffArmor(s: Session): Step {
-  if (!s.equipment.armor) return { session: s, fx: [] };
-  const off = unequipArmor(s.inventory, s.equipment);
-  if (!off) return { session: s, fx: [say('msgFull')] };
-  return { session: { ...s, inventory: off.inv, equipment: off.equipment }, fx: [{ t: 'equipped' }] };
-}
+/** Take the body armour off into the backpack. */
+export const takeOffArmor = (s: Session): Step => takeOffGear(s, 'armor');
 
 /** A blow from a creature: hit points are lost, nothing else. */
 export function hurtHero(s: Session, amount: number): Session {
@@ -191,21 +224,30 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       const rng = new Rng(hashString(`${s.seed}:${a.node.id}:${s.gather.hp[a.node.id] ?? 'full'}`));
       const result = hitNode(s.gather, a.node, a.damage, s.clock.day, rng);
       const worn = a.wear ? wearTool(s.inventory, s.selected) : s.inventory;
-      const given = giveItems(worn, result.drops.map((d) => ({ item: d.item, qty: d.amount })));
+      const mods = sessionMods(s);
+      const wood = a.node.kind === 'tree' || a.node.kind === 'palm' || a.node.kind === 'swamptree' || a.node.kind === 'bush';
+      // Skill and luck: now and then the last blow yields one more of the main drop.
+      const extra = result.destroyed && result.drops.length > 0 && rng.chance(wood ? mods.yieldWood : mods.yieldMine)
+        ? [{ item: result.drops[0].item, qty: 1 }] : [];
+      const given = giveItems(worn, [...result.drops.map((d) => ({ item: d.item, qty: d.amount })), ...extra]);
       // The last blow would throw the drops away: the node stands until there is room.
       if (result.destroyed && given.overflow) return { session: s, fx: [say('msgFull')] };
       const fx: Fx[] = [{ t: 'swing' }, { t: 'hit', id: a.node.id }];
       if (result.destroyed) fx.push({ t: 'gone', id: a.node.id });
-      return {
+      const skill: SkillId = wood ? 'woodcutting' : 'mining';
+      const base = a.node.kind === 'ore' ? 5 : a.node.kind === 'crystal' ? 8 : 3;
+      return withXp({
         session: { ...s, gather: result.state, inventory: given.inv, vitals: spendStamina(s.vitals, a.stamina) ?? s.vitals },
         fx: [...fx, ...brokeFx(slotBefore, worn, s.selected), ...given.fx],
-      };
+      }, [[skill, base + (result.destroyed ? base * 2 : 0)]]);
     }
     case 'attack': {
       const worn = a.melee.wear ? wearTool(s.inventory, s.selected) : s.inventory;
+      const crit = new Rng(hashString(`${s.seed}:crit:${Math.floor(s.playTime * 20)}`)).chance(sessionMods(s).crit);
+      const melee = crit ? { ...a.melee, damage: a.melee.damage * CRIT_DAMAGE } : a.melee;
       return {
         session: { ...s, inventory: worn, vitals: spendStamina(s.vitals, a.melee.stamina) ?? s.vitals },
-        fx: [{ t: 'swing' }, { t: 'strike', melee: a.melee }, ...brokeFx(slotBefore, worn, s.selected)],
+        fx: [{ t: 'swing' }, { t: 'strike', melee, crit }, ...brokeFx(slotBefore, worn, s.selected)],
       };
     }
     case 'shoot': {
@@ -263,18 +305,24 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       return { session: { ...s, inventory: setDurability(s.inventory, s.selected, cap) }, fx: [say('msgFilled')] };
     }
     case 'eat':
+    {
+      const cooked = slotBefore !== null && slotBefore !== undefined && COOKED_FOODS.includes(slotBefore.item);
+      const k = cooked ? sessionMods(s).food : 1;
+      const food = k === 1 ? a.food : { ...a.food, hunger: Math.round(a.food.hunger * k), hp: Math.round(a.food.hp * k) };
       return withStory(
-        { session: { ...s, inventory: takeOne(s.inventory, s.selected), vitals: eat(s.vitals, a.food) }, fx: [{ t: 'ate' }] },
-        slotBefore && COOKED_FOODS.includes(slotBefore.item) ? ['eat:cooked'] : [],
+        { session: { ...s, inventory: takeOne(s.inventory, s.selected), vitals: eat(s.vitals, food) }, fx: [{ t: 'ate' }] },
+        cooked ? ['eat:cooked'] : [],
       );
+    }
     case 'harvest': {
       const tile = idx(a.x, a.y);
       const rng = new Rng(hashString(`${s.seed}:farm:${tile}:${s.clock.day}`));
       const result = farmSim.harvest(s.farm, tile, rng);
       if (!result) return { session: s, fx: [] };
-      const given = giveItems(s.inventory, result.items);
+      const doubled = rng.chance(sessionMods(s).yieldFarm);
+      const given = giveItems(s.inventory, doubled ? [...result.items, ...result.items] : result.items);
       if (given.overflow) return { session: s, fx: [say('msgFull')] };
-      return withStory({ session: { ...s, farm: result.farm, inventory: given.inv }, fx: [{ t: 'plot', tile }, ...given.fx] }, ['harvest']);
+      return withXp(withStory({ session: { ...s, farm: result.farm, inventory: given.inv }, fx: [{ t: 'plot', tile }, ...given.fx] }, ['harvest']), [['farming', 8]]);
     }
     case 'drink':
       return { session: { ...s, vitals: eat(s.vitals, { hunger: 0, thirst: 25, hp: 0 }) }, fx: [say('msgDrank')] };
@@ -293,10 +341,43 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
 
 /** Craft one batch at the stations in reach. Nothing changes when it is not possible. */
 export function craftRecipe(s: Session, recipe: Recipe, near: ReadonlySet<Station>): Step {
-  const inv = craft(s.inventory, recipe, near);
+  if (levelOf(s.skills.crafting) < (recipe.lvl ?? 1)) return { session: s, fx: [] };
+  let inv = craft(s.inventory, recipe, near);
   if (!inv) return { session: s, fx: [] };
+  // A practised hand wastes less: now and then the most plentiful ingredient comes back.
+  const roll = new Rng(hashString(`${s.seed}:craft:${Math.floor(s.playTime * 10)}:${recipe.id}`));
+  if (roll.chance(sessionMods(s).craftSave)) {
+    const [item] = [...recipe.cost].sort((a, b) => b[1] - a[1])[0];
+    inv = addItem(inv, item, 1).inv;
+  }
   const cooked = recipe.station === 'campfire' && ITEMS[recipe.out].food !== undefined;
-  return withStory({ session: { ...s, inventory: inv }, fx: [{ t: 'gain', item: recipe.out, qty: recipe.qty }] }, [`craft:${recipe.out}`, ...(cooked ? ['cook'] : [])]);
+  const weight = recipe.cost.reduce((n, [, q]) => n + q, 0);
+  const step = withStory({ session: { ...s, inventory: inv }, fx: [{ t: 'gain', item: recipe.out, qty: recipe.qty }] }, [`craft:${recipe.out}`, ...(cooked ? ['cook'] : [])]);
+  return withXp(step, [[cooked ? 'cooking' : 'crafting', Math.min(14, 2 + Math.round(weight / 2))]]);
+}
+
+/** Take off what is worn in a gear slot. */
+export function takeOffGear(s: Session, place: GearSlot): Step {
+  if (!s.equipment[place]) return { session: s, fx: [] };
+  const off = unequipSlot(s.inventory, s.equipment, place);
+  if (!off) return { session: s, fx: [say('msgFull')] };
+  return { session: { ...s, inventory: off.inv, equipment: off.equipment }, fx: [{ t: 'equipped' }] };
+}
+
+/** At an anvil: upgrade the tool in a backpack slot by one level. */
+export function upgradeItem(s: Session, index: number, near: ReadonlySet<Station>): Step {
+  if (!near.has('anvil')) return { session: s, fx: [] };
+  const inv = upgradeSlot(s.inventory, index);
+  if (!inv) return { session: s, fx: [say('msgCannotUpgrade')] };
+  const slot = inv[index];
+  return withXp({ session: { ...s, inventory: inv }, fx: [{ t: 'upgraded', item: slot?.item ?? 'wood', plus: slot?.plus ?? 0 }] }, [['crafting', 10 + (slot?.plus ?? 0) * 4]]);
+}
+
+/** At an anvil: put a worn tool back to full strength. */
+export function repairItem(s: Session, index: number, near: ReadonlySet<Station>): Step {
+  if (!near.has('anvil')) return { session: s, fx: [] };
+  const inv = repairSlot(s.inventory, index);
+  return inv ? { session: { ...s, inventory: inv }, fx: [say('msgRepaired')] } : { session: s, fx: [say('msgCannotUpgrade')] };
 }
 
 export { chooseEnding, claimOwed, dawn, reached, recordKill, story };

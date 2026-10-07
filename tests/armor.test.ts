@@ -5,11 +5,23 @@ import { UI_STRINGS } from '@/data/strings';
 import { defenseOf, equipFromSlot, noEquipment, parseEquipment, unequipArmor } from '@/sim/equipment';
 import { addItem, emptyInventory } from '@/sim/inventory';
 
-const ARMORS: ItemId[] = ['armor_bone', 'armor_iron', 'armor_moss', 'armor_ironbones', 'armor_mire', 'armor_hollow', 'armor_wood', 'armor_crystal'];
+const ARMORS: ItemId[] = [
+  'armor_bone', 'armor_iron', 'armor_moss', 'armor_ironbones', 'armor_mire', 'armor_hollow', 'armor_wood', 'armor_crystal',
+  'armor_leather', 'armor_steel', 'armor_mithril',
+];
+const GEAR: ItemId[] = [
+  'cap_leather', 'helm_iron', 'helm_steel', 'helm_crystal', 'helm_mithril', 'boots_leather', 'boots_iron', 'boots_steel', 'boots_mithril',
+  'ring_might', 'ring_swift', 'amulet_vigor', 'amulet_fortune', 'amulet_warmth',
+];
 
 describe('armour items', () => {
-  it('are the eight pieces, never stack, never wear out, and name a positive defence', () => {
-    expect(ITEM_IDS.filter((id) => ITEMS[id].armor)).toEqual(ARMORS);
+  it('are the body pieces and the helms, boots and charms, never stack, never wear out, and name a defence', () => {
+    expect(ITEM_IDS.filter((id) => ITEMS[id].armor)).toEqual([...ARMORS, ...GEAR]);
+    for (const id of GEAR) {
+      expect(ITEMS[id].stack, id).toBe(1);
+      expect(ITEMS[id].armor!.slot, id).toBeDefined();
+      expect(UI_STRINGS[`item_${id}`], id).toBeDefined();
+    }
     for (const id of ARMORS) {
       expect(ITEMS[id].stack, id).toBe(1);
       expect(ITEMS[id].tool, id).toBeUndefined();
@@ -37,19 +49,19 @@ describe('armour items', () => {
 
 describe('equipment', () => {
   it('starts with nothing worn and no defence', () => {
-    expect(noEquipment()).toEqual({ armor: null });
+    expect(noEquipment()).toEqual({ armor: null, helm: null, boots: null, charm: null });
     expect(defenseOf(noEquipment())).toBe(0);
-    expect(defenseOf({ armor: 'armor_iron' })).toBe(ITEMS.armor_iron.armor!.defense);
+    expect(defenseOf({ ...noEquipment(), armor: 'armor_iron' })).toBe(ITEMS.armor_iron.armor!.defense);
   });
 
   it('wears the armour in a slot and puts what was worn back in that slot', () => {
     let inv = addItem(emptyInventory(), 'armor_bone', 1).inv;
     inv = addItem(inv, 'armor_iron', 1).inv;
     const first = equipFromSlot(inv, noEquipment(), 0)!;
-    expect(first.equipment).toEqual({ armor: 'armor_bone' });
+    expect(first.equipment).toEqual({ ...noEquipment(), armor: 'armor_bone' });
     expect(first.inv[0]).toBeNull();
     const swapped = equipFromSlot(first.inv, first.equipment, 1)!;
-    expect(swapped.equipment).toEqual({ armor: 'armor_iron' });
+    expect(swapped.equipment).toEqual({ ...noEquipment(), armor: 'armor_iron' });
     expect(swapped.inv[1]).toEqual({ item: 'armor_bone', qty: 1 });
   });
 
@@ -61,9 +73,9 @@ describe('equipment', () => {
   });
 
   it('takes armour off into the first free slot, or refuses when the backpack is full', () => {
-    const worn = { armor: 'armor_moss' } as const;
+    const worn = { ...noEquipment(), armor: 'armor_moss' } as const;
     const off = unequipArmor(emptyInventory(), worn)!;
-    expect(off.equipment).toEqual({ armor: null });
+    expect(off.equipment).toEqual({ armor: null, helm: null, boots: null, charm: null });
     expect(off.inv[0]).toEqual({ item: 'armor_moss', qty: 1 });
     const full = addItem(emptyInventory(1), 'wood', 99).inv;
     expect(unequipArmor(full, worn)).toBeNull();
@@ -71,9 +83,11 @@ describe('equipment', () => {
   });
 
   it('keeps only real armour from an untrusted save', () => {
-    expect(parseEquipment({ armor: 'armor_mire' })).toEqual({ armor: 'armor_mire' });
-    expect(parseEquipment({ armor: 'wood' })).toEqual({ armor: null });
-    expect(parseEquipment({ armor: 'nonsense' })).toEqual({ armor: null });
-    expect(parseEquipment(null)).toEqual({ armor: null });
+    expect(parseEquipment({ armor: 'armor_mire' })).toEqual({ ...noEquipment(), armor: 'armor_mire' });
+    expect(parseEquipment({ armor: 'wood' })).toEqual({ armor: null, helm: null, boots: null, charm: null });
+    expect(parseEquipment({ armor: 'nonsense' })).toEqual({ armor: null, helm: null, boots: null, charm: null });
+    expect(parseEquipment(null)).toEqual({ armor: null, helm: null, boots: null, charm: null });
+    // Gear only goes in its own slot.
+    expect(parseEquipment({ helm: 'armor_iron', boots: 'boots_iron' })).toEqual({ ...noEquipment(), boots: 'boots_iron' });
   });
 });

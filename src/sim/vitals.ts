@@ -40,6 +40,8 @@ export interface VitalsContext {
   busy: boolean;
   /** True while the hero runs: stamina drains instead of recovering. */
   running?: boolean;
+  /** Extra stamina recovered a second (from gear). */
+  regen?: number;
 }
 
 const clamp = (v: number): number => Math.min(VITAL_MAX, Math.max(0, v));
@@ -53,7 +55,7 @@ export function tickVitals(v: Vitals, dt: number, ctx: VitalsContext): Vitals {
   const empty = (hunger <= 0 ? 1 : 0) + (thirst <= 0 ? 1 : 0);
   if (empty > 0) hp -= STARVE_DAMAGE * drain * empty * dt;
   else if (hp > 0 && hunger >= REGEN_THRESHOLD && thirst >= REGEN_THRESHOLD) hp += REGEN_RATE * dt;
-  const stamina = v.stamina + (ctx.running ? -RUN_DRAIN : ctx.busy ? STAMINA_REGEN_BUSY : STAMINA_REGEN) * dt;
+  const stamina = v.stamina + (ctx.running ? -RUN_DRAIN : (ctx.busy ? STAMINA_REGEN_BUSY : STAMINA_REGEN) + (ctx.regen ?? 0)) * dt;
   return { hp: clamp(hp), hunger, thirst, stamina: clamp(stamina) };
 }
 
