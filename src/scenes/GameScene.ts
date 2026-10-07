@@ -49,6 +49,7 @@ import type { NpcId } from '@/data/npcs';
 import { buyOffer, sellSlot } from '@/sim/shop';
 import type { Job } from '@/data/settlers';
 import { collectStore, hire, produceDay } from '@/sim/settlers';
+import { acceptBounty, dropBounty, turnInBounty } from '@/sim/bounty';
 import { idx, type Biome, type IslandId, type World } from '@/sim/world/types';
 import { COLORS } from '@/ui/theme';
 
@@ -592,6 +593,18 @@ export class GameScene extends BaseScene {
     if (this.scene.isPaused()) return;
     this.scene.pause('Game');
     this.scene.launch('Camp', { game: this });
+  }
+
+  takeBounty(npc: NpcId): void {
+    this.commit(acceptBounty(this.session, npc));
+  }
+
+  handInBounty(): void {
+    this.commit(turnInBounty(this.session));
+  }
+
+  giveUpBounty(): void {
+    this.session = dropBounty(this.session);
   }
 
   hireSettler(job: Job): void {

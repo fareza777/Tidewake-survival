@@ -36,6 +36,7 @@ import { eat, sleepRecovery, spendStamina, takeDamage, tickVitals, type Difficul
 import { freshStash, islandUnlocked, worldFor, type Stashes } from '@/sim/islands';
 import type { Job } from '@/data/settlers';
 import type { Store } from '@/sim/settlers';
+import type { Bounty } from '@/sim/bounty';
 import { idx, type Biome, type IslandId, type ResourceNode } from '@/sim/world/types';
 
 /** The live game state that changes while playing. Pure data: every function here returns a new Session. */
@@ -71,6 +72,8 @@ export interface Session {
   settlers: readonly Job[];
   /** What they have brought in and nobody has taken yet. */
   store: Store;
+  /** The job a trader posted that the hero has taken, if any. */
+  bounty: Bounty | null;
 }
 
 /** Something the scene should show or do as a result of a rule: floating text, a sprite change, a dialog. */
@@ -113,7 +116,7 @@ export function sessionFromSlot(slot: SaveSlot): Session {
     selected: slot.selected, vitals: slot.vitals, structures: slot.structures, farm: slot.farm, respawn: slot.respawn,
     playTime: slot.playTimeSec, location: slot.location, equipment: slot.equipment, dungeons: slot.dungeons, quests: slot.quests,
     skills: slot.skills, buffs: slot.buffs, raidDay: slot.raidDay, island: slot.island, stash: slot.stash,
-    settlers: slot.settlers, store: slot.store,
+    settlers: slot.settlers, store: slot.store, bounty: slot.bounty,
   };
 }
 
@@ -123,7 +126,7 @@ export function sessionToSlot(base: SaveSlot, s: Session, pos: Vec): SaveSlot {
     ...base, player: { x: pos.x, y: pos.y }, respawn: s.respawn, clock: s.clock, gather: s.gather, inventory: s.inventory,
     selected: s.selected, vitals: s.vitals, structures: s.structures, farm: s.farm, playTimeSec: s.playTime,
     location: s.location, equipment: s.equipment, dungeons: s.dungeons, quests: s.quests, skills: s.skills, buffs: [...s.buffs], raidDay: s.raidDay,
-    island: s.island, stash: s.stash, settlers: [...s.settlers], store: s.store,
+    island: s.island, stash: s.stash, settlers: [...s.settlers], store: s.store, bounty: s.bounty,
   };
 }
 

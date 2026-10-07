@@ -41,6 +41,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   A('harvester', counting(L('Green Thumb', 'Tangan Hijau'), L('Harvest 50 crops', 'Panen 50 tanaman'), 60, 50, (s) => count(s, 'harvest'))),
   A('cook', counting(L('Chef', 'Koki'), L('Cook 25 dishes', 'Masak 25 hidangan'), 60, 25, (s) => count(s, 'cook'))),
   A('angler', counting(L('Big Fish', 'Ikan Besar'), L('Catch a rare fish', 'Tangkap ikan langka'), 30, 1, (s) => count(s, 'fish:big'))),
+  A('bounty', counting(L('Bounty Hunter', 'Pemburu Hadiah'), L('Finish 10 jobs from the boards', 'Selesaikan 10 tugas dari papan'), 120, 10, (s) => count(s, 'bounty'))),
   A('trader', counting(L('Trader', 'Pedagang'), L('Sell 20 goods', 'Jual 20 barang'), 40, 20, (s) => count(s, 'sell'))),
   A('shopper', counting(L('Big Spender', 'Si Boros'), L('Buy 10 goods', 'Beli 10 barang'), 40, 10, (s) => sumOf(s, 'buy:'))),
   A('rich', counting(L('Pockets of Gold', 'Kantong Emas'), L('Carry 1000 gold', 'Bawa 1000 emas'), 100, 1000, (s) => countItem(s.inventory, 'gold'))),

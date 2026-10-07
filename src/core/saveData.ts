@@ -17,6 +17,7 @@ import type { Structure, Structures } from '@/sim/structures';
 import { VITAL_MAX, fullVitals, type Difficulty, type Vitals } from '@/sim/vitals';
 import { GENERATOR_VERSION } from '@/sim/world/generate';
 import type { Job } from '@/data/settlers';
+import { parseBounty, type Bounty } from '@/sim/bounty';
 import { parseSettlers, parseStore, type Store } from '@/sim/settlers';
 import { ISLAND_IDS, isIslandId, type Stash, type Stashes } from '@/sim/islands';
 import { WORLD_SIZE, type IslandId } from '@/sim/world/types';
@@ -71,6 +72,8 @@ export interface SaveSlot {
   /** The people who work for the hero, one trade each, and what they have brought in. */
   settlers: Job[];
   store: Store;
+  /** The job a trader posted that the hero has taken, if any. */
+  bounty: Bounty | null;
 }
 
 export interface SlotSummary {
@@ -92,7 +95,7 @@ export function newSlot(
     playTimeSec: 0, player: spawn, respawn: { ...spawn }, clock, gather: emptyGather(), inventory: emptyInventory(), selected: 0,
     vitals: fullVitals(), structures: { next: 1, list: [] }, farm: emptyFarm(), location: null, equipment: noEquipment(),
     dungeons: emptyDungeons(), dungeonVersion: DUNGEON_VERSION, quests: settle(emptyQuests(), emptyInventory(), QUESTS).q,
-    skills: noSkills(), buffs: [], raidDay: 0, island: 'home', stash: {}, settlers: [], store: {},
+    skills: noSkills(), buffs: [], raidDay: 0, island: 'home', stash: {}, settlers: [], store: {}, bounty: null,
   };
 }
 
@@ -248,5 +251,6 @@ export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
     stash: d.version >= 6 ? parseStashes(d.stash) : {},
     settlers: parseSettlers(d.settlers),
     store: parseStore(d.store),
+    bounty: parseBounty(d.bounty),
   };
 }
