@@ -37,7 +37,7 @@ import { emptyGather, sanitizeGather } from '@/sim/gather';
 import { meleeFor } from '@/sim/melee';
 import { moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import {
-  applyAction, collapse, craftRecipe, story, equipArmor, markRaid, moveInventorySlot, selectSlot, sessionFromSlot, sessionMods, sessionToSlot, takeOffGear, tickSession,
+  applyAction, collapse, craftMany, story, equipArmor, markRaid, moveInventorySlot, selectSlot, sessionFromSlot, sessionMods, sessionToSlot, takeOffGear, tickSession,
   arrive, sailTo, turretFired, weatherStrain,
   upgradeItem, repairItem,
   transferStack, type Fx, type Session, type Step,
@@ -537,8 +537,8 @@ export class GameScene extends BaseScene {
     return this.level.stations(this.session, this.pos);
   }
 
-  craft(recipe: Recipe): void {
-    const step = craftRecipe(this.session, recipe, this.stations());
+  craft(recipe: Recipe, times = 1): void {
+    const step = craftMany(this.session, recipe, this.stations(), times);
     if (step.fx.length > 0) services.audio?.sfx('craft');
     this.commit(step, true);
   }

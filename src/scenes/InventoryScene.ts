@@ -6,7 +6,7 @@ import { view, vx, vy } from '@/core/viewport';
 import { ITEMS, type ItemId } from '@/data/items';
 import type { Recipe } from '@/data/recipes';
 import { CHEST_SLOTS } from '@/data/structures';
-import { availableRecipes, canCraft, missingFor } from '@/sim/crafting';
+import { availableRecipes, canCraft, maxCrafts, missingFor } from '@/sim/crafting';
 import { GEAR_SLOTS, gearStats } from '@/sim/equipment';
 import { HOTBAR_SIZE, INVENTORY_SIZE, canAfford, type Inventory } from '@/sim/inventory';
 import { sessionMods } from '@/sim/session';
@@ -290,10 +290,17 @@ export class InventoryScene extends BaseScene {
       const need = locked ? t('craftLocked', { n: recipe.lvl ?? 1 })
         : missing.length ? `${t('craftNeeds')}: ${missing.map(([item, n]) => `${n} ${t(`item_${item}`)}`).join(', ')}` : this.costText(recipe);
       this.ui.add(label(this, 52, y + 28, need, FONT.small, locked || missing.length ? 0xe0824f : COLORS.textDim));
-      this.ui.add(new Button(this, view.w - 52, y + 24, t('craftBtn'), () => {
+      const many = ok ? maxCrafts(inv, recipe, near, 25) : 0;
+      this.ui.add(new Button(this, view.w - 52, y + (many > 1 ? 14 : 24), t('craftBtn'), () => {
         this.world.craft(recipe);
         this.render();
-      }, { w: 60, h: 30, style: ok ? 'primary' : 'normal', disabled: !ok }));
+      }, { w: 60, h: many > 1 ? 22 : 30, font: many > 1 ? FONT.small : undefined, style: ok ? 'primary' : 'normal', disabled: !ok }));
+      if (many > 1) {
+        this.ui.add(new Button(this, view.w - 52, y + 38, `x${many}`, () => {
+          this.world.craft(recipe, many);
+          this.render();
+        }, { w: 60, h: 22, font: FONT.small }));
+      }
     });
     if (pages > 1) this.drawPager(pages, CONTENT_TOP + 14 + ROWS_PER_PAGE * ROW_H + 6);
   }

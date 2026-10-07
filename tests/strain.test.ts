@@ -3,6 +3,9 @@ import { STAMINA_TOOL } from '@/data/tools';
 import { fullVitals, tickVitals, VITAL_MAX } from '@/sim/vitals';
 import { strainOf } from '@/sim/weather';
 import { B } from '@/sim/world/types';
+import { RECIPES } from '@/data/recipes';
+import { craft, maxCrafts } from '@/sim/crafting';
+import { HOTBAR_SIZE, addGear, addItem, emptyInventory } from '@/sim/inventory';
 import { levelOf, xpToReach } from '@/sim/skills';
 
 const idle = { difficulty: 'normal' as const, biome: B.FOREST, busy: false };
@@ -57,5 +60,37 @@ describe('skill levels', () => {
     expect(xpToReach(2)).toBeGreaterThanOrEqual(70);
     expect(xpToReach(10)).toBeGreaterThanOrEqual(15000);
     expect(levelOf(xpToReach(10))).toBe(10);
+  });
+});
+
+describe('the tools column', () => {
+  it('takes a crafted tool into the first free hotbar slot, even when the bag has room before it, and falls back when it is full', () => {
+    let inv = emptyInventory();
+    inv = addItem(inv, 'wood', 5).inv;
+    const made = addGear(inv, 'axe_wood', 1);
+    expect(made.inv[1]?.item).toBe('axe_wood');
+    let full = emptyInventory();
+    for (let i = 0; i < HOTBAR_SIZE; i++) full = addItem(full, i % 2 ? 'wood' : 'stone', 99).inv;
+    const spilled = addGear(full, 'axe_wood', 1);
+    expect(spilled.left).toBe(0);
+    expect(spilled.inv.findIndex((s) => s?.item === 'axe_wood')).toBeGreaterThanOrEqual(HOTBAR_SIZE);
+    expect(addGear(emptyInventory(), 'wood', 3).inv[0]).toEqual({ item: 'wood', qty: 3 });
+  });
+
+  it('crafts a tool into that column and a material into the ordinary place', () => {
+    const axe = RECIPES.find((r) => r.out === 'axe_stone')!;
+    const near = new Set<'workbench' | 'campfire' | 'furnace'>(['workbench', 'campfire', 'furnace']);
+    let inv = emptyInventory();
+    for (const [item, n] of axe.cost) inv = addItem(inv, item, n).inv;
+    const out = craft(inv, axe, near)!;
+    expect(out.slice(0, HOTBAR_SIZE).some((s) => s?.item === 'axe_stone')).toBe(true);
+  });
+
+  it('works out how many batches can be made in one go', () => {
+    const inv = addItem(addItem(emptyInventory(), 'wood', 10).inv, 'stone', 10).inv;
+    const plank = RECIPES.find((r) => r.out === 'plank')!;
+    expect(maxCrafts(inv, plank, new Set(), 99)).toBeGreaterThan(1);
+    expect(maxCrafts(inv, plank, new Set(), 2)).toBe(2);
+    expect(maxCrafts(emptyInventory(), plank, new Set())).toBe(0);
   });
 });

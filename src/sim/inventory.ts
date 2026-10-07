@@ -57,6 +57,22 @@ export function addItem(inv: Inventory, item: ItemId, qty: number): { inv: Inven
   return { inv: out, left };
 }
 
+/**
+ * Put a tool, weapon or other new piece of gear into the tools column (the hotbar slots) when one is free; when the
+ * column is full it goes wherever there is room, like anything else.
+ */
+export function addGear(inv: Inventory, item: ItemId, qty: number): { inv: Inventory; left: number } {
+  if (stackable(item)) return addItem(inv, item, qty);
+  const out = inv.slice();
+  let left = Math.max(0, Math.floor(qty));
+  for (let i = 0; i < Math.min(HOTBAR_SIZE, out.length) && left > 0; i++) {
+    if (out[i]) continue;
+    out[i] = newSlot(item, 1);
+    left -= 1;
+  }
+  return left > 0 ? addItem(out, item, left) : { inv: out, left };
+}
+
 /** Remove `qty` of `item`, taking from the back of the backpack first. Null when there is not enough. */
 export function removeItem(inv: Inventory, item: ItemId, qty: number): Inventory | null {
   if (countItem(inv, item) < qty) return null;

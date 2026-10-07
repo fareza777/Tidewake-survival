@@ -450,6 +450,21 @@ export function craftRecipe(s: Session, recipe: Recipe, near: ReadonlySet<Statio
   return withXp(step, [[cooked ? 'cooking' : 'crafting', Math.min(14, 2 + Math.round(weight / 2))]]);
 }
 
+/** Craft several batches in a row (as many as the ingredients and the backpack allow, at most `times`). */
+export function craftMany(s: Session, recipe: Recipe, near: ReadonlySet<Station>, times: number): Step {
+  let cur = s;
+  const fx: Fx[] = [];
+  let made = 0;
+  for (let i = 0; i < times; i++) {
+    const r = craftRecipe(cur, recipe, near);
+    if (r.session === cur) break;
+    cur = r.session;
+    made += recipe.qty;
+    fx.push(...r.fx.filter((f) => !(f.t === 'gain' && f.item === recipe.out)));
+  }
+  return made === 0 ? { session: s, fx: [] } : { session: cur, fx: [{ t: 'gain', item: recipe.out, qty: made }, ...fx] };
+}
+
 /** Take off what is worn in a gear slot. */
 export function takeOffGear(s: Session, place: GearSlot): Step {
   if (!s.equipment[place]) return { session: s, fx: [] };
