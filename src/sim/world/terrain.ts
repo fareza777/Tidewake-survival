@@ -18,7 +18,7 @@ const STONE_LEVEL = 0.56;
 const DIRS4 = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
 
 /** Keep the largest 4-connected land component; every other bit of land becomes water. */
-function keepLargestLand(terrain: Uint8Array, height: Float32Array, size: number): void {
+export function keepLargestLand(terrain: Uint8Array, height: Float32Array, size: number): void {
   const label = new Int32Array(size * size).fill(-1);
   const sizes: number[] = [];
   for (let s = 0; s < size * size; s++) {

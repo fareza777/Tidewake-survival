@@ -21,6 +21,8 @@ export interface LevelView {
   node: ResourceNode | null;
   /** The dungeon whose entrance is the tile in front of the hero. */
   entrance: DungeonId | null;
+  /** The dock of a far island is the tile in front of the hero. */
+  dock: boolean;
   /** A locked door, a chest or the exit in front of the hero (dungeons). */
   target: Target | null;
   /** The islander on the tile in front of the hero. */

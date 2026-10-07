@@ -33,7 +33,8 @@ import type { QuestEvent, QuestState } from '@/sim/quests';
 import { giveItems, say } from '@/sim/sessionKit';
 import { chooseEnding, claimOwed, dawn, dig, fish, inspect, reached, recordKill, story, talk, useRaft, withStory } from '@/sim/storySession';
 import { eat, sleepRecovery, spendStamina, takeDamage, tickVitals, type Difficulty, type Vitals } from '@/sim/vitals';
-import { idx, type Biome, type ResourceNode } from '@/sim/world/types';
+import { freshStash, islandUnlocked, worldFor, type Stashes } from '@/sim/islands';
+import { idx, type Biome, type IslandId, type ResourceNode } from '@/sim/world/types';
 
 /** The live game state that changes while playing. Pure data: every function here returns a new Session. */
 export interface Session {
@@ -60,6 +61,10 @@ export interface Session {
   buffs: readonly Buff[];
   /** The last day a night raid was rolled for. */
   raidDay: number;
+  /** The island the hero is on; `gather`, `structures`, `farm` and `respawn` belong to it. */
+  island: IslandId;
+  /** The same four things for the islands he has left. */
+  stash: Stashes;
 }
 
 /** Something the scene should show or do as a result of a rule: floating text, a sprite change, a dialog. */
@@ -79,6 +84,8 @@ export type Fx =
   | { t: 'ate' }
   | { t: 'equipped' }
   | { t: 'travel'; to: DungeonId | null }
+  | { t: 'voyage' }
+  | { t: 'sail'; to: IslandId }
   | { t: 'chestOpened'; id: number }
   | { t: 'doorOpened'; id: number }
   | { t: 'quest'; ev: QuestEvent }
@@ -98,7 +105,7 @@ export function sessionFromSlot(slot: SaveSlot): Session {
     seed: slot.seed, difficulty: slot.difficulty, clock: slot.clock, gather: slot.gather, inventory: slot.inventory,
     selected: slot.selected, vitals: slot.vitals, structures: slot.structures, farm: slot.farm, respawn: slot.respawn,
     playTime: slot.playTimeSec, location: slot.location, equipment: slot.equipment, dungeons: slot.dungeons, quests: slot.quests,
-    skills: slot.skills, buffs: slot.buffs, raidDay: slot.raidDay,
+    skills: slot.skills, buffs: slot.buffs, raidDay: slot.raidDay, island: slot.island, stash: slot.stash,
   };
 }
 
@@ -108,6 +115,7 @@ export function sessionToSlot(base: SaveSlot, s: Session, pos: Vec): SaveSlot {
     ...base, player: { x: pos.x, y: pos.y }, respawn: s.respawn, clock: s.clock, gather: s.gather, inventory: s.inventory,
     selected: s.selected, vitals: s.vitals, structures: s.structures, farm: s.farm, playTimeSec: s.playTime,
     location: s.location, equipment: s.equipment, dungeons: s.dungeons, quests: s.quests, skills: s.skills, buffs: [...s.buffs], raidDay: s.raidDay,
+    island: s.island, stash: s.stash,
   };
 }
 
@@ -137,6 +145,20 @@ export function rewardKill(s: Session, kind: CreatureId): Step {
   const def = CREATURES[kind];
   const xp = Math.max(2, Math.round(def.hp / 2)) * (def.temper === 'boss' ? 3 : 1);
   return withXp({ session: s, fx: [] }, [['combat', xp]]);
+}
+
+/** Cross the sea: what he did here is kept, and the other island's is taken up. Nothing changes when the way is shut. */
+export function sailTo(s: Session, to: IslandId): Step {
+  if (to === s.island || !islandUnlocked(s.dungeons, to)) return { session: s, fx: [] };
+  const here = { gather: s.gather, structures: s.structures, farm: s.farm, respawn: s.respawn };
+  const next = s.stash[to] ?? freshStash(worldFor(s.seed, to).start);
+  return {
+    session: {
+      ...s, island: to, location: null, gather: next.gather, structures: next.structures, farm: next.farm, respawn: next.respawn,
+      stash: { ...s.stash, [s.island]: here },
+    },
+    fx: [{ t: 'sail', to }],
+  };
 }
 
 /** Advance time: the clock runs and the vital meters drain or recover. */
@@ -287,6 +309,7 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
     case 'dig': return dig(s, a.spot, a.stamina);
     case 'fish': return fish(s, a.stamina);
     case 'raft': return useRaft(s);
+    case 'boat': return { session: s, fx: [{ t: 'voyage' }] };
     case 'place': {
       const structures = placeStructure(s.structures, a.type, a.x, a.y);
       return withStory({

@@ -23,6 +23,21 @@ function rulesFor(biome: number, ground: number): Rule[] {
     case B.DESERT:
       if (ground === T.SAND) return [{ kind: 'palm', p: 0.01 }];
       return [{ kind: 'redrock', p: 0.035 }, { kind: 'rock', p: 0.01 }];
+    case B.FROST:
+      if (ground === T.SAND) return [{ kind: 'driftwood', p: 0.02 }, { kind: 'icerock', p: 0.01 }];
+      if (ground === T.STONE) return [{ kind: 'icerock', p: 0.08 }, { kind: 'ore', p: 0.03 }, { kind: 'crystal', p: 0.01 }];
+      return [{ kind: 'pine', p: 0.1 }, { kind: 'icerock', p: 0.025 }, { kind: 'bush', p: 0.01 }, { kind: 'crystal', p: 0.004 }];
+    case B.VOLCANO:
+      if (ground === T.SAND) return [{ kind: 'palm', p: 0.008 }, { kind: 'driftwood', p: 0.015 }, { kind: 'ashrock', p: 0.015 }];
+      if (ground === T.STONE) return [{ kind: 'ashrock', p: 0.07 }, { kind: 'ore', p: 0.035 }, { kind: 'coalvein', p: 0.03 }, { kind: 'mithril', p: 0.006 }];
+      return [{ kind: 'ashrock', p: 0.04 }, { kind: 'coalvein', p: 0.015 }, { kind: 'ore', p: 0.01 }, { kind: 'bush', p: 0.008 }];
+    case B.WRECK:
+      if (ground === T.SAND) return [{ kind: 'driftwood', p: 0.05 }, { kind: 'palm', p: 0.02 }];
+      return [{ kind: 'swamptree', p: 0.05 }, { kind: 'driftwood', p: 0.035 }, { kind: 'bush', p: 0.02 }, { kind: 'rock', p: 0.012 }, { kind: 'ore', p: 0.006 }];
+    case B.SKY:
+      if (ground === T.SAND) return [{ kind: 'palm', p: 0.01 }];
+      if (ground === T.STONE) return [{ kind: 'rock', p: 0.06 }, { kind: 'ore', p: 0.035 }, { kind: 'crystal', p: 0.012 }, { kind: 'mithril', p: 0.008 }];
+      return [{ kind: 'tree', p: 0.07 }, { kind: 'bush', p: 0.02 }, { kind: 'rock', p: 0.015 }, { kind: 'crystal', p: 0.004 }];
     default:
       return [];
   }
@@ -46,7 +61,7 @@ export function scatterResources(
   for (let y = 1; y < size - 1; y++) {
     for (let x = 1; x < size - 1; x++) {
       const i = idx(x, y, size);
-      if (blocked[i] || isWater(terrain[i])) continue;
+      if (blocked[i] || isWater(terrain[i]) || terrain[i] === T.LAVA) continue;
       const rules = rulesFor(biome[i], terrain[i]);
       if (!rules.length) continue;
       const roll = r.next();

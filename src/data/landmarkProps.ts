@@ -1,8 +1,9 @@
 import type { LandmarkId } from '@/sim/world/types';
 
 export interface PropSpec {
-  /** Frame in the `props` atlas. */
+  /** Frame in the `props` atlas (or in the `icons` atlas when `atlas` says so). */
   frame: string;
+  atlas?: 'icons';
   /** Offset from the landmark tile, in tiles (the prop is drawn at the centre of that tile). */
   dx: number;
   dy: number;
@@ -55,8 +56,9 @@ export const LANDMARK_PROPS: Record<LandmarkId, readonly PropSpec[]> = {
   treasure2: [{ frame: 'chest/chest_01/0', dx: 0, dy: 0 }],
   treasure3: [{ frame: 'chest/chest_01/0', dx: 0, dy: 0 }],
   dock: [
-    { frame: 'p/crate_03', dx: -2, dy: 1 },
-    { frame: 'p/barrel_02', dx: 2, dy: 1 },
+    { frame: 'struct_boat', atlas: 'icons', dx: 0, dy: 0, blocks: [[0, 0]] },
+    { frame: 'p/barrel_02', dx: -2, dy: 1 },
+    { frame: 'p/crate_03', dx: 2, dy: 1 },
   ],
   outpost: [
     { frame: 'p/house_05', dx: 0, dy: 0, blocks: [[-1, 0], [0, 0], [1, 0]] },

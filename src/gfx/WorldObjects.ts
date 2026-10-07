@@ -34,7 +34,7 @@ export class WorldObjects {
       for (const p of LANDMARK_PROPS[l.id]) {
         const x = (l.x + p.dx + 0.5) * TILE;
         const y = (l.y + p.dy + 1) * TILE - 1;
-        const obj = p.anim ? scene.add.sprite(x, y, 'props', p.frame).play(p.anim) : scene.add.image(x, y, 'props', p.frame);
+        const obj = p.anim ? scene.add.sprite(x, y, 'props', p.frame).play(p.anim) : scene.add.image(x, y, p.atlas ?? 'props', p.frame);
         obj.setOrigin(0.5, 1).setDepth(y);
         if (p.tint !== undefined) obj.setTint(p.tint);
       }

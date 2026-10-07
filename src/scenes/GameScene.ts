@@ -37,13 +37,14 @@ import { meleeFor } from '@/sim/melee';
 import { moveWithCollision, speedFactor, type Vec } from '@/sim/movement';
 import {
   applyAction, collapse, craftRecipe, story, equipArmor, markRaid, moveInventorySlot, selectSlot, sessionFromSlot, sessionMods, sessionToSlot, takeOffGear, tickSession,
-  turretFired,
+  sailTo, turretFired,
   upgradeItem, repairItem,
   transferStack, type Fx, type Session, type Step,
 } from '@/sim/session';
 import { RUN_SPEED, RUN_START, isDead, type Difficulty } from '@/sim/vitals';
-import { GENERATOR_VERSION, generateWorld } from '@/sim/world/generate';
-import { idx, type Biome, type World } from '@/sim/world/types';
+import { GENERATOR_VERSION } from '@/sim/world/generate';
+import { worldFor } from '@/sim/islands';
+import { idx, type Biome, type IslandId, type World } from '@/sim/world/types';
 import { COLORS } from '@/ui/theme';
 
 /** Walking speed in tiles per second, and the pause between uses (seconds). */
@@ -135,7 +136,7 @@ export class GameScene extends BaseScene {
       return;
     }
     const seed = data.seed ?? loaded!.seed;
-    const island = loaded?.location && loaded.dungeonVersion === DUNGEON_VERSION ? null : generateWorld(seed);
+    const island = loaded?.location && loaded.dungeonVersion === DUNGEON_VERSION ? null : worldFor(seed, loaded?.island ?? 'home');
     this.slotData = loaded ?? newSlot(data.slot, cleanName(data.name), seed, data.difficulty ?? 'normal', island!.start, newClock());
     if (!loaded) services.saves?.write(this.slotData);
 
@@ -189,7 +190,8 @@ export class GameScene extends BaseScene {
   private startSession(island: World | null, where: DungeonId | null): Session {
     const s = sessionFromSlot(this.slotData);
     const current = this.slotData.dungeonVersion === DUNGEON_VERSION;
-    const gather = !island ? s.gather : this.slotData.worldVersion === GENERATOR_VERSION ? sanitizeGather(s.gather, island.resources.length) : emptyGather();
+    const fits = !island || island.island !== undefined || this.slotData.worldVersion === GENERATOR_VERSION;
+    const gather = !island ? s.gather : fits ? sanitizeGather(s.gather, island.resources.length) : emptyGather();
     return { ...s, gather, location: where, dungeons: current ? s.dungeons : emptyDungeons() };
   }
 
@@ -298,7 +300,7 @@ export class GameScene extends BaseScene {
     return resolveAction({
       world: this.world, inv: s.inventory, selected: s.selected, vitals: s.vitals, pos: this.pos, facing: this.player.facing,
       structures: view.structures, farm: view.farm, occupied: this.occupied, node: view.node, creature: this.combat.reaches(melee),
-      entrance: view.entrance, target: view.target, npc: view.npc, spot: view.spot, mods: sessionMods(s),
+      entrance: view.entrance, dock: view.dock, target: view.target, npc: view.npc, spot: view.spot, mods: sessionMods(s),
     });
   }
 
@@ -310,7 +312,7 @@ export class GameScene extends BaseScene {
 
   private showCursor(a: Action): void {
     const onGrid = ['place', 'till', 'plant', 'water', 'refill', 'harvest', 'open', 'drink', 'pickup', 'dig', 'fish'].includes(a.kind);
-    const onThing = ['sleep', 'enter', 'leave', 'chest', 'door', 'talk', 'inspect', 'raft', 'reload'].includes(a.kind);
+    const onThing = ['sleep', 'enter', 'leave', 'chest', 'door', 'talk', 'inspect', 'raft', 'reload', 'boat'].includes(a.kind);
     const refused = a.kind === 'blocked' && a.reason === 'cannotPlace';
     this.cursor.setVisible(onGrid || refused);
     this.ring.setVisible(onThing);
@@ -369,6 +371,8 @@ export class GameScene extends BaseScene {
       case 'ending':
       case 'theEnd': this.story.play(fx); break;
       case 'travel': this.travel(fx.to); break;
+      case 'voyage': this.openVoyage(); break;
+      case 'sail': this.sail(fx.to); break;
     }
   }
 
@@ -395,9 +399,26 @@ export class GameScene extends BaseScene {
   private travel(to: DungeonId | null): void {
     const from = this.level.dungeon?.id;
     const seed = this.session.seed;
-    this.pos = to ? generateDungeon(seed, to).entry : doorwayOutside(generateWorld(seed), from!);
+    this.pos = to ? generateDungeon(seed, to).entry : doorwayOutside(worldFor(seed, this.session.island), from!);
     this.saveNow();
     this.goTo('Game', { slot: this.slotData.slot });
+  }
+
+  /** The hero goes aboard: he sails to `to` and lands on its beach, or by his boat when he returns home. */
+  sail(to: IslandId): void {
+    const arrival = worldFor(this.session.seed, to);
+    const boat = this.session.structures.list.find((b) => b.type === 'boat');
+    this.pos = to === 'home' && boat ? { x: boat.x + 0.5, y: boat.y + 1.5 } : { x: arrival.start.x + 0.5, y: arrival.start.y + 0.5 };
+    this.saveNow();
+    this.goTo('Game', { slot: this.slotData.slot });
+  }
+
+  /** The map was used: a place chosen (the session is switched to that island's own things first). */
+  setSail(to: IslandId): void {
+    const step = sailTo(this.session, to);
+    if (step.session === this.session) return;
+    this.session = step.session;
+    this.sail(to);
   }
 
   private sayText(fx: Say): string {
@@ -545,6 +566,12 @@ export class GameScene extends BaseScene {
   }
 
   /** Open the quest log; the island waits while it is open. */
+  openVoyage(): void {
+    if (this.scene.isPaused()) return;
+    this.scene.pause('Game');
+    this.scene.launch('Voyage', { game: this });
+  }
+
   openQuests(): void {
     if (this.scene.isPaused()) return;
     this.scene.pause('Game');

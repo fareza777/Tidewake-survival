@@ -90,6 +90,7 @@ export class IslandLevel implements Level {
     return {
       npc: npcAt(this.places, front.x, front.y), spot: spotAt(visibleSpots(this.finds, session.quests), front, hero),
       structures: session.structures, farm: session.farm, target: null, entrance: entranceAt(this.world, front.x, front.y),
+      dock: this.world.landmarks.some((l) => l.id === 'dock' && l.x === front.x && l.y === front.y),
       node: nearestNode(this.nodes, this.world.size, hero, HIT_REACH, (id) => isAlive(session.gather, id)),
     };
   }

@@ -6,6 +6,7 @@ import { RESERVE_RADIUS } from '@/sim/world/landmarks';
 import type { LandmarkId } from '@/sim/world/types';
 
 const PROPS = path.resolve(__dirname, '../public/assets/pack/props.json');
+const ICONS = path.resolve(__dirname, '../public/assets/pack/icons.json');
 
 describe('landmark props', () => {
   it('defines scenery for all 19 landmarks', () => {
@@ -25,8 +26,9 @@ describe('landmark props', () => {
 
   it.skipIf(!fs.existsSync(PROPS))('only uses frames that exist in the packed props atlas', () => {
     const atlas = JSON.parse(fs.readFileSync(PROPS, 'utf8')) as { frames: Record<string, unknown> };
+    const icons = JSON.parse(fs.readFileSync(ICONS, 'utf8')) as { frames: Record<string, unknown> };
     for (const [id, props] of Object.entries(LANDMARK_PROPS)) {
-      for (const p of props) expect(atlas.frames[p.frame], `${id}: ${p.frame}`).toBeDefined();
+      for (const p of props) expect((p.atlas === 'icons' ? icons : atlas).frames[p.frame], `${id}: ${p.frame}`).toBeDefined();
     }
   });
 });

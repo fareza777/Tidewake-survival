@@ -12,6 +12,7 @@ import { NewGameScene } from './NewGameScene';
 import { OnboardingScene } from './OnboardingScene';
 import { SettingsScene } from './SettingsScene';
 import { QuestsScene } from './QuestsScene';
+import { VoyageScene } from './VoyageScene';
 import { NotifyScene } from './NotifyScene';
 
-export const SCENES = [BootScene, PreloadScene, SplashScene, MenuScene, GameScene, HudScene, InventoryScene, DialogueScene, QuestsScene, OnboardingScene, NewGameScene, IntroScene, SettingsScene, AboutScene, NotifyScene];
+export const SCENES = [BootScene, PreloadScene, SplashScene, MenuScene, GameScene, HudScene, InventoryScene, DialogueScene, QuestsScene, VoyageScene, OnboardingScene, NewGameScene, IntroScene, SettingsScene, AboutScene, NotifyScene];

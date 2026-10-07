@@ -46,6 +46,8 @@ export interface ActionContext {
   creature: boolean;
   /** The dungeon whose entrance is the tile in front of the hero (on the island). */
   entrance: DungeonId | null;
+  /** The dock (where a boat waits) is the tile in front of the hero. */
+  dock?: boolean;
   /** What the hero can use on the tile in front of him inside a dungeon: a locked door, a chest, the way out. */
   target: Target | null;
   /** The islander standing on the tile in front of the hero. */
@@ -82,6 +84,7 @@ export type Action =
   | { kind: 'dig'; spot: Spot; stamina: number }
   | { kind: 'fish'; x: number; y: number; stamina: number }
   | { kind: 'raft'; structure: Structure }
+  | { kind: 'boat' }
   | { kind: 'shoot'; stats: WeaponStats }
   | { kind: 'place'; type: StructureId; x: number; y: number }
   | { kind: 'till'; x: number; y: number; stamina: number }
@@ -137,12 +140,14 @@ export function resolveAction(c: ActionContext): Action {
     if (plain) return structure.inv?.some(Boolean) ? blocked({ reason: 'chestNotEmpty' }) : { kind: 'pickup', structure };
     if (structure.type === 'bed') return { kind: 'sleep', structure };
     if (structure.type === 'raft') return { kind: 'raft', structure };
+    if (structure.type === 'boat') return { kind: 'boat' };
     if (structure.type === 'turret') return { kind: 'reload', structure };
     if (structure.type === 'chest' || STRUCTURES[structure.type].station) return { kind: 'open', structure };
   }
   const plot = tile >= 0 ? plotAt(c.farm, tile) : undefined;
   if (plot && isRipe(plot)) return { kind: 'harvest', x, y };
   if (c.npc) return { kind: 'talk', npc: c.npc };
+  if (c.dock) return { kind: 'boat' };
   if (c.entrance === 'lighthouse' && countItem(c.inv, 'lighthouse_key') === 0) return blocked({ reason: 'needsLighthouseKey' });
   if (c.entrance) return { kind: 'enter', dungeon: c.entrance };
   if (c.spot && c.spot.kind !== 'treasure') return { kind: 'inspect', spot: c.spot };

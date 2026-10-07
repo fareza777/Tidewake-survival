@@ -51,6 +51,7 @@ const spotsCache = new WeakMap<World, Spot[]>();
 
 /** Where each islander stands: beside their landmark, on the nearest free ground. Same island, same places. */
 export function npcPlaces(world: World): NpcPlace[] {
+  if (world.island !== undefined) return [];
   const cached = placesCache.get(world);
   if (cached) return cached;
   const taken = blockedTiles(world);
@@ -84,6 +85,7 @@ function spread(candidates: readonly number[], size: number, count: number, spac
 
 /** Every find on the island, placed from the seed: three treasure spots, four tablets, five bottles and one cat. */
 export function spotsOf(world: World): Spot[] {
+  if (world.island !== undefined) return [];
   const cached = spotsCache.get(world);
   if (cached) return cached;
   const size = world.size;

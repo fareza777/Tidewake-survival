@@ -16,9 +16,10 @@ import { noSkills, parseSkills, type Skills } from '@/sim/skills';
 import type { Structure, Structures } from '@/sim/structures';
 import { VITAL_MAX, fullVitals, type Difficulty, type Vitals } from '@/sim/vitals';
 import { GENERATOR_VERSION } from '@/sim/world/generate';
-import { WORLD_SIZE } from '@/sim/world/types';
+import { ISLAND_IDS, isIslandId, type Stash, type Stashes } from '@/sim/islands';
+import { WORLD_SIZE, type IslandId } from '@/sim/world/types';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 /** A save claiming more days than this is corrupt (real games last far fewer). */
 const MAX_DAY = 1_000_000;
 
@@ -61,6 +62,10 @@ export interface SaveSlot {
   buffs: Buff[];
   /** The last day a night raid was rolled for (so a reload does not roll twice). */
   raidDay: number;
+  /** The island the hero is on (`gather`, `structures`, `farm` and `respawn` are its own). */
+  island: IslandId;
+  /** The same four things for the other islands. */
+  stash: Stashes;
 }
 
 export interface SlotSummary {
@@ -82,7 +87,7 @@ export function newSlot(
     playTimeSec: 0, player: spawn, respawn: { ...spawn }, clock, gather: emptyGather(), inventory: emptyInventory(), selected: 0,
     vitals: fullVitals(), structures: { next: 1, list: [] }, farm: emptyFarm(), location: null, equipment: noEquipment(),
     dungeons: emptyDungeons(), dungeonVersion: DUNGEON_VERSION, quests: settle(emptyQuests(), emptyInventory(), QUESTS).q,
-    skills: noSkills(), buffs: [], raidDay: 0,
+    skills: noSkills(), buffs: [], raidDay: 0, island: 'home', stash: {},
   };
 }
 
@@ -158,6 +163,26 @@ function parseFarm(raw: unknown): Farm {
   return { plots };
 }
 
+function parseGatherState(raw: unknown): GatherState {
+  const gather = isRecord(raw) ? raw : undefined;
+  const hp = gather?.hp ?? {};
+  const gone = gather?.gone ?? {};
+  return isRecordOfNumbers(hp) && isRecordOfNumbers(gone) ? { hp, gone } : { hp: {}, gone: {} };
+}
+
+function parseStashes(raw: unknown): Stashes {
+  const out: Stashes = {};
+  if (!isRecord(raw)) return out;
+  for (const id of ISLAND_IDS) {
+    const e = raw[id];
+    if (!isRecord(e)) continue;
+    const respawn = isRecord(e.respawn) && isNum(e.respawn.x) && isNum(e.respawn.y) ? { x: e.respawn.x, y: e.respawn.y } : { x: 0, y: 0 };
+    const stash: Stash = { gather: parseGatherState(e.gather), structures: parseStructures(e.structures), farm: parseFarm(e.farm), respawn };
+    out[id] = stash;
+  }
+  return out;
+}
+
 /** Phase 1 saves kept loose materials in a `bag`; they become ordinary inventory items. */
 function inventoryFromBag(bag: unknown): Inventory {
   let inv = emptyInventory();
@@ -214,5 +239,7 @@ export function parseSlot(raw: unknown, slot: number): SaveSlot | null {
     skills: parseSkills(d.skills),
     buffs: parseBuffs(d.buffs),
     raidDay: isInt(d.raidDay) && d.raidDay >= 0 && d.raidDay <= MAX_DAY ? d.raidDay : 0,
+    island: isIslandId(d.island) ? d.island : 'home',
+    stash: d.version >= 6 ? parseStashes(d.stash) : {},
   };
 }

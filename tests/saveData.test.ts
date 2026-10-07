@@ -92,7 +92,7 @@ describe('parseSlot', () => {
   });
 
   it('rejects saves whose version is not one this game understands', () => {
-    for (const version of [0, -5, 6, 1.5, '2', null]) expect(parseSlot({ ...valid(), version }, 0), String(version)).toBeNull();
+    for (const version of [0, -5, 7, 1.5, '2', null]) expect(parseSlot({ ...valid(), version }, 0), String(version)).toBeNull();
   });
 
   it('drops unreadable inventory slots instead of failing the whole save', () => {
@@ -177,5 +177,31 @@ describe('parseSlot', () => {
 
   it('truncates very long names', () => {
     expect(parseSlot({ ...valid(), name: 'x'.repeat(100) }, 0)!.name).toHaveLength(16);
+  });
+});
+
+describe('islands in a save', () => {
+  const base = (): Record<string, unknown> => JSON.parse(JSON.stringify(make())) as Record<string, unknown>;
+
+  it('start on the home island with nothing stashed, and keep what was stashed for another island', () => {
+    const fresh = parseSlot(base(), 0)!;
+    expect(fresh.island).toBe('home');
+    expect(fresh.stash).toEqual({});
+    const away = {
+      ...base(), island: 'frost',
+      stash: {
+        home: { gather: { hp: { 3: 2 }, gone: { 4: 1 } }, structures: { next: 3, list: [{ id: 2, type: 'campfire', x: 5, y: 6 }] }, farm: { plots: {} }, respawn: { x: 7, y: 8 } },
+        moon: { gather: {}, structures: {}, farm: {}, respawn: {} },
+      },
+    };
+    const s = parseSlot(away, 0)!;
+    expect(s.island).toBe('frost');
+    expect(Object.keys(s.stash)).toEqual(['home']);
+    expect(s.stash.home).toMatchObject({ gather: { hp: { 3: 2 }, gone: { 4: 1 } }, respawn: { x: 7, y: 8 } });
+    expect(s.stash.home!.structures.list).toHaveLength(1);
+  });
+
+  it('falls back to the home island for an island it does not know', () => {
+    expect(parseSlot({ ...base(), island: 'atlantis' }, 0)!.island).toBe('home');
   });
 });
