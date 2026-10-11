@@ -1,13 +1,14 @@
-# Tidewake: Island Survival: Privacy Policy
+# Tidewake: Survival RPG — Privacy Policy
 
-Last updated: 2026-10-05
+Last updated: 2026-10-11
 
-Tidewake works entirely on your device.
+Tidewake: Survival RPG is an offline-first game. This policy explains the limited data used when optional advertising and the one-time Remove Ads purchase are enabled.
 
 - **No account, no sign-in.**
-- **No data is collected, sent or sold.** The game does not use analytics, advertising or tracking.
-- **Saved games and settings** are stored only on your device (browser storage and Android preferences) so that you can continue playing. Uninstalling the app or choosing "Delete all saves" in Settings removes them.
-- **Network use.** The game does not need a network connection to play. The Share button hands a short text and the store link to the sharing app you choose; the Rate button opens the Google Play review sheet or listing. Those are handled by Android and Google Play under their own policies.
-- **Children.** The game contains no ads, purchases or user-generated content.
+- **Saved games and settings** stay on your device (browser storage and Android preferences). Uninstalling the app or choosing "Delete all saves" removes them.
+- **Advertising.** The Android build may show Google AdMob banner ads. AdMob may process device identifiers, coarse location and ad interaction data to deliver, measure and prevent fraud on ads. Google handles that data under its own privacy policy and the consent choices shown in the app.
+- **Purchase.** The optional one-time **Remove Ads** product is processed by Google Play Billing. We receive the store transaction result needed to acknowledge the purchase and keep the entitlement on the device. We do not receive your payment card details.
+- **Network use.** The game can be played offline. Sharing and ratings open the Android or Google Play surfaces you choose.
+- **Children.** The game is not directed at children under 13 and does not knowingly collect personal information from children.
 
-Contact: see the address in the app's About screen and on the store listing. (Replace this paragraph with the final contact address before publishing; the project placeholder is `tidewake.game@example.com`.)
+Contact: tidewake.game@example.com
