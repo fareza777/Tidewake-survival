@@ -7,6 +7,7 @@ import { ITEMS, type ItemId } from '@/data/items';
 import type { Recipe } from '@/data/recipes';
 import { CHEST_SLOTS } from '@/data/structures';
 import { availableRecipes, canCraft, maxCrafts, missingFor } from '@/sim/crafting';
+import { armourCut } from '@/sim/combat';
 import { GEAR_SLOTS, gearStats } from '@/sim/equipment';
 import { HOTBAR_SIZE, INVENTORY_SIZE, canAfford, type Inventory } from '@/sim/inventory';
 import { sessionMods } from '@/sim/session';
@@ -224,7 +225,7 @@ export class InventoryScene extends BaseScene {
       this.ui.add(label(this, x + SLOT / 2, y + SLOT + 2, t(`gearSlot_${place}`), FONT.small, COLORS.textDim, 0.5, 0));
     });
     const g = gearStats(eq);
-    const lines = [t('gearStats', { d: g.defense })];
+    const lines = [t('gearStats', { d: g.defense, p: Math.round(armourCut(g.defense + sessionMods(this.world.session).defense) * 100) })];
     if (g.speed) lines.push(t('gearBonusSpeed', { n: Math.round(g.speed * 100) }));
     if (g.damage) lines.push(t('gearBonusDamage', { n: Math.round(g.damage * 100) }));
     if (g.regen) lines.push(t('gearBonusRegen', { n: g.regen }));

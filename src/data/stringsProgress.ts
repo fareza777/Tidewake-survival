@@ -33,7 +33,7 @@ export const PROGRESS_STRINGS: Record<string, L10n> = {
   gearSlot_boots: { en: 'Boots', id: 'Sepatu' },
   gearSlot_charm: { en: 'Charm', id: 'Jimat' },
   gearTitle: { en: 'Equipment', id: 'Perlengkapan' },
-  gearStats: { en: 'Defense {d}', id: 'Pertahanan {d}' },
+  gearStats: { en: 'Defense {d} (blows {p}% weaker)', id: 'Pertahanan {d} (serangan {p}% lebih lemah)' },
   gearBonusSpeed: { en: 'Speed +{n}%', id: 'Kecepatan +{n}%' },
   gearBonusDamage: { en: 'Damage +{n}%', id: 'Serangan +{n}%' },
   gearBonusRegen: { en: 'Stamina +{n}/s', id: 'Stamina +{n}/dtk' },

@@ -1,4 +1,4 @@
-import { loseHalfOfHotbar, type Inventory } from '@/sim/inventory';
+import { loseGoods, type Inventory } from '@/sim/inventory';
 import type { Difficulty, Vitals } from '@/sim/vitals';
 
 /** How the hero wakes up after collapsing: hurt, hungry and thirsty, but alive. */
@@ -11,9 +11,9 @@ export interface DeathResult {
   wipeSave: boolean;
 }
 
-/** Relaxed keeps everything, Normal loses half of the hotbar, Hardcore ends the game. */
-export function applyDeath(difficulty: Difficulty, inv: Inventory, roll: () => number): DeathResult {
+/** Relaxed keeps everything, Normal loses a third of the materials and food it carries (never tools or gear), Hardcore ends the game. */
+export function applyDeath(difficulty: Difficulty, inv: Inventory, _roll: () => number = Math.random): DeathResult {
   if (difficulty === 'hardcore') return { inv, vitals: RESPAWN_VITALS, wipeSave: true };
-  if (difficulty === 'normal') return { inv: loseHalfOfHotbar(inv, roll), vitals: RESPAWN_VITALS, wipeSave: false };
+  if (difficulty === 'normal') return { inv: loseGoods(inv), vitals: RESPAWN_VITALS, wipeSave: false };
   return { inv, vitals: RESPAWN_VITALS, wipeSave: false };
 }

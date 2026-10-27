@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DIFFICULTY_DAMAGE, HERO_IFRAMES, enemyDamage, facingFromVector, inSwing, knockbackVec } from '@/sim/combat';
+import { ARMOUR_CAP, DIFFICULTY_DAMAGE, HERO_IFRAMES, armourCut, enemyDamage, facingFromVector, inSwing, knockbackVec } from '@/sim/combat';
 
 const hero = { x: 10.5, y: 10.5 };
 
@@ -12,10 +12,21 @@ describe('enemyDamage', () => {
     expect(DIFFICULTY_DAMAGE.normal).toBeLessThan(DIFFICULTY_DAMAGE.hardcore);
   });
 
-  it('lets armour take points off but always leaves at least one', () => {
-    expect(enemyDamage(10, 'normal', 4)).toBe(6);
-    expect(enemyDamage(10, 'normal', 50)).toBe(1);
+  it('lets armour cut a share of every blow, never all of it, and always leaves at least one point', () => {
+    expect(enemyDamage(10, 'normal', 4)).toBe(9);
+    expect(enemyDamage(40, 'normal', 10)).toBe(28);
+    expect(enemyDamage(40, 'normal', 50)).toBe(10);
+    expect(enemyDamage(10, 'normal', 500)).toBe(3);
     expect(enemyDamage(1, 'relaxed', 0)).toBe(1);
+    expect(enemyDamage(1, 'normal', 24)).toBe(1);
+  });
+
+  it('keeps good armour worth more at every tier and caps the cut', () => {
+    expect(armourCut(0)).toBe(0);
+    expect(armourCut(8)).toBeLessThan(armourCut(14));
+    expect(armourCut(14)).toBeLessThan(armourCut(24));
+    expect(armourCut(1000)).toBe(ARMOUR_CAP);
+    expect(armourCut(-5)).toBe(0);
   });
 });
 

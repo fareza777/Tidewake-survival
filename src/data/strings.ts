@@ -308,7 +308,7 @@ export const UI_STRINGS: Record<string, L10n> = {
   diff_normal: { en: 'Normal', id: 'Normal' },
   diff_hardcore: { en: 'Hardcore', id: 'Hardcore' },
   diffDesc_relaxed: { en: 'Keep everything when you collapse.', id: 'Semua barang tetap saat kamu pingsan.' },
-  diffDesc_normal: { en: 'Lose half of your hotbar when you collapse.', id: 'Kehilangan separuh hotbar saat pingsan.' },
+  diffDesc_normal: { en: 'Lose a third of your materials and food when you collapse. Tools and gear are safe.', id: 'Kehilangan sepertiga bahan dan makanan saat pingsan. Alat dan perlengkapan aman.' },
   diffDesc_hardcore: { en: 'Collapsing deletes the save.', id: 'Pingsan menghapus simpanan.' },
   introSkip: { en: 'Skip', id: 'Lewati' },
   intro1: { en: 'Three nights ago, a storm tore the Tidewake apart.', id: 'Tiga malam lalu, badai mengoyak kapal Tidewake hingga berkeping-keping.' },

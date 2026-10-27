@@ -41,6 +41,8 @@ export class Player {
   private safeFor = 0;
   /** The sword animation is playing; walking poses wait until it is over. */
   private slashing = false;
+  /** Out of breath: the chest heaves and the idle animation quickens. */
+  private breathless = false;
 
   constructor(private scene: Phaser.Scene, pos: Vec, private skin = 1) {
     this.sprite = scene.add.sprite(0, 0, 'heroes', `hero${skin}/idle/down/0`).setOrigin(0.5, FEET_Y);
@@ -82,6 +84,10 @@ export class Player {
     const lean = pose === 'run' && (dir === 'left' || dir === 'right') ? (dir === 'right' ? 5 : -5) : 0;
     this.sprite.angle += (lean - this.sprite.angle) * Math.min(1, dt * 14);
     this.shadow.setScale(pose === 'idle' ? 1 : 1.1, 1);
+    if (this.breathless && !this.slashing) {
+      this.sprite.anims.timeScale = pose === 'idle' ? 2.2 : this.sprite.anims.timeScale;
+      this.sprite.setScale(1 + 0.025 * Math.sin(this.scene.time.now / 90), 1 + 0.05 * Math.sin(this.scene.time.now / 90 + 1.2));
+    }
     this.place(pos);
     if (pose === 'run') this.dust(dt);
     else this.dustIn = 0;
@@ -175,6 +181,12 @@ export class Player {
     this.lunge.y = 0;
     this.scene.tweens.add({ targets: this.lunge, x: push[0], y: push[1], duration: strikeMs, delay: windMs, yoyo: true, ease: 'Quad.easeOut' });
     this.punch();
+  }
+
+  /** The hero is out of breath (he heaves until his stamina comes back). */
+  setBreathless(on: boolean): void {
+    if (this.breathless && !on) this.sprite.setScale(1);
+    this.breathless = on;
   }
 
   /** Where the held tool lands when it strikes (world pixels), for the chips that fly off. */

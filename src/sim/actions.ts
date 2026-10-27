@@ -2,6 +2,7 @@ import { ITEMS, type ToolType, type WeaponStats } from '@/data/items';
 import type { NpcId } from '@/data/npcs';
 import type { CropId } from '@/data/crops';
 import { STRUCTURES, type StructureId } from '@/data/structures';
+import { isWoody } from '@/data/resources';
 import { STAMINA_TOOL } from '@/data/tools';
 import { canTill, isRipe, plotAt, type Farm } from '@/sim/farm';
 import type { DungeonId } from '@/sim/dungeon/progress';
@@ -197,7 +198,7 @@ export function resolveAction(c: ActionContext): Action {
   if (c.node) {
     const check = checkHit(c.node.kind, slot?.item ?? null);
     if (!check.ok) return blocked({ reason: 'needsTool', tool: check.tool, tier: check.tier });
-    const wood = c.node.kind === 'tree' || c.node.kind === 'palm' || c.node.kind === 'swamptree' || c.node.kind === 'bush';
+    const wood = isWoody(c.node.kind);
     const stamina = check.stamina * (wood ? mods.staminaWood : mods.staminaMine);
     if (c.vitals.stamina < stamina) return blocked({ reason: 'tired' });
     const damage = check.damage * (wood ? mods.chopDamage : mods.mineDamage) * (check.wear ? plus : 1);

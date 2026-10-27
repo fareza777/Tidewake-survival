@@ -36,8 +36,8 @@ function rulesFor(biome: number, ground: number): Rule[] {
       return [{ kind: 'swamptree', p: 0.05 }, { kind: 'driftwood', p: 0.035 }, { kind: 'bush', p: 0.02 }, { kind: 'rock', p: 0.012 }, { kind: 'ore', p: 0.006 }];
     case B.SKY:
       if (ground === T.SAND) return [{ kind: 'palm', p: 0.01 }];
-      if (ground === T.STONE) return [{ kind: 'rock', p: 0.06 }, { kind: 'ore', p: 0.035 }, { kind: 'crystal', p: 0.012 }, { kind: 'mithril', p: 0.008 }];
-      return [{ kind: 'tree', p: 0.07 }, { kind: 'bush', p: 0.02 }, { kind: 'rock', p: 0.015 }, { kind: 'crystal', p: 0.004 }];
+      if (ground === T.STONE) return [{ kind: 'skyrock', p: 0.06 }, { kind: 'ore', p: 0.035 }, { kind: 'crystal', p: 0.012 }, { kind: 'mithril', p: 0.008 }];
+      return [{ kind: 'skytree', p: 0.07 }, { kind: 'bush', p: 0.02 }, { kind: 'skyrock', p: 0.015 }, { kind: 'crystal', p: 0.004 }];
     default:
       return [];
   }

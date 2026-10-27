@@ -19,7 +19,8 @@ export const GROUND: ReadonlySet<number> = new Set([T.SAND, T.GRASS, T.SWAMP, T.
 export type LandmarkId =
   | 'start' | 'camp' | 'sailor' | 'herbalist' | 'miner' | 'grotto' | 'deepmine' | 'ruin'
   | 'lighthouse' | 'tablets' | 'treasure1' | 'treasure2' | 'treasure3'
-  | 'dock' | 'frostcave' | 'magmaforge' | 'drownedcrypt' | 'skyspire' | 'outpost';
+  | 'dock' | 'frostcave' | 'magmaforge' | 'drownedcrypt' | 'skyspire' | 'outpost'
+  | 'cache1' | 'cache2' | 'cache3' | 'cache4';
 
 export interface Landmark {
   id: LandmarkId;
@@ -30,7 +31,7 @@ export interface Landmark {
 
 export type ResourceKind =
   | 'tree' | 'palm' | 'bush' | 'rock' | 'ore' | 'crystal' | 'swamptree' | 'redrock' | 'mithril'
-  | 'pine' | 'icerock' | 'ashrock' | 'coalvein' | 'driftwood';
+  | 'pine' | 'icerock' | 'ashrock' | 'coalvein' | 'driftwood' | 'skytree' | 'skyrock';
 
 export interface ResourceNode {
   id: number;

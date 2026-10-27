@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { STRUCTURES } from '@/data/structures';
+import { makeBoat } from '@/gfx/boat';
 import { TILE } from '@/gfx/TerrainLayer';
 import type { Structure, Structures } from '@/sim/structures';
 
@@ -12,7 +13,7 @@ export interface LightSource {
 
 /** Sprites for everything the player has built. Depth follows the base line, like trees, so the hero walks around them. */
 export class StructureLayer {
-  private sprites = new Map<number, Phaser.GameObjects.Image>();
+  private sprites = new Map<number, Phaser.GameObjects.Image | Phaser.GameObjects.Container>();
 
   constructor(private scene: Phaser.Scene, structures: Structures) {
     for (const s of structures.list) this.add(s);
@@ -27,6 +28,10 @@ export class StructureLayer {
     }
     const x = (s.x + 0.5) * TILE;
     const y = (s.y + 1) * TILE - 1;
+    if (s.type === 'boat') {
+      this.sprites.set(s.id, makeBoat(this.scene, x, y + 2));
+      return;
+    }
     const obj = def.world
       ? this.scene.add.sprite(x, y, 'props', def.world.frame).play(def.world.anim)
       : this.scene.add.image(x, y, 'icons', def.frame);

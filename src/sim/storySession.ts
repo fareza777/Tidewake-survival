@@ -1,5 +1,6 @@
 import { Rng, hashString } from '@/core/rng';
 import { CREATURES, type CreatureId } from '@/data/creatures';
+import { cacheLoot } from '@/data/caches';
 import { ITEMS } from '@/data/items';
 import { BOTTLES, CAT_FOUND, TABLETS, TREASURE_LOOT } from '@/data/lore';
 import { NPCS, type NpcId } from '@/data/npcs';
@@ -12,6 +13,7 @@ import { giveItems, say } from '@/sim/sessionKit';
 import { pickTopic } from '@/sim/story';
 import { spendStamina } from '@/sim/vitals';
 import type { Spot } from '@/sim/world/spots';
+import type { IslandId } from '@/sim/world/types';
 
 /**
  * Everything the story does to a session: counters go up when things happen, the quests move along, rewards are paid
@@ -104,10 +106,13 @@ export function inspect(s: Session, spot: Spot): Step {
 export function dig(s: Session, spot: Spot, stamina: number): Step {
   if (s.quests.found.includes(spot.id)) return { session: s, fx: [] };
   const held = s.inventory[s.selected];
-  const given = giveItems(held && ITEMS[held.item].tool?.type === 'shovel' ? wearTool(s.inventory, s.selected) : s.inventory, TREASURE_LOOT[numberOf(spot) + 1] ?? []);
+  // A hidden chest on a far island ("cache:frost:2") holds that island's goods; the buried chests at home hold the old treasure.
+  const [kind, island, n] = spot.id.split(':');
+  const loot = kind === 'cache' ? cacheLoot(island as IslandId, Number(n)) : TREASURE_LOOT[numberOf(spot) + 1] ?? [];
+  const given = giveItems(held && ITEMS[held.item].tool?.type === 'shovel' ? wearTool(s.inventory, s.selected) : s.inventory, loot);
   if (given.overflow) return { session: s, fx: [say('msgFull')] };
   const dug: Session = { ...found(s, spot.id), inventory: given.inv, vitals: spendStamina(s.vitals, stamina) ?? s.vitals };
-  const r = story(dug, ['dig']);
+  const r = story(dug, [kind === 'cache' ? 'cache' : 'dig']);
   return { session: r.session, fx: [{ t: 'swing' }, say('msgDugUp'), ...given.fx, ...r.fx] };
 }
 

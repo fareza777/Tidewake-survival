@@ -11,12 +11,15 @@ import type { GameScene } from '@/scenes/GameScene';
 import type { Fx, Step } from '@/sim/session';
 import { chooseEnding, claimOwed, dawn, reached, recordKill, rewardKill } from '@/sim/session';
 import type { Text } from '@/sim/quests';
+import { markHint, nextHint } from '@/sim/hints';
 
 /** How often the story looks at where the hero stands and at rewards still owed (seconds), and how close counts as "reached" (tiles). */
 const LOOK_EVERY = 0.5;
 const REACH_RADIUS = 6;
 /** A fire or torch this close to the hero lights his night watch (tiles). */
 const LIGHT_RADIUS = 7;
+/** Seconds between two tips. */
+const HINT_GAP = 25;
 
 const lines = (texts: readonly Text[]): string[] => texts.map((x) => tr(x));
 
@@ -27,6 +30,8 @@ export class StoryDirector {
   private since = 0;
   private slept = false;
   private rateDue = false;
+  /** Seconds since a tip was last shown: tips come one at a time, a good while apart. */
+  private sinceHint = 0;
 
   constructor(private game: GameScene) {}
 
@@ -132,6 +137,7 @@ export class StoryDirector {
   update(dt: number): void {
     if (this.rateDue && !this.game.scene.isActive('Dialogue')) this.askRate();
     this.since += dt;
+    this.sinceHint += dt;
     if (this.since < LOOK_EVERY) return;
     this.since = 0;
     const g = this.game;
@@ -140,5 +146,17 @@ export class StoryDirector {
       if (Math.hypot(l.x + 0.5 - g.pos.x, l.y + 0.5 - g.pos.y) <= REACH_RADIUS) this.apply(reached(g.session, l.id));
     }
     this.apply(claimOwed(g.session));
+    this.tip();
+  }
+
+  /** Show the next one-time tip, if one applies and no dialogue is open. */
+  private tip(): void {
+    const g = this.game;
+    if (this.sinceHint < HINT_GAP || g.scene.isActive('Dialogue') || g.dead) return;
+    const id = nextHint(g.session);
+    if (!id) return;
+    this.sinceHint = 0;
+    g.session = markHint(g.session, id);
+    services.notify?.(t(`hint_${id}`));
   }
 }

@@ -156,18 +156,14 @@ export function takeOne(inv: Inventory, index: number): Inventory {
   return out;
 }
 
-/** Keep a random half of every hotbar stack (rounding the loss up), as a death penalty. Keys and story items are never lost. */
-export function loseHalfOfHotbar(inv: Inventory, roll: () => number): Inventory {
-  const out = inv.slice();
-  for (let i = 0; i < Math.min(HOTBAR_SIZE, out.length); i++) {
-    const s = out[i];
-    if (!s || ITEMS[s.item].keep) continue;
-    if (!stackable(s.item)) {
-      if (roll() < 0.5) out[i] = null;
-      continue;
-    }
-    const lost = Math.ceil(s.qty / 2);
-    out[i] = lost >= s.qty ? null : { ...s, qty: s.qty - lost };
-  }
-  return out;
+/**
+ * The death penalty: a third of every pile of materials, food and the like, wherever it lies in the backpack (rounding the
+ * loss up). Tools, weapons, armour, keys, story items and gold are never lost.
+ */
+export function loseGoods(inv: Inventory): Inventory {
+  return inv.map((s) => {
+    if (!s || ITEMS[s.item].keep || !stackable(s.item)) return s;
+    const lost = Math.ceil(s.qty / 3);
+    return lost >= s.qty ? null : { ...s, qty: s.qty - lost };
+  });
 }

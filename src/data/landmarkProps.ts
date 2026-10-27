@@ -39,6 +39,10 @@ export const LANDMARK_PROPS: Record<LandmarkId, readonly PropSpec[]> = {
     { frame: 'p/column_03', dx: -1, dy: 0, blocks: [[-1, 0]] },
     { frame: 'p/column_03', dx: 1, dy: 0, blocks: [[1, 0]] },
   ],
+  cache1: [{ frame: 'chest/chest_03/0', dx: 0, dy: 0 }],
+  cache2: [{ frame: 'chest/chest_01/0', dx: 0, dy: 0 }],
+  cache3: [{ frame: 'chest/chest_01/0', dx: 0, dy: 0 }],
+  cache4: [{ frame: 'chest/chest_01/0', dx: 0, dy: 0 }],
   ruin: [
     { frame: 'door/door_dungeon_10_h/0', dx: 0, dy: 0, blocks: [[0, 0]] },
     { frame: 'p/statue_01', dx: 0, dy: -1 },
@@ -56,7 +60,8 @@ export const LANDMARK_PROPS: Record<LandmarkId, readonly PropSpec[]> = {
   treasure2: [{ frame: 'chest/chest_01/0', dx: 0, dy: 0 }],
   treasure3: [{ frame: 'chest/chest_01/0', dx: 0, dy: 0 }],
   dock: [
-    { frame: 'struct_boat', atlas: 'icons', dx: 0, dy: 0, blocks: [[0, 0]] },
+    // The boat itself is drawn by IslandLevel; the crate under it keeps the tile solid.
+    { frame: 'p/crate_03', dx: 0, dy: 0, blocks: [[0, 0]] },
     { frame: 'p/barrel_02', dx: -2, dy: 1 },
     { frame: 'p/crate_03', dx: 2, dy: 1 },
   ],

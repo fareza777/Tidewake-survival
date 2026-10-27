@@ -19,6 +19,10 @@ export interface ResourceDef {
   tint?: number;
 }
 
+/** Trees, palms and bushes are chopped with an axe and train woodcutting; everything else is mined. */
+export const isWoody = (kind: ResourceKind): boolean =>
+  kind === 'tree' || kind === 'palm' || kind === 'swamptree' || kind === 'bush' || kind === 'pine' || kind === 'driftwood' || kind === 'skytree';
+
 export const RESOURCES: Record<ResourceKind, ResourceDef> = {
   tree: {
     frames: ['p/tree_02', 'p/tree_04', 'p/tree_13', 'p/tree_03', 'p/tree_01'],
@@ -55,6 +59,8 @@ export const RESOURCES: Record<ResourceKind, ResourceDef> = {
     hp: 9,
     drops: [{ item: 'iron_ore', min: 1, max: 2 }, { item: 'stone', min: 1, max: 1 }, { item: 'coal', min: 1, max: 2, chance: 0.5 }],
   },
+  skytree: { frames: ['p/tree_02', 'p/tree_04', 'p/tree_13', 'p/tree_03', 'p/tree_01'], hp: 5, tint: 0xd8c6ff, drops: [{ item: 'wood', min: 2, max: 4 }, { item: 'fiber', min: 1, max: 1, chance: 0.3 }, { item: 'crystal', min: 1, max: 1, chance: 0.04 }] },
+  skyrock: { frames: ['p/rock_18', 'p/rock_19', 'p/rock_20', 'p/rock_36'], hp: 7, tint: 0xcdbfff, drops: [{ item: 'stone', min: 2, max: 4 }, { item: 'crystal', min: 1, max: 1, chance: 0.1 }] },
   pine: { frames: ['p/tree_02', 'p/tree_04', 'p/tree_13'], hp: 6, tint: 0xbddcff, drops: [{ item: 'wood', min: 2, max: 4 }, { item: 'fiber', min: 1, max: 1, chance: 0.2 }] },
   icerock: { frames: ['p/rock_18', 'p/rock_19', 'p/rock_20'], hp: 7, tint: 0xa4d6ff, drops: [{ item: 'stone', min: 1, max: 3 }, { item: 'crystal', min: 1, max: 1, chance: 0.12 }] },
   ashrock: { frames: ['p/rock_18', 'p/rock_19', 'p/rock_36'], hp: 7, tint: 0x6e6874, drops: [{ item: 'stone', min: 1, max: 2 }, { item: 'coal', min: 1, max: 2, chance: 0.45 }] },

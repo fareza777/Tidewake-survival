@@ -5,6 +5,7 @@ import { t } from '@/core/i18n';
 import { view } from '@/core/viewport';
 import { ISLAND_IDS, islandNeeds } from '@/sim/islands';
 import { dungeonOf } from '@/data/islands';
+import { drawVignette } from '@/gfx/islandVignette';
 import type { IslandId } from '@/sim/world/types';
 import { COLORS, FONT } from '@/ui/theme';
 import { Button, label, panel, para } from '@/ui/widgets';
@@ -47,10 +48,13 @@ export class VoyageScene extends BaseScene {
     const here = s.island === id;
     const done = dungeonOf(id) !== null && s.dungeons[dungeonOf(id)!].boss;
     this.ui.add(panel(this, 12, y, W - 24, h, here ? 'ui_panel' : 'ui_panel_dark'));
-    this.ui.add(this.add.rectangle(20, y + 8, 6, h - 16, ISLAND_COLOR[id]).setOrigin(0, 0));
-    this.ui.add(label(this, 36, y + 8, t(`island_${id}`), FONT.head, needs ? COLORS.textDim : COLORS.gold));
-    this.ui.add(para(this, 36, y + 28, t(needs ?? `island_${id}_about`), W - 36 - 100, FONT.small, COLORS.textDim));
-    if (done) this.ui.add(label(this, 36, y + h - 18, t('islandConquered'), FONT.small, COLORS.gold));
+    const pic = drawVignette(this, 20, y + 8, PIC_W, h - 16, id);
+    if (needs) pic.setAlpha(0.45);
+    this.ui.add(pic);
+    const tx = 20 + PIC_W + 10;
+    this.ui.add(label(this, tx, y + 8, t(`island_${id}`), FONT.head, needs ? COLORS.textDim : COLORS.gold));
+    this.ui.add(para(this, tx, y + 28, t(needs ?? `island_${id}_about`), W - tx - 96, FONT.small, COLORS.textDim));
+    if (done) this.ui.add(label(this, W - 22, y + 10, t('islandConquered'), FONT.small, COLORS.gold, 1, 0));
     if (here) this.ui.add(label(this, W - 24, y + h / 2, t('islandHere'), FONT.small, COLORS.textDim).setOrigin(1, 0.5));
     else if (!needs) this.ui.add(new Button(this, W - 62, y + h / 2, t('setSail'), () => this.go(id), { w: 84, h: 30, style: 'primary' }));
   }
@@ -60,9 +64,12 @@ export class VoyageScene extends BaseScene {
     const { w: W } = view;
     const open = this.world.session.quests.done.includes('c9');
     this.ui.add(panel(this, 12, y, W - 24, h, 'ui_panel_dark'));
-    this.ui.add(this.add.rectangle(20, y + 8, 6, h - 16, 0x6a4a9a).setOrigin(0, 0));
-    this.ui.add(label(this, 36, y + 8, t('dungeon_depths'), FONT.head, open ? COLORS.gold : COLORS.textDim));
-    this.ui.add(para(this, 36, y + 28, t(open ? 'depths_about' : 'depths_locked'), W - 36 - 100, FONT.small, COLORS.textDim));
+    const pic = drawVignette(this, 20, y + 8, PIC_W, h - 16, 'depths');
+    if (!open) pic.setAlpha(0.45);
+    this.ui.add(pic);
+    const tx = 20 + PIC_W + 10;
+    this.ui.add(label(this, tx, y + 8, t('dungeon_depths'), FONT.head, open ? COLORS.gold : COLORS.textDim));
+    this.ui.add(para(this, tx, y + 28, t(open ? 'depths_about' : 'depths_locked'), W - tx - 96, FONT.small, COLORS.textDim));
     if (open) {
       this.ui.add(new Button(this, W - 62, y + h / 2, t('depths_enter'), () => {
         this.scene.stop();
@@ -87,4 +94,5 @@ export class VoyageScene extends BaseScene {
   }
 }
 
-const ISLAND_COLOR: Record<IslandId, number> = { home: 0x4f9a52, frost: 0xbfe4ff, ember: 0xe0602a, wreck: 0x4f8f86, sky: 0xb7a2ff };
+/** Width of the little picture on each card. */
+const PIC_W = 64;

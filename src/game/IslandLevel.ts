@@ -3,9 +3,11 @@ import type { Level, LevelView, Lit } from '@/game/Level';
 import { FarmLayer } from '@/gfx/FarmLayer';
 import { Rng } from '@/core/rng';
 import { WEATHER_DARKNESS, weatherAt } from '@/sim/weather';
+import { makeBoat } from '@/gfx/boat';
+import { SettlerLayer } from '@/gfx/SettlerLayer';
 import { StoryLayer } from '@/gfx/StoryLayer';
 import { StructureLayer } from '@/gfx/StructureLayer';
-import { TerrainLayer } from '@/gfx/TerrainLayer';
+import { TILE, TerrainLayer } from '@/gfx/TerrainLayer';
 import { WorldObjects } from '@/gfx/WorldObjects';
 import type { GameScene } from '@/scenes/GameScene';
 import { entranceAt } from '@/sim/dungeon/rules';
@@ -46,12 +48,15 @@ export class IslandLevel implements Level {
   private hero: Vec = { x: 0, y: 0 };
   private session: Session;
   private finds: Spot[];
+  /** The people who work for the hero, standing about his camp (on the home island). */
+  private settlerLayer: SettlerLayer;
 
   constructor(scene: GameScene, readonly world: World, session: Session) {
     this.nodes = nodesByTile(world);
     this.propTiles = propSolidTiles(world);
     new TerrainLayer(scene, world);
     this.objects = new WorldObjects(scene, world);
+    for (const l of world.landmarks) if (l.id === 'dock') makeBoat(scene, (l.x + 0.5) * TILE, (l.y + 1) * TILE + 2);
     for (const n of world.resources) if (!isAlive(session.gather, n.id)) this.objects.setAlive(n.id, false, false);
     this.structureLayer = new StructureLayer(scene, session.structures);
     this.farmLayer = new FarmLayer(scene, session.farm);
@@ -62,6 +67,7 @@ export class IslandLevel implements Level {
     this.session = session;
     this.finds = spotsOf(world);
     this.storyLayer = new StoryLayer(scene, this.places, this.finds);
+    this.settlerLayer = new SettlerLayer(scene, world);
   }
 
   place(saved: Vec): Vec {
@@ -130,6 +136,10 @@ export class IslandLevel implements Level {
 
   /** The islanders stroll about now and then, and glance at the hero when he is near. */
   update(dt: number): void {
+    if (this.world.island === undefined || this.world.island === 'home') {
+      this.settlerLayer.sync(this.session.settlers, this.session.respawn);
+      this.settlerLayer.update(dt, () => blockingTiles(this.world, this.propTiles, this.session).solids);
+    }
     this.places.forEach((p, i) => {
       this.nextStep[i] -= dt;
       if (this.nextStep[i] > 0) return;

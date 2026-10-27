@@ -1,4 +1,5 @@
 import { Rng, hashString } from '@/core/rng';
+import { CACHES_PER_ISLAND } from '@/data/caches';
 import { BOTTLES, TABLETS } from '@/data/lore';
 import { NPCS, NPC_IDS, type NpcId } from '@/data/npcs';
 import { nodesByTile, propSolidTiles } from '@/sim/solids';
@@ -83,9 +84,26 @@ function spread(candidates: readonly number[], size: number, count: number, spac
   return chosen;
 }
 
+/** The hidden chests of a far island (each marked with an X, like the buried treasure at home). */
+function cachesOf(world: World): Spot[] {
+  const cached = spotsCache.get(world);
+  if (cached) return cached;
+  const taken = blockedTiles(world);
+  const out: Spot[] = [];
+  for (let k = 1; k <= CACHES_PER_ISLAND; k++) {
+    const l = world.landmarks.find((m) => m.id === `cache${k}`);
+    if (!l) continue;
+    const p = freeNear(world, l.x, l.y, taken);
+    taken.add(idx(p.x, p.y, world.size));
+    out.push({ id: `cache:${world.island}:${k}`, kind: 'treasure', x: p.x, y: p.y });
+  }
+  spotsCache.set(world, out);
+  return out;
+}
+
 /** Every find on the island, placed from the seed: three treasure spots, four tablets, five bottles and one cat. */
 export function spotsOf(world: World): Spot[] {
-  if (world.island !== undefined) return [];
+  if (world.island !== undefined && world.island !== 'home') return cachesOf(world);
   const cached = spotsCache.get(world);
   if (cached) return cached;
   const size = world.size;

@@ -18,6 +18,7 @@ import { isWet, seasonOf, strainOf, weatherAt, type Strain } from '@/sim/weather
 import { gainXp, levelOf, type SkillId, type Skills } from '@/sim/skills';
 import { repairSlot, upgradeSlot } from '@/sim/upgrade';
 import { CREATURES, type CreatureId } from '@/data/creatures';
+import { isWoody } from '@/data/resources';
 import * as farmSim from '@/sim/farm';
 import { hitNode, startNewDay, type GatherState } from '@/sim/gather';
 import {
@@ -291,7 +292,7 @@ export function applyAction(s: Session, a: Action, pos: Vec): Step {
       const result = hitNode(s.gather, a.node, a.damage, s.clock.day, rng);
       const worn = a.wear ? wearTool(s.inventory, s.selected) : s.inventory;
       const mods = sessionMods(s);
-      const wood = a.node.kind === 'tree' || a.node.kind === 'palm' || a.node.kind === 'swamptree' || a.node.kind === 'bush';
+      const wood = isWoody(a.node.kind);
       // Skill and luck: now and then the last blow yields one more of the main drop.
       const extra = result.destroyed && result.drops.length > 0 && rng.chance(wood ? mods.yieldWood : mods.yieldMine)
         ? [{ item: result.drops[0].item, qty: 1 }] : [];

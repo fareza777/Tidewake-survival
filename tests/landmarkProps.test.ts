@@ -9,8 +9,8 @@ const PROPS = path.resolve(__dirname, '../public/assets/pack/props.json');
 const ICONS = path.resolve(__dirname, '../public/assets/pack/icons.json');
 
 describe('landmark props', () => {
-  it('defines scenery for all 19 landmarks', () => {
-    expect(Object.keys(LANDMARK_PROPS)).toHaveLength(19);
+  it('defines scenery for all 23 landmarks', () => {
+    expect(Object.keys(LANDMARK_PROPS)).toHaveLength(23);
     for (const props of Object.values(LANDMARK_PROPS)) expect(props.length).toBeGreaterThan(0);
   });
 

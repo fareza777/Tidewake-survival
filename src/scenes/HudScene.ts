@@ -6,6 +6,7 @@ import { view, vx, vy } from '@/core/viewport';
 import { ITEMS } from '@/data/items';
 import { controls } from '@/game/input';
 import { QUESTS } from '@/data/quests';
+import { IslandAmbience } from '@/gfx/IslandAmbience';
 import { WeatherFx } from '@/gfx/WeatherFx';
 import { clockLabel } from '@/sim/daynight';
 import { isHarmful, type BuffId } from '@/sim/buffs';
@@ -56,6 +57,9 @@ export class HudScene extends Phaser.Scene {
   private goldIcon!: Phaser.GameObjects.Image;
   /** The pulsing glow round the screen edge when a need is urgent (red for health, orange for hunger, blue for thirst, ice for cold). */
   private urgentGlow!: Phaser.GameObjects.Image;
+  /** The screen edge darkens as health runs out. */
+  private darkEdge!: Phaser.GameObjects.Image;
+  private ambience: IslandAmbience | null = null;
   private goldText!: Phaser.GameObjects.BitmapText;
   private weatherFx!: WeatherFx;
   private buffLayer!: Phaser.GameObjects.Container;
@@ -93,8 +97,13 @@ export class HudScene extends Phaser.Scene {
     this.goldText = this.add.bitmapText(121, 9, FONT.small, '').setTint(COLORS.gold).setDepth(5).setVisible(false);
     this.buffLayer = this.add.container(0, 0).setDepth(5);
     this.weatherFx = new WeatherFx(this);
+    this.ambience = this.world.level.dungeon ? null : new IslandAmbience(this, this.world.session.island);
+    this.darkEdge = this.add.image(W / 2, H / 2, 'fx_vignette').setDisplaySize(W * 1.1, H * 1.1).setAlpha(0).setDepth(3);
     this.urgentGlow = this.add.image(W / 2, H / 2, 'fx_edge').setDisplaySize(W * 1.08, H * 1.08).setAlpha(0).setDepth(3);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.weatherFx.destroy());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.weatherFx.destroy();
+      this.ambience?.destroy();
+    });
     // The boss's health, across the top of the screen, only while a boss fight is on.
     const bossW = Math.min(180, W - 120);
     this.bossName = this.add.bitmapText(W / 2, 10, FONT.small, '').setOrigin(0.5, 0).setTint(COLORS.gold).setDepth(5).setVisible(false);
@@ -296,6 +305,13 @@ export class HudScene extends Phaser.Scene {
     const needs: { value: number; tint: number }[] = [
       { value: v.hp, tint: 0xff3030 }, { value: v.thirst, tint: 0x2f7dff }, { value: v.hunger, tint: 0xff9a2a }, { value: v.warmth, tint: 0x9fe8ff },
     ];
+    // A bar of a need that is running out blinks, and the edge goes dark as health fails.
+    const beatNow = 0.5 + 0.5 * Math.sin((this.time.now / 1000) * 7);
+    [v.hp, v.hunger, v.thirst, v.stamina, v.warmth].forEach((value, i) => {
+      const bar = this.bars[i]?.bar;
+      if (bar) bar.setAlpha(value < URGENT_BELOW && (i !== 3 || value < 12) ? 0.55 + 0.45 * beatNow : 1);
+    });
+    this.darkEdge.setAlpha(v.hp < URGENT_BELOW ? (1 - v.hp / URGENT_BELOW) * (0.55 + 0.25 * beatNow) : 0);
     const worst = needs.filter((n) => n.value < URGENT_BELOW).sort((a, b) => a.value - b.value)[0];
     if (!worst) {
       this.urgentGlow.setAlpha(Math.max(0, this.urgentGlow.alpha - 0.04));

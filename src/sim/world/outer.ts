@@ -1,4 +1,5 @@
 import { Rng, hashString } from '@/core/rng';
+import { CACHES_PER_ISLAND } from '@/data/caches';
 import { keepLargestLand } from './terrain';
 import { fbm } from './noise';
 import { scatterResources } from './resources';
@@ -43,7 +44,7 @@ function groundFor(id: OuterId, seed: number, x: number, y: number, h: number): 
     case 'wreck':
       return patch > 0.62 ? T.SWAMP : patch < 0.3 ? T.SAND : T.DIRT;
     case 'sky':
-      return h > ROCK_LEVEL && patch > 0.5 ? T.STONE : T.GRASS;
+      return h > ROCK_LEVEL && patch > 0.5 ? T.STONE : patch > 0.68 ? T.GRASS : T.SNOW;
   }
 }
 
@@ -123,6 +124,25 @@ function placeOuterLandmarks(id: OuterId, terrain: Uint8Array, size: number, rng
   if (!spot.length) return null;
   const pick = rng.fork('dungeon').pick(spot);
   placed.push({ id: OUTER[id].dungeon, x: pick.x, y: pick.y, biome: b });
+  // Hidden chests scattered over the island, well apart from each other and from everything else.
+  const cacheRng = rng.fork('caches');
+  for (let k = 1; k <= CACHES_PER_ISLAND; k++) {
+    const options: { x: number; y: number }[] = [];
+    for (let relax = 1; relax >= 0.5 && options.length === 0; relax -= 0.25) {
+      for (let y = 5; y < size - 5; y++) {
+        for (let x = 5; x < size - 5; x++) {
+          const t = terrain[idx(x, y, size)];
+          if (t === T.SAND || !footprintIsLand(terrain, size, x, y, 1)) continue;
+          if (dist(x, y, start.x, start.y) < 10) continue;
+          if (placed.some((l) => dist(x, y, l.x, l.y) < 14 * relax)) continue;
+          options.push({ x, y });
+        }
+      }
+    }
+    if (!options.length) return null;
+    const at = cacheRng.pick(options);
+    placed.push({ id: `cache${k}` as LandmarkId, x: at.x, y: at.y, biome: b });
+  }
   return placed;
 }
 

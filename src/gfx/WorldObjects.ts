@@ -10,7 +10,7 @@ import type { ResourceKind, World } from '@/sim/world/types';
  */
 /** Width (world pixels) of the soft ground shadow under each kind of node. */
 const SHADOW_WIDTH: Record<ResourceKind, number> = {
-  tree: 46, palm: 30, bush: 26, rock: 28, ore: 28, crystal: 24, swamptree: 46, redrock: 26, mithril: 26, pine: 44, icerock: 28, ashrock: 28, coalvein: 28, driftwood: 22,
+  tree: 46, palm: 30, bush: 26, rock: 28, ore: 28, crystal: 24, swamptree: 46, redrock: 26, mithril: 26, pine: 44, icerock: 28, ashrock: 28, coalvein: 28, driftwood: 22, skytree: 46, skyrock: 28,
 };
 
 export class WorldObjects {

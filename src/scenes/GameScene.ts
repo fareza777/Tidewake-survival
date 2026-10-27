@@ -65,6 +65,8 @@ const AUTOSAVE_SECONDS = 15;
 const MAX_STEP = 0.05;
 /** Stamina recovers slowly for this long after the hero acts (seconds). */
 const BUSY_SECONDS = 1.2;
+/** Below this much stamina the hero is visibly out of breath. */
+const BREATHLESS_BELOW = 14;
 
 export interface GameInit {
   slot: number;
@@ -229,6 +231,7 @@ export class GameScene extends BaseScene {
     if (this.keys.running() && !this.running && wants && controls.run) controls.run = false;
     this.session = tickSession(this.session, dt, this.biomeAt(), this.idle < BUSY_SECONDS, this.running, this.pos);
     if (this.session.clock.day !== this.lastDay) this.onNewDay();
+    this.player.setBreathless(this.session.vitals.stamina < BREATHLESS_BELOW);
     this.checkRaid();
     this.warnCold(dt);
     if (isDead(this.session.vitals)) {

@@ -12,9 +12,16 @@ export const HERO_IFRAMES = 0.7;
 /** What the difficulty does to the damage monsters deal. */
 export const DIFFICULTY_DAMAGE: Record<Difficulty, number> = { relaxed: 0.6, normal: 1, hardcore: 1.4 };
 
+/** Every point of armour cuts this share of a blow, up to ARMOUR_CAP: good gear always matters, and nothing makes the hero immune. */
+export const ARMOUR_STEP = 0.03;
+export const ARMOUR_CAP = 0.75;
+
+/** The share of a blow that armour of `defense` points turns aside (0 to ARMOUR_CAP). */
+export const armourCut = (defense: number): number => Math.min(ARMOUR_CAP, Math.max(0, defense) * ARMOUR_STEP);
+
 /** Hit points a strike of `base` takes from the hero; `defense` is armour, and a hit always hurts at least one point. */
 export function enemyDamage(base: number, difficulty: Difficulty, defense = 0): number {
-  return Math.max(1, Math.round(base * DIFFICULTY_DAMAGE[difficulty]) - defense);
+  return Math.max(1, Math.round(base * DIFFICULTY_DAMAGE[difficulty] * (1 - armourCut(defense))));
 }
 
 const FACING: Record<Facing, readonly [number, number]> = { down: [0, 1], left: [-1, 0], right: [1, 0], up: [0, -1] };

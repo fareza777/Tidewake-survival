@@ -12,10 +12,15 @@ describe('applyDeath', () => {
     expect(r.vitals).toEqual(RESPAWN_VITALS);
   });
 
-  it('loses half of the hotbar on Normal and spares the rest of the backpack', () => {
+  it('loses a third of the materials on Normal, wherever they lie, and never a tool', () => {
     const r = applyDeath('normal', inv, () => 0.9);
-    expect(countItem(r.inv, 'wood')).toBe(5);
+    expect(countItem(r.inv, 'wood')).toBe(6);
     expect(countItem(r.inv, 'stone')).toBe(2);
+    const kit = addItem(addItem(inv, 'axe_wood', 1).inv, 'sword_iron', 1).inv;
+    expect(countItem(applyDeath('normal', kit, () => 0).inv, 'axe_wood')).toBe(1);
+    expect(countItem(applyDeath('normal', kit, () => 0).inv, 'sword_iron')).toBe(1);
+    const far = [...Array.from({ length: 20 }, () => null), { item: 'wood' as const, qty: 9 }, ...Array.from({ length: 11 }, () => null)];
+    expect(countItem(applyDeath('normal', far, () => 0).inv, 'wood')).toBe(6);
     expect(r.wipeSave).toBe(false);
     expect(countItem(inv, 'wood')).toBe(10);
   });
@@ -28,7 +33,7 @@ describe('applyDeath', () => {
       for (const item of ['boss_key', 'small_key', 'compass', 'hull_planks', 'lighthouse_key', 'armor_moss', 'armor_ironbones', 'armor_mire'] as const) {
         expect(countItem(r.inv, item), `${item} at roll ${roll}`).toBe(1);
       }
-      expect(countItem(r.inv, 'wood')).toBe(5);
+      expect(countItem(r.inv, 'wood')).toBe(6);
     }
   });
 

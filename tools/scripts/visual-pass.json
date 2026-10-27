@@ -1,0 +1,91 @@
+[
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded', '1'); localStorage.setItem('tidewake.tutorial', '1')"
+ },
+ {
+  "goto": "http://localhost:5199/"
+ },
+ {
+  "until": "window.__game && __game.scene.isActive('Menu')",
+  "timeout": 20000
+ },
+ {
+  "wait": 600
+ },
+ {
+  "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+ },
+ {
+  "until": "__game.scene.isActive('NewGame')",
+  "timeout": 10000
+ },
+ {
+  "wait": 400
+ },
+ {
+  "eval": "__game.scene.getScene('NewGame').goTo('Game', { slot: 0, seed: 1234, name: 'Ari', difficulty: 'normal' }), 1"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+  "timeout": 20000
+ },
+ {
+  "wait": 800
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const d = { ...g.session.dungeons }; for (const k of ['frostcave','magmaforge','drownedcrypt']) d[k] = { ...d[k], boss: true }; const x = Math.floor(g.pos.x), y = Math.floor(g.pos.y); const list = [{ id: 1, type: 'boat', x: x + 2, y: y }]; g.session = { ...g.session, dungeons: d, settlers: ['farmer','miner','cook'], structures: { next: 2, list }, respawn: { x: g.pos.x, y: g.pos.y }, quests: { ...g.session.quests, done: [...g.session.quests.done, 'c9'] } }; list.forEach((q) => g.level.structureLayer.add(q)); g.rebuildBlocking(); return 1; })()"
+ },
+ {
+  "wait": 2500
+ },
+ {
+  "shot": "v-home-settlers"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.openVoyage(); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Voyage')",
+  "timeout": 5000
+ },
+ {
+  "wait": 500
+ },
+ {
+  "shot": "v-chart"
+ },
+ {
+  "eval": "(() => { __game.scene.getScene('Voyage').go('sky'); return 1; })()"
+ },
+ {
+  "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.island === 'sky'",
+  "timeout": 20000
+ },
+ {
+  "wait": 2500
+ },
+ {
+  "shot": "v-sky-dock"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); const l = g.world.landmarks.find((x) => x.id === 'cache2'); g.pos = { x: l.x + 0.5, y: l.y + 3.5 }; return JSON.stringify(l); })()"
+ },
+ {
+  "wait": 2500
+ },
+ {
+  "shot": "v-sky-inland"
+ },
+ {
+  "eval": "(() => { const g = __game.scene.getScene('Game'); g.session = {...g.session, vitals: {...g.session.vitals, hp: 12, stamina: 5, thirst: 10}}; return 1; })()"
+ },
+ {
+  "wait": 1200
+ },
+ {
+  "shot": "v-distress"
+ }
+]

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  HOTBAR_SIZE, INVENTORY_SIZE, addItem, canAfford, countItem, emptyInventory, loseHalfOfHotbar, moveSlot, newSlot,
+  HOTBAR_SIZE, INVENTORY_SIZE, addItem, canAfford, countItem, emptyInventory, loseGoods, moveSlot, newSlot,
   removeItem, setDurability, spend, takeOne, wearTool, type Inventory,
 } from '@/sim/inventory';
 
@@ -135,22 +135,23 @@ describe('takeOne', () => {
   });
 });
 
-describe('loseHalfOfHotbar', () => {
-  it('halves stacks on the hotbar and leaves the rest of the backpack alone', () => {
+describe('loseGoods', () => {
+  it('takes a third of every pile of materials, wherever it lies, rounding the loss up', () => {
     let inv = addItem(empty, 'wood', 10).inv;
     inv = moveSlot(inv, 0, 20);
     inv = addItem(inv, 'stone', 5).inv;
     inv = addItem(inv, 'carrot', 1).inv;
-    const out = loseHalfOfHotbar(inv, () => 0.9);
-    expect(out[20]).toEqual({ item: 'wood', qty: 10 });
-    expect(out[0]).toEqual({ item: 'stone', qty: 2 });
+    const out = loseGoods(inv);
+    expect(out[20]).toEqual({ item: 'wood', qty: 6 });
+    expect(out[0]).toEqual({ item: 'stone', qty: 3 });
     expect(out[1]).toBeNull();
+    expect(inv[20]).toEqual({ item: 'wood', qty: 10 });
   });
 
-  it('breaks or keeps a tool depending on the roll', () => {
-    const inv = addItem(empty, 'axe_wood', 1).inv;
-    expect(loseHalfOfHotbar(inv, () => 0.2)[0]).toBeNull();
-    expect(loseHalfOfHotbar(inv, () => 0.8)[0]?.item).toBe('axe_wood');
+  it('never touches tools, armour, keys or gold', () => {
+    let inv = addItem(empty, 'axe_wood', 1).inv;
+    for (const item of ['armor_iron', 'boss_key', 'gold'] as const) inv = addItem(inv, item, 1).inv;
+    expect(loseGoods(inv)).toEqual(inv);
   });
 
   it('has the sizes the spec calls for', () => {

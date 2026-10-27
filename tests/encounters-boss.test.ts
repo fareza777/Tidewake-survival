@@ -40,7 +40,7 @@ describe('boss bolts', () => {
       e = r.e;
       for (const ev of r.events) if (ev.t === 'hurtHero') hits.push(ev.amount);
     }
-    expect(hits).toEqual([7]);
+    expect(hits).toEqual([9]);
     expect(e.shots).toEqual([]);
   });
 

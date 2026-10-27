@@ -168,7 +168,7 @@ describe('tickEncounters', () => {
     expect(run({})[0]).toBe(CREATURES.slime.damage);
     expect(run({ difficulty: 'relaxed' })[0]).toBe(4);
     expect(run({ difficulty: 'hardcore' })[0]).toBe(8);
-    expect(run({ defense: 4 })[0]).toBe(2);
+    expect(run({ defense: 4 })[0]).toBe(5);
     expect(run({ heroAlive: false })).toEqual([]);
   });
 
