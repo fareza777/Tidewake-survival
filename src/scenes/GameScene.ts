@@ -134,6 +134,7 @@ export class GameScene extends BaseScene {
   }
 
   create(data: GameInit): void {
+    void services.monetization?.hideBanner();
     this.transitioning = false;
     this.dead = false;
     this.wiped = false;
@@ -230,8 +231,8 @@ export class GameScene extends BaseScene {
     this.running = wants && (this.running ? stamina > 0.5 : stamina >= RUN_START);
     if (this.keys.running() && !this.running && wants && controls.run) controls.run = false;
     this.session = tickSession(this.session, dt, this.biomeAt(), this.idle < BUSY_SECONDS, this.running, this.pos);
-    if (this.session.clock.day !== this.lastDay) this.onNewDay();
     this.player.setBreathless(this.session.vitals.stamina < BREATHLESS_BELOW);
+    if (this.session.clock.day !== this.lastDay) this.onNewDay();
     this.checkRaid();
     this.warnCold(dt);
     if (isDead(this.session.vitals)) {

@@ -47,9 +47,9 @@ export interface WeaponStats {
   knockback: number;
 }
 
-/** A sprite: a frame in the `props` atlas (pack art) or in the generated `icons` atlas. */
+/** A sprite frame; inventory art is packed separately from world props and UI icons. */
 export interface IconRef {
-  atlas: 'props' | 'icons';
+  atlas: 'props' | 'icons' | 'itemArt';
   frame: string;
 }
 
@@ -85,8 +85,7 @@ export interface ItemDef {
 
 export type Tier = 1 | 2 | 3 | 4 | 5;
 
-const icons = (frame: string): IconRef => ({ atlas: 'icons', frame });
-const pack = (frame: string): IconRef => ({ atlas: 'props', frame });
+const icons = (frame: string): IconRef => ({ atlas: 'itemArt', frame });
 
 const material = (id: ItemId, frame: string): ItemDef => ({ id, stack: 99, icon: icons(frame) });
 const food = (id: ItemId, icon: IconRef, hunger: number, thirst: number, hp: number): ItemDef => ({
@@ -110,7 +109,7 @@ const gear = (id: ItemId, slot: GearSlot, defense: number, extra: Omit<NonNullab
   id, stack: 1, icon: icons(id), armor: { defense, slot, ...extra },
 });
 const keepsake = (id: ItemId, stack = 1): ItemDef => ({ id, stack, icon: icons(id), keep: true });
-const placeable = (id: ItemId, place: StructureId, stack = 10): ItemDef => ({ id, stack, icon: icons(`struct_${id}`), place });
+const placeable = (id: ItemId, place: StructureId, stack = 10): ItemDef => ({ id, stack, icon: icons(id), place });
 
 export const ITEMS: Record<ItemId, ItemDef> = {
   wood: material('wood', 'wood'),
@@ -123,11 +122,11 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   crystal: material('crystal', 'crystal'),
 
   coconut: food('coconut', icons('coconut'), 8, 22, 0),
-  berries: food('berries', pack('farmicon1/1'), 8, 3, 0),
-  carrot: food('carrot', pack('farmicon1/4'), 10, 2, 0),
-  turnip: food('turnip', pack('farmicon1/9'), 9, 2, 0),
-  pumpkin: food('pumpkin', pack('farmicon1/50'), 14, 3, 0),
-  corn: food('corn', pack('farmicon1/58'), 14, 0, 0),
+  berries: food('berries', icons('berries'), 8, 3, 0),
+  carrot: food('carrot', icons('carrot'), 10, 2, 0),
+  turnip: food('turnip', icons('turnip'), 9, 2, 0),
+  pumpkin: food('pumpkin', icons('pumpkin'), 14, 3, 0),
+  corn: food('corn', icons('corn'), 14, 0, 0),
   roasted_carrot: dish('roasted_carrot', icons('roasted_carrot'), 22, 2, 3, { warmth: 8 }),
   roasted_corn: dish('roasted_corn', icons('roasted_corn'), 28, 0, 4, { warmth: 8 }),
   baked_pumpkin: dish('baked_pumpkin', icons('baked_pumpkin'), 40, 4, 6, { warmth: 12 }),

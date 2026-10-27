@@ -153,7 +153,7 @@ export class Player {
     const wind = hand.wind;
     const strike = hand.strike;
     const img = this.scene.add.image(this.sprite.x + hand.x, this.sprite.y + hand.y, icon.atlas, icon.frame)
-      .setOrigin(0.14, 0.86).setFlipX(hand.flip).setScale(blade ? 1.05 : 0.95)
+      .setOrigin(0.14, 0.86).setFlipX(hand.flip).setDisplaySize(blade ? 16.8 : 15.2, blade ? 16.8 : 15.2)
       .setDepth(this.sprite.depth + (hand.front ? 0.5 : -0.5));
     const sign = hand.flip ? -1 : 1;
     const windMs = blade ? 55 : 70;

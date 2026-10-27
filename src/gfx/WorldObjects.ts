@@ -36,6 +36,7 @@ export class WorldObjects {
         const y = (l.y + p.dy + 1) * TILE - 1;
         const obj = p.anim ? scene.add.sprite(x, y, 'props', p.frame).play(p.anim) : scene.add.image(x, y, p.atlas ?? 'props', p.frame);
         obj.setOrigin(0.5, 1).setDepth(y);
+        if (p.size) obj.setDisplaySize(p.size[0], p.size[1]);
         if (p.tint !== undefined) obj.setTint(p.tint);
       }
     }

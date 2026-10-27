@@ -100,7 +100,7 @@ export interface ButtonOpts {
   h?: number;
   style?: 'normal' | 'primary' | 'danger' | 'ghost';
   font?: FontKey;
-  icon?: { atlas: string; frame?: string; scale?: number; tint?: number };
+  icon?: { atlas: string; frame?: string; scale?: number; size?: number; tint?: number };
   color?: number;
   sfx?: string;
   disabled?: boolean;
@@ -131,6 +131,7 @@ export class Button extends Phaser.GameObjects.Container {
     if (opts.icon) {
       const iconScale = opts.icon.scale ?? 1;
       this.icon = scene.add.image(0, 0, opts.icon.atlas, opts.icon.frame).setScale(iconScale);
+      if (opts.icon.size !== undefined) this.icon.setDisplaySize(opts.icon.size, opts.icon.size);
       if (opts.icon.tint !== undefined) this.icon.setTint(opts.icon.tint);
       this.add(this.icon);
     }

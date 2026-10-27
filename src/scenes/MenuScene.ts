@@ -19,6 +19,7 @@ export class MenuScene extends BaseScene {
     this.transitioning = false;
     this.fadeIn(400);
     services.audio?.playMusic('day');
+    void services.monetization?.showBanner();
     this.buildBackground();
     this.buildScenery();
     this.buildTitle();

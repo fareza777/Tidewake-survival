@@ -3,7 +3,7 @@ import { BaseScene } from './BaseScene';
 import type { GameScene } from './GameScene';
 import { t, tr } from '@/core/i18n';
 import { view } from '@/core/viewport';
-import type { ItemId } from '@/data/items';
+import { ITEMS, type ItemId } from '@/data/items';
 import { NPCS, type NpcId } from '@/data/npcs';
 import { SHOPS, sellPrice } from '@/data/shops';
 import { bountyProgress, offerFor, wantedName } from '@/sim/bounty';
@@ -104,7 +104,7 @@ export class ShopScene extends BaseScene {
       this.ui.add(new Button(this, W - 56, y + 21, `${row.price}`, () => {
         row.act();
         this.render();
-      }, { w: 76, h: 28, font: FONT.small, style: row.ok ? 'primary' : 'normal', disabled: !row.ok, icon: { atlas: 'icons', frame: 'gold', scale: 0.8 } }));
+      }, { w: 76, h: 28, font: FONT.small, style: row.ok ? 'primary' : 'normal', disabled: !row.ok, icon: { ...ITEMS.gold.icon, size: 12.8 } }));
     });
     if (pages > 1) {
       const y = TOP + ROWS_PER_PAGE * ROW_H + 8;

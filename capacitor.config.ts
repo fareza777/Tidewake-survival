@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.fajar.tidewake',
-  appName: 'Tidewake: Island Survival',
+  appName: 'Tidewake: Survival RPG',
   webDir: 'dist',
   android: { backgroundColor: '#0b0a14', allowMixedContent: false },
   plugins: {

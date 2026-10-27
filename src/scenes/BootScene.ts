@@ -3,6 +3,7 @@ import { Preferences } from '@capacitor/preferences';
 import { AudioManager } from '@/core/audio';
 import { detectLang, setLang } from '@/core/i18n';
 import { Platform } from '@/core/platform';
+import { Monetization } from '@/core/monetization';
 import { SaveStore } from '@/core/save';
 import { browserStorage } from '@/core/storage';
 import { services } from '@/core/services';
@@ -46,6 +47,8 @@ export class BootScene extends Phaser.Scene {
     const platform = new Platform();
     platform.hapticsEnabled = settings.vibration;
     services.platform = platform;
+    const monetization = new Monetization();
+    services.monetization = monetization;
     const audio = new AudioManager(this.game);
     audio.setMusicVolume(settings.musicVol);
     audio.setSfxVolume(settings.sfxVol);
@@ -53,6 +56,7 @@ export class BootScene extends Phaser.Scene {
     this.game.events.on(Phaser.Core.Events.HIDDEN, () => audio.setPaused(true));
     this.game.events.on(Phaser.Core.Events.VISIBLE, () => audio.setPaused(false));
     await platform.init();
+    await monetization.init();
     await saves.restoreFromNative(async (key) => (await Preferences.get({ key })).value);
     this.scene.start('Preload');
   }

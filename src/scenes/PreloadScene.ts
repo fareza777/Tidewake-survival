@@ -7,8 +7,8 @@ import { registerAnimations } from '@/gfx/animations';
 import { nine } from '@/ui/skin';
 import { COLORS, FONT } from '@/ui/theme';
 
-/** Sprite atlases built by tools/pack_assets.py. */
-const ATLASES = ['heroes', 'actors', 'monsters', 'props', 'icons'];
+/** Licensed world sprites, UI icons and the generated inventory / entrance art. */
+const ATLASES = ['heroes', 'actors', 'monsters', 'props', 'icons', 'itemArt', 'entrances'];
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {

@@ -39,9 +39,9 @@ const BARS = [
 
 /** The picture shown for each lasting effect. */
 const BUFF_ICON: Record<BuffId, { atlas: string; frame: string }> = {
-  wellfed: { atlas: 'icons', frame: 'cooked_meat' }, energized: { atlas: 'icons', frame: 'ui_bolt' }, warm: { atlas: 'icons', frame: 'ui_warm' },
-  strong: { atlas: 'icons', frame: 'sword_iron' }, swift: { atlas: 'icons', frame: 'boots_leather' }, fortified: { atlas: 'icons', frame: 'armor_iron' },
-  poisoned: { atlas: 'icons', frame: 'antidote' },
+  wellfed: ITEMS.cooked_meat.icon, energized: { atlas: 'icons', frame: 'ui_bolt' }, warm: { atlas: 'icons', frame: 'ui_warm' },
+  strong: ITEMS.sword_iron.icon, swift: ITEMS.boots_leather.icon, fortified: ITEMS.armor_iron.icon,
+  poisoned: ITEMS.antidote.icon,
 };
 
 /** Heads-up display on top of the island: vitals, time, hotbar, joystick and the USE, bag and pause buttons. */
@@ -93,7 +93,7 @@ export class HudScene extends Phaser.Scene {
     const { w: W, h: H } = view;
     this.dayText = this.add.bitmapText(8, 8, FONT.body, '').setTint(COLORS.text).setDepth(5);
     this.seasonText = this.add.bitmapText(8, 124, FONT.small, '').setTint(0xbfe6ff).setDepth(5);
-    this.goldIcon = this.add.image(112, 14, 'icons', 'gold').setDisplaySize(12, 12).setDepth(5).setVisible(false);
+    this.goldIcon = itemIcon(this, 112, 14, 'gold', 12).setDepth(5).setVisible(false);
     this.goldText = this.add.bitmapText(121, 9, FONT.small, '').setTint(COLORS.gold).setDepth(5).setVisible(false);
     this.buffLayer = this.add.container(0, 0).setDepth(5);
     this.weatherFx = new WeatherFx(this);

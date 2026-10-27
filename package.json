@@ -11,6 +11,7 @@
     "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "assets": "python tools/pack_assets.py && python tools/pack_tiles.py",
+    "art:pack": "python tools/pack_item_art.py",
     "audio": "python tools/gen_audio.py",
     "play": "node tools/play.mjs",
     "branding": "python tools/make_branding.py && python tools/make_android_assets.py",
@@ -20,6 +21,7 @@
     "android:release": "npm run android:sync && cd android && gradlew.bat bundleRelease"
   },
   "dependencies": {
+    "@capacitor-community/admob": "^8.2.1",
     "@capacitor-community/in-app-review": "^8.0.0",
     "@capacitor/android": "^8.5.2",
     "@capacitor/app": "^8.1.1",
@@ -30,6 +32,7 @@
     "@capacitor/share": "^8.0.2",
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.3",
+    "capacitor-billing": "^8.2.0",
     "phaser": "^3.90.0"
   },
   "devDependencies": {

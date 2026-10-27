@@ -14,6 +14,7 @@ export class AboutScene extends BaseScene {
   }
 
   create(): void {
+    void services.monetization?.showBanner();
     this.transitioning = false;
     this.cameras.main.setBackgroundColor(COLORS.bg0);
     this.fadeIn(250);
@@ -26,10 +27,18 @@ export class AboutScene extends BaseScene {
     const bw = Math.min(220, W - 60);
     new Button(this, W / 2, H - 112, t('aboutPrivacy'), () => services.platform?.openUrl(PRIVACY_URL), { w: bw, h: 30 });
     new Button(this, W / 2, H - 72, t('aboutContact'), () => services.platform?.openUrl(`mailto:${CONTACT_EMAIL}`), { w: bw, h: 30 });
+    if (!services.monetization?.hasRemovedAds()) {
+      new Button(this, W / 2, H - 152, t('removeAds'), () => void this.removeAds(), { w: bw, h: 30, style: 'primary' });
+    }
     new Button(this, W / 2, H - 30, t('back'), () => this.goTo('Menu'), { w: 140, h: 30, style: 'primary' });
     this.handleBack(() => {
       this.goTo('Menu');
       return true;
     });
+  }
+
+  private async removeAds(): Promise<void> {
+    const ok = await services.monetization?.purchaseRemoveAds();
+    if (ok) this.goTo('Menu');
   }
 }

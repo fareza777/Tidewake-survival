@@ -13,13 +13,14 @@ const atlasFrames = (name: string): Record<string, unknown> | null => {
 };
 const props = atlasFrames('props');
 const icons = atlasFrames('icons');
+const itemArt = atlasFrames('itemArt');
 const ready = !!props && !!icons;
 
 describe.skipIf(!ready)('packed art matches the game data', () => {
   it('has an icon for every item, in the atlas the item names', () => {
     for (const def of Object.values(ITEMS)) {
-      const frames = def.icon.atlas === 'icons' ? icons! : props!;
-      expect(frames[def.icon.frame], `${def.id}: ${def.icon.atlas}/${def.icon.frame}`).toBeDefined();
+      const frames = { props, icons, itemArt }[def.icon.atlas];
+      expect(frames?.[def.icon.frame], `${def.id}: ${def.icon.atlas}/${def.icon.frame}`).toBeDefined();
     }
   });
 

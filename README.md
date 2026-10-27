@@ -20,6 +20,12 @@ Sprites are packed from the licensed Unity pack *Super Retro Collection* by Gif,
 
 Generated files in `public/assets/pack/` and `src/data/tileIndex.ts` are committed.
 
+All 143 inventory items use the approved generated pixel art in `itemArt.png`;
+the eight island dungeon entrances have individual themed sprites in `entrances.png`.
+Source PNGs and the exact image_gen prompts live in `output/imagegen/full-v1/`.
+`npm run art:pack` prepares the transparent runtime atlases from those PNGs using nearest-neighbour scaling.
+World scenery and UI sprites retain their own atlases so repacking the licensed source cannot overwrite the new art.
+
 Sound is synthesized offline by code (no samples, no network, no API keys): `npm run audio` runs
 `tools/gen_audio.py`, which writes `public/assets/audio/` (a sound-effect sprite and three music loops as Ogg Vorbis).
 It needs `numpy`, `scipy` and `imageio-ffmpeg` (or `ffmpeg` on the PATH). The generated files are committed.

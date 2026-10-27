@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Tidewake: Island Survival</string>
-    <string name="title_activity_main">Tidewake: Island Survival</string>
+    <string name="app_name">Tidewake: Survival RPG</string>
+    <string name="title_activity_main">Tidewake: Survival RPG</string>
     <string name="package_name">com.fajar.tidewake</string>
     <string name="custom_url_scheme">com.fajar.tidewake</string>
+    <string name="admob_app_id">ca-app-pub-6279186647593327~3110225470</string>
 </resources>

@@ -293,6 +293,7 @@ export const UI_STRINGS: Record<string, L10n> = {
   },
   aboutPrivacy: { en: 'Privacy policy', id: 'Kebijakan privasi' },
   aboutContact: { en: 'Contact', id: 'Kontak' },
+  removeAds: { en: 'Remove ads · $4.99', id: 'Hapus iklan · $4.99' },
   ngTitle: { en: 'New Game', id: 'Game Baru' },
   ngSlot: { en: 'Save slot', id: 'Slot simpanan' },
   ngSlotEmpty: { en: 'Slot {n}: empty', id: 'Slot {n}: kosong' },

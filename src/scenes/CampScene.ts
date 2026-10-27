@@ -3,7 +3,7 @@ import { BaseScene } from './BaseScene';
 import type { GameScene } from './GameScene';
 import { t, tr } from '@/core/i18n';
 import { view } from '@/core/viewport';
-import { isItemId } from '@/data/items';
+import { ITEMS, isItemId } from '@/data/items';
 import { JOBS, JOB_DEFS, MAX_SETTLERS, hireCost, type Job } from '@/data/settlers';
 import { goldOf } from '@/sim/shop';
 import { itemIcon } from '@/ui/itemIcon';
@@ -46,7 +46,7 @@ export class CampScene extends BaseScene {
     this.ui.add(new Button(this, W - 60, y + 20, `${cost}`, () => {
       this.world.hireSettler(job);
       this.render();
-    }, { w: 80, h: 26, font: FONT.small, style: ok ? 'primary' : 'normal', disabled: !ok, icon: { atlas: 'icons', frame: 'gold', scale: 0.8 } }));
+    }, { w: 80, h: 26, font: FONT.small, style: ok ? 'primary' : 'normal', disabled: !ok, icon: { ...ITEMS.gold.icon, size: 12.8 } }));
   }
 
   private render(): void {

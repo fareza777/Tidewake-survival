@@ -3,6 +3,7 @@ dist
 dist-qa
 coverage
 tools/.cache
+__pycache__/
 android/build
 android/app/build
 android/.gradle

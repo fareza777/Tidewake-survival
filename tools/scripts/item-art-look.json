@@ -1,0 +1,278 @@
+[
+  {
+    "goto": "http://localhost:5199/"
+  },
+  {
+    "eval": "localStorage.clear(); localStorage.setItem('tidewake.onboarded','1'); localStorage.setItem('tidewake.tutorial','1')"
+  },
+  {
+    "goto": "http://localhost:5199/"
+  },
+  {
+    "until": "window.__game && __game.scene.isActive('Menu')",
+    "timeout": 20000
+  },
+  {
+    "eval": "__game.scene.getScene('Menu').goTo('NewGame'), 1"
+  },
+  {
+    "until": "__game.scene.isActive('NewGame')",
+    "timeout": 10000
+  },
+  {
+    "eval": "__game.scene.getScene('NewGame').goTo('Game',{slot:0,seed:1234,name:'Ari',difficulty:'normal'}),1"
+  },
+  {
+    "until": "__game.scene.isActive('Game') && __game.scene.isActive('Hud')",
+    "timeout": 20000
+  },
+  {
+    "wait": 800
+  },
+  {
+    "eval": "(async () => { const {ITEMS,ITEM_IDS}=await import('/src/data/items.ts'); window.__artItems=ITEMS; window.__artIds=ITEM_IDS; const missing=ITEM_IDS.filter(id=>!__game.textures.get(ITEMS[id].icon.atlas).frames[ITEMS[id].icon.frame]); if(missing.length) throw Error('Missing loaded sprites: '+missing.join(',')); return JSON.stringify({loadedItems:ITEM_IDS.length,itemArt:__game.textures.exists('itemArt'),entrances:__game.textures.exists('entrances')}); })()"
+  },
+  {
+    "eval": "(() => { const g=__game.scene.getScene('Game'); const d={...g.session.dungeons}; for(const id of ['frostcave','magmaforge','drownedcrypt'])d[id]={...d[id],boss:true}; g.session={...g.session,dungeons:d};g.openInventory({mode:'bag'});return 1; })()"
+  },
+  {
+    "until": "__game.scene.isActive('Inventory')",
+    "timeout": 5000
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const inventory=Array.from({length:32},(_,i)=>{const id=__artIds[0+i];if(!id)return null;const def=__artItems[id];return {item:id,qty:def.stack>1?Math.min(5,def.stack):1,...(def.tool?{dur:def.tool.durability}:{})};});g.session={...g.session,inventory,equipment:{armor:'armor_mithril',helm:'helm_crystal',boots:'boots_mithril',charm:'amulet_fortune'}};__game.scene.getScene('Inventory').render();return JSON.stringify({page:1,shown:inventory.filter(Boolean).map(s=>s.item)});})()"
+  },
+  {
+    "wait": 250
+  },
+  {
+    "shot": "items-1"
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const inventory=Array.from({length:32},(_,i)=>{const id=__artIds[32+i];if(!id)return null;const def=__artItems[id];return {item:id,qty:def.stack>1?Math.min(5,def.stack):1,...(def.tool?{dur:def.tool.durability}:{})};});g.session={...g.session,inventory,equipment:{armor:'armor_mithril',helm:'helm_crystal',boots:'boots_mithril',charm:'amulet_fortune'}};__game.scene.getScene('Inventory').render();return JSON.stringify({page:2,shown:inventory.filter(Boolean).map(s=>s.item)});})()"
+  },
+  {
+    "wait": 250
+  },
+  {
+    "shot": "items-2"
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const inventory=Array.from({length:32},(_,i)=>{const id=__artIds[64+i];if(!id)return null;const def=__artItems[id];return {item:id,qty:def.stack>1?Math.min(5,def.stack):1,...(def.tool?{dur:def.tool.durability}:{})};});g.session={...g.session,inventory,equipment:{armor:'armor_mithril',helm:'helm_crystal',boots:'boots_mithril',charm:'amulet_fortune'}};__game.scene.getScene('Inventory').render();return JSON.stringify({page:3,shown:inventory.filter(Boolean).map(s=>s.item)});})()"
+  },
+  {
+    "wait": 250
+  },
+  {
+    "shot": "items-3"
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const inventory=Array.from({length:32},(_,i)=>{const id=__artIds[96+i];if(!id)return null;const def=__artItems[id];return {item:id,qty:def.stack>1?Math.min(5,def.stack):1,...(def.tool?{dur:def.tool.durability}:{})};});g.session={...g.session,inventory,equipment:{armor:'armor_mithril',helm:'helm_crystal',boots:'boots_mithril',charm:'amulet_fortune'}};__game.scene.getScene('Inventory').render();return JSON.stringify({page:4,shown:inventory.filter(Boolean).map(s=>s.item)});})()"
+  },
+  {
+    "wait": 250
+  },
+  {
+    "shot": "items-4"
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const inventory=Array.from({length:32},(_,i)=>{const id=__artIds[128+i];if(!id)return null;const def=__artItems[id];return {item:id,qty:def.stack>1?Math.min(5,def.stack):1,...(def.tool?{dur:def.tool.durability}:{})};});g.session={...g.session,inventory,equipment:{armor:'armor_mithril',helm:'helm_crystal',boots:'boots_mithril',charm:'amulet_fortune'}};__game.scene.getScene('Inventory').render();return JSON.stringify({page:5,shown:inventory.filter(Boolean).map(s=>s.item)});})()"
+  },
+  {
+    "wait": 250
+  },
+  {
+    "shot": "items-5"
+  },
+  {
+    "eval": "__game.scene.getScene('Inventory').close(),1"
+  },
+  {
+    "wait": 300
+  },
+  {
+    "eval": "(async()=>{const {SHOPS}=await import('/src/data/shops.ts');const npc=Object.keys(SHOPS).find(id=>SHOPS[id]?.length);__game.scene.getScene('Game').openShop(npc);return npc;})()"
+  },
+  { "until": "__game.scene.isActive('Shop')", "timeout": 5000 },
+  { "wait": 250 },
+  {
+    "eval": "(()=>{const icons=__game.scene.getScene('Shop').ui.list.filter(child=>child.icon?.texture.key==='itemArt').map(child=>child.icon);if(!icons.length||icons.some(icon=>Math.abs(icon.displayWidth-12.8)>0.001))throw Error('Shop currency icon size');return JSON.stringify({shopCurrencyIcons:icons.length,width:icons[0].displayWidth});})()"
+  },
+  { "shot": "shop-items" },
+  { "eval": "__game.scene.getScene('Shop').close(),1" },
+  { "wait": 300 },
+  { "eval": "__game.scene.getScene('Game').openCamp(),1" },
+  { "until": "__game.scene.isActive('Camp')", "timeout": 5000 },
+  { "wait": 250 },
+  {
+    "eval": "(()=>{const icons=__game.scene.getScene('Camp').ui.list.filter(child=>child.icon?.texture.key==='itemArt').map(child=>child.icon);if(!icons.length||icons.some(icon=>Math.abs(icon.displayWidth-12.8)>0.001))throw Error('Camp currency icon size');return JSON.stringify({campCurrencyIcons:icons.length,width:icons[0].displayWidth});})()"
+  },
+  { "shot": "camp-items" },
+  { "eval": "__game.scene.getScene('Camp').close(),1" },
+  { "wait": 300 },
+  {
+    "eval": "(()=>{const g=__game.scene.getScene('Game');g.session={...g.session,buffs:['wellfed','energized','warm','strong','swift','fortified','poisoned'].map(id=>({id,until:9999}))};return 1;})()"
+  },
+  { "wait": 250 },
+  {
+    "eval": "(()=>{const hud=__game.scene.getScene('Hud');const icons=hud.buffLayer.list.filter(child=>child.texture?.key==='itemArt');if(icons.length!==5||hud.goldIcon.texture.key!=='itemArt')throw Error('HUD item icons');return JSON.stringify({buffItemIcons:icons.length,currencyAtlas:hud.goldIcon.texture.key,currencyWidth:hud.goldIcon.displayWidth});})()"
+  },
+  { "shot": "hud-items" },
+  { "eval": "(()=>{const g=__game.scene.getScene('Game');g.session={...g.session,buffs:[]};return 1;})()" },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const l=g.world.landmarks.find(l=>l.id==='grotto');if(!l)throw Error('Missing landmark grotto');g.pos={x:l.x+0.5,y:l.y+1.8};g.player.facing='up';return JSON.stringify({entrance:l.id,position:g.pos});})()"
+  },
+  {
+    "wait": 500
+  },
+  {
+    "shot": "entrance-grotto"
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const l=g.world.landmarks.find(l=>l.id==='deepmine');if(!l)throw Error('Missing landmark deepmine');g.pos={x:l.x+0.5,y:l.y+1.8};g.player.facing='up';return JSON.stringify({entrance:l.id,position:g.pos});})()"
+  },
+  {
+    "wait": 500
+  },
+  {
+    "shot": "entrance-deepmine"
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const l=g.world.landmarks.find(l=>l.id==='ruin');if(!l)throw Error('Missing landmark ruin');g.pos={x:l.x+0.5,y:l.y+1.8};g.player.facing='up';return JSON.stringify({entrance:l.id,position:g.pos});})()"
+  },
+  {
+    "wait": 500
+  },
+  {
+    "shot": "entrance-ruin"
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const l=g.world.landmarks.find(l=>l.id==='lighthouse');if(!l)throw Error('Missing landmark lighthouse');g.pos={x:l.x+0.5,y:l.y+1.8};g.player.facing='up';return JSON.stringify({entrance:l.id,position:g.pos});})()"
+  },
+  {
+    "wait": 500
+  },
+  {
+    "shot": "entrance-lighthouse"
+  },
+  {
+    "eval": "__game.scene.getScene('Game').setSail('frost'),1"
+  },
+  {
+    "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.island==='frost' && !__game.scene.getScene('Game').session.location",
+    "timeout": 20000
+  },
+  {
+    "wait": 600
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const l=g.world.landmarks.find(l=>l.id==='frostcave');if(!l)throw Error('Missing landmark frostcave');g.pos={x:l.x+0.5,y:l.y+1.8};g.player.facing='up';return JSON.stringify({entrance:l.id,position:g.pos});})()"
+  },
+  {
+    "wait": 500
+  },
+  {
+    "shot": "entrance-frostcave"
+  },
+  {
+    "eval": "__game.scene.getScene('Game').setSail('ember'),1"
+  },
+  {
+    "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.island==='ember' && !__game.scene.getScene('Game').session.location",
+    "timeout": 20000
+  },
+  {
+    "wait": 600
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const l=g.world.landmarks.find(l=>l.id==='magmaforge');if(!l)throw Error('Missing landmark magmaforge');g.pos={x:l.x+0.5,y:l.y+1.8};g.player.facing='up';return JSON.stringify({entrance:l.id,position:g.pos});})()"
+  },
+  {
+    "wait": 500
+  },
+  {
+    "shot": "entrance-magmaforge"
+  },
+  {
+    "eval": "__game.scene.getScene('Game').setSail('wreck'),1"
+  },
+  {
+    "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.island==='wreck' && !__game.scene.getScene('Game').session.location",
+    "timeout": 20000
+  },
+  {
+    "wait": 600
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const l=g.world.landmarks.find(l=>l.id==='drownedcrypt');if(!l)throw Error('Missing landmark drownedcrypt');g.pos={x:l.x+0.5,y:l.y+1.8};g.player.facing='up';return JSON.stringify({entrance:l.id,position:g.pos});})()"
+  },
+  {
+    "wait": 500
+  },
+  {
+    "shot": "entrance-drownedcrypt"
+  },
+  {
+    "eval": "__game.scene.getScene('Game').setSail('sky'),1"
+  },
+  {
+    "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.island==='sky' && !__game.scene.getScene('Game').session.location",
+    "timeout": 20000
+  },
+  {
+    "wait": 600
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const l=g.world.landmarks.find(l=>l.id==='skyspire');if(!l)throw Error('Missing landmark skyspire');g.pos={x:l.x+0.5,y:l.y+1.8};g.player.facing='up';return JSON.stringify({entrance:l.id,position:g.pos});})()"
+  },
+  {
+    "wait": 500
+  },
+  {
+    "shot": "entrance-skyspire"
+  },
+  {
+    "eval": "__game.scene.getScene('Game').setSail('home'),1"
+  },
+  {
+    "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.island==='home'",
+    "timeout": 20000
+  },
+  {
+    "wait": 500
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');const l=g.world.landmarks.find(l=>l.id==='grotto');g.pos={x:l.x+0.5,y:l.y+1.8};g.player.facing='up';return 1;})()"
+  },
+  {
+    "wait": 400
+  },
+  {
+    "eval": "(() => {const g=__game.scene.getScene('Game');g.player.swing('axe_mithril');return JSON.stringify({heldToolWidth:g.player.tool?.displayWidth,heldToolHeight:g.player.tool?.displayHeight});})()"
+  },
+  {
+    "wait": 100
+  },
+  {
+    "shot": "held-tool"
+  },
+  {
+    "wait": 600
+  },
+  {
+    "eval": "__game.scene.getScene('Game').perform({kind:'enter',dungeon:'grotto'}),1"
+  },
+  {
+    "until": "__game.scene.isActive('Game') && __game.scene.getScene('Game').session.location==='grotto'",
+    "timeout": 20000
+  },
+  {
+    "wait": 700
+  },
+  {
+    "shot": "entered-grotto"
+  },
+  {
+    "eval": "JSON.stringify(window.__errs)"
+  }
+]
