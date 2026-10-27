@@ -1,0 +1,20 @@
+{
+  "durationSeconds": 34.0,
+  "sampleRate": 48000,
+  "channels": 2,
+  "peakDbFS": -1.1103465569966273,
+  "rmsDbFS": -15.91642143188841,
+  "composition": "Original locally synthesized D-minor cinematic electronic score with percussion, bell motif, sea texture, risers, impacts and transition whooshes. No recordings or external samples.",
+  "sceneCutsSeconds": [
+    0,
+    2.5,
+    5.5,
+    9,
+    12,
+    16,
+    21,
+    24,
+    27,
+    30
+  ]
+}

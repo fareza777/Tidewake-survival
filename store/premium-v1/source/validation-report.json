@@ -1,0 +1,174 @@
+{
+  "verifiedAt": "2026-10-11T10:43:04.911505+00:00",
+  "language": "English",
+  "images": [
+    {
+      "file": "playstore\\app-icon-512.png",
+      "width": 512,
+      "height": 512,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 542832,
+      "sha256": "4385f1ea78e8e3f0a4bd489db6efc6a08ca73f86a75f5e56373344b83cd8a53a"
+    },
+    {
+      "file": "playstore\\app-icon-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 1924781,
+      "sha256": "2e80261a92977e680aeb49239629cb0dad653d44adfb8c5075cc99469d877b28"
+    },
+    {
+      "file": "playstore\\feature-graphic-1024x500.png",
+      "width": 1024,
+      "height": 500,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 826853,
+      "sha256": "5b075b43a244d9635f60f5258f1f550b2bfc1dcce9aad578ab553b03c93a41cb"
+    },
+    {
+      "file": "art\\feature-graphic-master-2048x1000.png",
+      "width": 2048,
+      "height": 1000,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 2724273,
+      "sha256": "c16a6a3e1acdb3a9ce88251270186a41daa93fa56f1c3e4e5594d4f0a36e06d9"
+    },
+    {
+      "file": "playstore\\screenshots\\01-shipwrecked-1080x1920.png",
+      "width": 1080,
+      "height": 1920,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 1078694,
+      "sha256": "cee33a929ff55d5cee709d0b76a0fad1b35e8c3c98375dafa429b3f78e7c14f3"
+    },
+    {
+      "file": "playstore\\screenshots\\02-craft-1080x1920.png",
+      "width": 1080,
+      "height": 1920,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 728684,
+      "sha256": "704c4912448dfe749d17050626869d5cd88dd961cabdf056d6d8335a30e1fb0c"
+    },
+    {
+      "file": "playstore\\screenshots\\03-build-1080x1920.png",
+      "width": 1080,
+      "height": 1920,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 941509,
+      "sha256": "b66b381eb97a069b7757f9464435f784164e563d8a1f6444b8f963449de43dfa"
+    },
+    {
+      "file": "playstore\\screenshots\\04-islands-1080x1920.png",
+      "width": 1080,
+      "height": 1920,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 1086021,
+      "sha256": "bbb29680e73598e3ec171c4b90ba0bf32194b9c57475fef1703d153811c0eed1"
+    },
+    {
+      "file": "playstore\\screenshots\\05-bosses-1080x1920.png",
+      "width": 1080,
+      "height": 1920,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 899707,
+      "sha256": "91ffb9ccf4bea4ab42240c2b641390ac0b0233485d99055af7d36448c84b9007"
+    },
+    {
+      "file": "playstore\\screenshots\\06-progression-1080x1920.png",
+      "width": 1080,
+      "height": 1920,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 888421,
+      "sha256": "e55c8a81cd33fd9bde38d142541c5a1d72b619afcdfba9010161c7943947056f"
+    },
+    {
+      "file": "playstore\\screenshots\\07-seasons-1080x1920.png",
+      "width": 1080,
+      "height": 1920,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 983452,
+      "sha256": "d83f58f7bbb05302548e99b15d5a0678488b6304a89495150111d5630643d620"
+    },
+    {
+      "file": "playstore\\screenshots\\08-story-1080x1920.png",
+      "width": 1080,
+      "height": 1920,
+      "format": "PNG",
+      "mode": "RGB",
+      "bytes": 895134,
+      "sha256": "08a77926984bd4dbc7dd817a136ab167b6d8f9e4ccf7c51491c3c3c0a1fceacb"
+    }
+  ],
+  "videos": [
+    {
+      "file": "video\\Tidewake-Trailer-EN-1920x1080.mp4",
+      "width": 1920,
+      "height": 1080,
+      "durationSeconds": 34.005,
+      "fps": 30,
+      "frames": 1020,
+      "videoCodec": "H.264",
+      "pixelFormat": "yuvj420p",
+      "colorRange": "pc",
+      "audioCodec": "AAC",
+      "audioSampleRate": 48000,
+      "audioChannels": 2,
+      "audioLevels": [
+        "mean_volume: -16.7 dB",
+        "max_volume: -1.8 dB"
+      ],
+      "fullDecode": "passed",
+      "bytes": 29822040,
+      "sha256": "1d986b8c18bd946b0f4d97410f0ca899a2ba2b62b27028d8b753b1061c41a9b4"
+    },
+    {
+      "file": "video\\Tidewake-Trailer-EN-1080x1920.mp4",
+      "width": 1080,
+      "height": 1920,
+      "durationSeconds": 34.005,
+      "fps": 30,
+      "frames": 1020,
+      "videoCodec": "H.264",
+      "pixelFormat": "yuvj420p",
+      "colorRange": "pc",
+      "audioCodec": "AAC",
+      "audioSampleRate": 48000,
+      "audioChannels": 2,
+      "audioLevels": [
+        "mean_volume: -16.7 dB",
+        "max_volume: -1.8 dB"
+      ],
+      "fullDecode": "passed",
+      "bytes": 35400558,
+      "sha256": "d3ecc477f69e0c94ea8d2025da7856b63456723a3b36b2e4a2f8e9712fbb25be"
+    }
+  ],
+  "capture": {
+    "runtimeErrors": 0,
+    "realGameplay": true,
+    "stagedThroughExistingQA": true,
+    "itemDefinitions": 143
+  },
+  "artDirection": {
+    "icon": "Brass compass, no human subject",
+    "characters": "Promotional characters in dark hood and armor, viewed from behind",
+    "visualReview": "All ten scenes reviewed in landscape and portrait; revised inventory crops and removed temporary notification overlays"
+  },
+  "sourceChecks": {
+    "typescript": "passed",
+    "eslint": "passed"
+  },
+  "status": "passed"
+}

@@ -1,0 +1,107 @@
+[
+  {
+    "name": "camp",
+    "frames": 120,
+    "durationSeconds": 4,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "craft",
+    "frames": 90,
+    "durationSeconds": 3,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "depths",
+    "frames": 90,
+    "durationSeconds": 3,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "ember",
+    "frames": 75,
+    "durationSeconds": 2.5,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "frost",
+    "frames": 75,
+    "durationSeconds": 2.5,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "frostcave",
+    "frames": 120,
+    "durationSeconds": 4,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "gather",
+    "frames": 90,
+    "durationSeconds": 3,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "gear",
+    "frames": 90,
+    "durationSeconds": 3,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "grotto",
+    "frames": 120,
+    "durationSeconds": 4,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "lighthouse",
+    "frames": 90,
+    "durationSeconds": 3,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "magmaforge",
+    "frames": 120,
+    "durationSeconds": 4,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "night",
+    "frames": 120,
+    "durationSeconds": 4,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "sky",
+    "frames": 75,
+    "durationSeconds": 2.5,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "stranded",
+    "frames": 90,
+    "durationSeconds": 3,
+    "width": 720,
+    "height": 1280
+  },
+  {
+    "name": "winter",
+    "frames": 90,
+    "durationSeconds": 3,
+    "width": 720,
+    "height": 1280
+  }
+]

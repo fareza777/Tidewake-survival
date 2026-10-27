@@ -1,0 +1,14 @@
+{
+  "name": "tidewake-launch-asset-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "assets": "node render-store.mjs",
+    "capture": "node capture.mjs",
+    "clips": "node encode-clips.mjs",
+    "gallery": "node serve.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "1.63.0"
+  }
+}
